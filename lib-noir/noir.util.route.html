@@ -18,6 +18,12 @@ and succeed if :id is equal to &quot;foo&quot;
 routes and calls Compojure defroutes, eg:
 (def-restricted-routes private-pages
   (GET &quot;/profile&quot; [] (show-profile)
-  (GET &quot;/my-secret-page&quot; [] (show-secret-page))</pre></div><div class="public" id="var-restricted"><h3>restricted</h3><h4 class="macro">macro</h4><div class="usage"><code>(restricted method url params &amp; body)</code></div><pre class="doc">Checks if any of the rules defined in wrap-access-rules match the method,
+  (GET &quot;/my-secret-page&quot; [] (show-secret-page))
+
+is equivalent to:
+
+(defroutes private-pages
+  (restricted GET &quot;/profile&quot; [] (show-profile)
+  (restricted GET &quot;/my-secret-page&quot; [] (show-secret-page))</pre></div><div class="public" id="var-restricted"><h3>restricted</h3><h4 class="macro">macro</h4><div class="usage"><code>(restricted method url params &amp; body)</code></div><pre class="doc">Checks if any of the rules defined in wrap-access-rules match the method,
 if no rules match then the response is a redirect to the location specified
 by the noir.util.middleware/wrap-access-rules wrapper.</pre></div></div></body></html>
