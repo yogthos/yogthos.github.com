@@ -268,7 +268,7 @@
          <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">partition</span></span><span class="hljs-number"> 2</span> rgb)</span>)</span>)</span>
 
 <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">defn</span></span> hex-str <span class="hljs-collection">[n]</span>
-  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">-&gt;</span></span> <span class="hljs-list">(<span class="hljs-title">clojure.core/format</span> <span class="hljs-string">"%2s"</span> <span class="hljs-list">(<span class="hljs-title">Integer/toString</span> n<span class="hljs-number"> 16</span>)</span>)</span>
+  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">-&gt;</span></span> <span class="hljs-list">(<span class="hljs-title">format</span> <span class="hljs-string">"%2s"</span> <span class="hljs-list">(<span class="hljs-title">Integer/toString</span> n<span class="hljs-number"> 16</span>)</span>)</span>
       <span class="hljs-list">(<span class="hljs-title">clojure.string/replace</span> <span class="hljs-string">" "</span> <span class="hljs-string">"0"</span>)</span>)</span>)</span>
 
 <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">defn</span></span> rgb-&gt;hex <span class="hljs-collection">[color]</span>
