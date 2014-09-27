@@ -177,13 +177,13 @@
 </code></pre>
 <p>The looping approach ends up having a lot more noise and thus we have to read through the code more carefully to tell what it's doing. The other problem is that the code becomes monolithic and no part of it can be used individually.</p>
 <p>Another example of a higher-order function is <code>filter</code>. This function goes through a collection and keeps only the items matching the specified predicate.</p>
-<pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">filter</span></span> even? <span class="hljs-collection">[1<span class="hljs-number"> 2</span><span class="hljs-number"> 3</span><span class="hljs-number"> 4</span><span class="hljs-number"> 5</span>]</span>)</span> =&gt; <span class="hljs-list">(<span class="hljs-title">2</span><span class="hljs-number"> 4</span>)</span>
+<pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">filter</span></span> even? <span class="hljs-collection">[<span class="hljs-number">1 2 3 4 5</span>]</span>)</span> =&gt; <span class="hljs-list">(<span class="hljs-number">2 4</span>)</span>
 </code></pre>
 <p>Higher order functions can be easily chained together to create complex transformations:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">filter</span></span> even?
-  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">map</span></span> #<span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">*</span></span><span class="hljs-number"> 3</span> %)</span> <span class="hljs-collection">[1<span class="hljs-number"> 2</span><span class="hljs-number"> 3</span><span class="hljs-number"> 4</span><span class="hljs-number"> 5</span>]</span>)</span>)</span>
+  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">map</span></span> #<span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">*</span></span><span class="hljs-number"> 3</span> %)</span> <span class="hljs-collection">[<span class="hljs-number">1 2 3 4 5</span>]</span>)</span>)</span>
 
-=&gt;<span class="hljs-list">(<span class="hljs-title">6</span><span class="hljs-number"> 12</span>)</span>
+=&gt;<span class="hljs-list">(<span class="hljs-number">6 12</span>)</span>
 </code></pre>
 <p>Here we multiply each item by 3, then we use <code>filter</code> to only keep the even items from the resulting sequence. Having higher-order functions means that you should rarely have to write loops or explicit recursion. When iterating a collection, use a function such as <code>map</code> or <code>filter</code> instead. Since Clojure has a rich standard library, practically any data transformation can be easily achieved by combining functions found there. See <a href="https://github.com/mythz/clojure-linq-examples">here</a> for some examples of this approach in action.</p>
 <p>Once you learn to associate data transformations with specific functions, many problems can be solved by simply putting these functions together in a specific order.</p>
