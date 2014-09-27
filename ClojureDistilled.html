@@ -233,7 +233,8 @@
 <p>One nontrivial difference between Clojure and imperative languages is the way the code is structured. In imperative style, it's a common pattern to declare a shared mutable variable and modify it by passing it different functions. Each time we access the memory location we see the result of the code that previously worked with it. For example, if we have a list of integers and we wish to square each one then print the even ones, the following Python code would be perfectly valid:</p>
 <pre><code class="lang-python hljs ">l = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>]
 
-<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> l : i = i*i
+<span class="hljs-keyword">for</span> i, val <span class="hljs-keyword">in</span> enumerate(l) :
+  l[i] = val * val
 
 <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> l :
   <span class="hljs-keyword">if</span> i % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> :
