@@ -142,8 +142,8 @@
 </code></pre>
 <p>The <code>defn</code> form behaves the same as the <code>fn</code> form we saw above, except that its first argument is the name of the function. The body of the function can consist of multiple expressions:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">defn</span></span> bmi <span class="hljs-collection">[height weight]</span>
-  <span class="hljs-list">(<span class="hljs-title">println</span> <span class="hljs-string">"height: height)
-  (println "</span>weight:<span class="hljs-string">" weight)
+  <span class="hljs-list">(<span class="hljs-title">println</span> <span class="hljs-string">"height:"</span> height)
+  (<span class="hljs-title">println</span> <span class="hljs-string">"weight:"</span> weight)
   (/ weight (* height height)))
 </span></span></span></code></pre>
 <p>Here we define a function to calculate the BMI using the height and weight parameters. The body consists of two print statements and a call to divide the weight by the square of the height. All the expressions are evaluated from the inside out. In the last statement, <code>(* height height)</code> is evaluated, then the weight is divided by the result and returned. In Clojure, mathematical operators, such as <code>/</code> and <code>*</code>, are regular functions and so we call them using the prefix notation as we would with any other function.</p>
