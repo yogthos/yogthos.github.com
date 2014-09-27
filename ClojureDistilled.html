@@ -250,7 +250,7 @@
      <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">filter</span></span> #<span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">=</span></span> <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">mod</span></span> %<span class="hljs-number"> 2</span>)</span><span class="hljs-number"> 0</span>)</span>)</span>
      <span class="hljs-list">(<span class="hljs-title">println</span>)</span>)</span>
 </code></pre>
-<p>Each function returns a new value instead of modifying the existing data in place. You might think that this can get very expensive, and it would be with a naïve implementation where the entirety of the data is copied with every change.</p>
+<p>Each function returns a new value instead of modifying the existing data in place. You might think that this can get very expensive, and it would be with a na&iuml;ve implementation where the entirety of the data is copied with every change.</p>
 <p>In reality, Clojure is backed by persistent data structures that create in-memory revisions of the data. Each time a change is made a new revision is created proportional to the size of the change. With this approach we only pay the price of the difference between the old and the new structures while ensuring that any changes are localized.</p>
 <h3 id="destructuring">Destructuring</h3>
 <p>Clojure has a powerful mechanism called destructuring for declaratively accessing values in data structures. This technique provides easy to access to the data and serves to document the parameters to a function. Let's look at some examples to see how it works.</p>
