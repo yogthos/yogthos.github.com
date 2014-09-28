@@ -199,7 +199,7 @@
 <span class="hljs-list">(<span class="hljs-title">concat-fields</span> <span class="hljs-string">""</span> <span class="hljs-string">"1 Main street"</span> <span class="hljs-string">"Toronto"</span> <span class="hljs-literal">nil</span> <span class="hljs-string">"Canada"</span>)</span>
 <span class="hljs-prompt">=&gt; </span>"1 Main street, Toronto, Canada"
 </code></pre>
-<p>Notice that we didn't have to specify how to do any of the tasks when writing our code. Most of the time we simply say what we're doing by composing the functions representing the operations we wish to carry out. The resulting code also handles all the common edge cases out of the box:</p>
+<p>Notice that we didn't have to specify how to do any of the tasks when writing our code. Most of the time we simply say what we're doing by composing the functions representing the operations we wish to carry out. The resulting code also handles all the common edge cases:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title">concat-fields</span>)</span> =&gt; ""
 <span class="hljs-list">(<span class="hljs-title">concat-fields</span> <span class="hljs-literal">nil</span>)</span> =&gt; ""
 <span class="hljs-list">(<span class="hljs-title">concat-fields</span> <span class="hljs-string">""</span>)</span> =&gt; ""
