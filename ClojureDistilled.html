@@ -537,7 +537,7 @@ Note that both <code>swap!</code> and <code>reset!</code> end in an exclamation 
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title">File.</span> <span class="hljs-string">"."</span>)</span>
 </code></pre>
 <h3 id="calling-methods">Calling Methods</h3>
-<p>Once we have an instance of a class, we can start calling methods on it. The notation is similar to making a regular function call. When we call a method, we pass the object its first parameter followed by any other parameters that the method accepts.</p>
+<p>Once we have an instance of a class, we can start calling methods on it. The notation is similar to making a regular function call. When we call a method, we pass the object as its first parameter followed by any other parameters that the method accepts.</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">let</span></span> <span class="hljs-collection">[f <span class="hljs-list">(<span class="hljs-title">File.</span> <span class="hljs-string">"."</span>)</span>]</span>
   <span class="hljs-list">(<span class="hljs-title">println</span> <span class="hljs-list">(<span class="hljs-title">.getAbsolutePath</span> f)</span>)</span>)</span>
 </code></pre>
