@@ -134,7 +134,7 @@
 <h3 id="named-functions">Named Functions</h3>
 <p>Named functions are simply anonymous functions bound to a symbol used as an identifier. Clojure provides a special form called <code>def</code> that's used for creating global variables. It accepts a name and the body to be assigned to it. We can create a named function using the <code>def</code> form as follows:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">def</span></span> double
-  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">fn</span></span> <span class="hljs-list">(<span class="hljs-collection">[x]</span> <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">*</span></span><span class="hljs-number"> 2</span> x)</span>)</span>)</span>)</span>
+  <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">fn</span></span> <span class="hljs-collection">[x]</span> <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">*</span></span><span class="hljs-number"> 2</span> x)</span>)</span>)</span>
 </code></pre>
 <p>Since this is such a common operation, Clojure provides a special form called <code>defn</code> that does it for us:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">defn</span></span> square <span class="hljs-collection">[x]</span>
