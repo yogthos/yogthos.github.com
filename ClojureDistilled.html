@@ -376,7 +376,7 @@
 </code></pre>
 <p>We set <code>*foo*</code> to a string with value "I exist!" inside the <code>with-foo</code> function. When our anonymous function is called inside with-foo we no longer get an error when trying to print its value.</p>
 <p>This technique can be useful when dealing with resources such as file streams, database connections, or scoped variables. In general, the use of dynamic variables is discouraged since they make code more opaque and difficult to reason about. However, there are legitimate uses for them, and it's worth knowing how they work.</p>
-<h2 id="dynamic-polymorphism">Dynamic Polymorphism</h2>
+<h2 id="polymorphism">Polymorphism</h2>
 <p>One useful aspect of object-orientation is polymorphism, while it happens to be associated with that style it's in no way exclusive to it. Clojure provides two common ways to achieve runtime polymorphism. Let's look at each of these in turn.</p>
 <h3 id="multimethods">Multimethods</h3>
 <p>Multimethods provide an extremely flexible dispatching mechanism using a selector function associated with one or more methods. The multimethod is defined using <code>defmulti</code> and its methods are each defined using <code>defmethod</code>. For example, if we had different shapes and we wanted to write a multimethod to calculate the area we could do the following:</p>
