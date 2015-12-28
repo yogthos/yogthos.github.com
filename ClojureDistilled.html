@@ -480,7 +480,7 @@ Note that both <code>swap!</code> and <code>reset!</code> end in an exclamation 
 <p>Note that since this is happening inside a transaction, the check for emptiness depends on the existing state along with any state built up within the same transaction. If we tried to add or remove a name in a different transaction, it would have no visible effect on ours. In case of a collision, one of the transactions would end up being retried.</p>
 <h2 id="writing-code-that-writes-code">Writing Code That Writes Code</h2>
 <p>Clojure, being a Lisp, provides a powerful macro system. Macros allow templating repetitive blocks of code and deferring evaluation, among numerous other uses. A macro works by treating code as data instead of evaluating it. This allows us to manipulate the code tree just like any other data structure.</p>
-<p>Macros execute before compile time and the compiler sees the result of macro execution. Because of this level of indirection, macros can be difficult to reason about, and thus it's best not to use them when a function will do the job.</p>
+<p>Macros execute before evaluation time and the evaluator sees the result of macro execution. Because of this level of indirection, macros can be difficult to reason about, and thus it's best not to use them when a function will do the job.</p>
 <p>Let's look at a concrete example of a macro and see how it differs from the regular code we saw previously. Imagine that we have a web application with a session atom that might contain a user. We might want to load certain content only if a user is present in the session and not otherwise.</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">def</span></span> session <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">atom</span></span> <span class="hljs-collection">{<span class="hljs-attribute">:user</span> <span class="hljs-string">"Bob"</span>}</span>)</span>)</span>
 
@@ -508,7 +508,7 @@ Note that both <code>swap!</code> and <code>reset!</code> end in an exclamation 
     <span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">do</span></span> <span class="hljs-list">(<span class="hljs-title">println</span> greeting)</span>)</span>
     <span class="hljs-string">"please log in"</span>)</span>)</span>
 </code></pre>
-<p>We can see that <code>(defprivate foo (println "bar"))</code> gets rewritten with a function definition that has the <code>if</code> statement inside. This resulting code is what the compiler will see, and it's equivalent to what we would have to write by hand otherwise. Now we can simply define a private function using our macro, and it will do the check for us automatically.</p>
+<p>We can see that <code>(defprivate foo (println "bar"))</code> gets rewritten with a function definition that has the <code>if</code> statement inside. This resulting code is what the evaluator will see, and it's equivalent to what we would have to write by hand otherwise. Now we can simply define a private function using our macro, and it will do the check for us automatically.</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title">defprivate</span> foo <span class="hljs-collection">[message]</span> <span class="hljs-list">(<span class="hljs-title">println</span> message)</span>)</span>
 
 <span class="hljs-list">(<span class="hljs-title">foo</span> <span class="hljs-string">"this message is private"</span>)</span>
