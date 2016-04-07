@@ -847,7 +847,7 @@ This concludes our tour of Clojure basics. While we only touched on only a small
 * [Clojure style guide](https://github.com/bbatsov/clojure-style-guide)
 
 <p>
-Copyright &copy; <span id="year">2015</span> Dmitri Sotnikov
+Copyright &copy; <span id="year">2016</span> Dmitri Sotnikov
 </p>
 </div>
 <script type="text/javascript">
