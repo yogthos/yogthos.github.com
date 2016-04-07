@@ -1,3 +1,57 @@
+<html>
+<head>
+<title>Clojure Distilled</title>
+<style>
+    body {
+        font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding-top: 72px;
+        -webkit-font-smoothing: antialiased;
+        font-size: 1.125em;
+        color: #333;
+        line-height: 1.5em;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #000;
+    }
+    h1 {
+        font-size: 2.5em
+    }
+    
+    h2 {
+        font-size: 2em
+    }
+    
+    h3 {
+        font-size: 1.5em
+    }
+    
+    h4 {
+        font-size: 1.375em
+    }
+    
+    h5 {
+        font-size: 1.25em
+    }
+    
+    h6 {
+        font-size: 1.125em
+    }
+    a {
+        text-decoration: none;
+        color: #09f;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    code {
+        border-radius: 5px;
+    }
+    .hljs{display:block;overflow-x:auto;padding:.5em;background:#f0f0f0}.hljs,.hljs-subst,.hljs-tag .hljs-title,.lisp .hljs-title,.clojure .hljs-built_in,.nginx .hljs-title{color:black}.hljs-string,.hljs-title,.hljs-constant,.hljs-parent,.hljs-tag .hljs-value,.hljs-rules .hljs-value,.hljs-preprocessor,.hljs-pragma,.haml .hljs-symbol,.ruby .hljs-symbol,.ruby .hljs-symbol .hljs-string,.hljs-template_tag,.django .hljs-variable,.smalltalk .hljs-class,.hljs-addition,.hljs-flow,.hljs-stream,.bash .hljs-variable,.apache .hljs-tag,.apache .hljs-cbracket,.tex .hljs-command,.tex .hljs-special,.erlang_repl .hljs-function_or_atom,.asciidoc .hljs-header,.markdown .hljs-header,.coffeescript .hljs-attribute{color:#800}.smartquote,.hljs-comment,.hljs-annotation,.hljs-template_comment,.diff .hljs-header,.hljs-chunk,.asciidoc .hljs-blockquote,.markdown .hljs-blockquote{color:#888}.hljs-number,.hljs-date,.hljs-regexp,.hljs-literal,.hljs-hexcolor,.smalltalk .hljs-symbol,.smalltalk .hljs-char,.go .hljs-constant,.hljs-change,.lasso .hljs-variable,.makefile .hljs-variable,.asciidoc .hljs-bullet,.markdown .hljs-bullet,.asciidoc .hljs-link_url,.markdown .hljs-link_url{color:#080}.hljs-label,.hljs-javadoc,.ruby .hljs-string,.hljs-decorator,.hljs-filter .hljs-argument,.hljs-localvars,.hljs-array,.hljs-attr_selector,.hljs-important,.hljs-pseudo,.hljs-pi,.haml .hljs-bullet,.hljs-doctype,.hljs-deletion,.hljs-envvar,.hljs-shebang,.apache .hljs-sqbracket,.nginx .hljs-built_in,.tex .hljs-formula,.erlang_repl .hljs-reserved,.hljs-prompt,.asciidoc .hljs-link_label,.markdown .hljs-link_label,.vhdl .hljs-attribute,.clojure .hljs-attribute,.asciidoc .hljs-attribute,.lasso .hljs-attribute,.coffeescript .hljs-property,.hljs-phony{color:#88f}.hljs-keyword,.hljs-id,.hljs-title,.hljs-built_in,.css .hljs-tag,.hljs-javadoctag,.hljs-phpdoc,.hljs-yardoctag,.smalltalk .hljs-class,.hljs-winutils,.bash .hljs-variable,.apache .hljs-tag,.go .hljs-typename,.tex .hljs-command,.asciidoc .hljs-strong,.markdown .hljs-strong,.hljs-request,.hljs-status{font-weight:bold}.asciidoc .hljs-emphasis,.markdown .hljs-emphasis{font-style:italic}.nginx .hljs-built_in{font-weight:normal}.coffeescript .javascript,.javascript .xml,.lasso .markup,.tex .hljs-formula,.xml .javascript,.xml .vbscript,.xml .css,.xml .hljs-cdata{opacity:.5}
+</style>
+</head>
+<body>
 ## Clojure Distilled
 
 The difficulty in learning Clojure does not stem from its syntax, which happens to be extremely simple, but from having to learn new methods for solving problems. As such, we'll focus on understanding the core concepts and how they can be combined to solve problems the functional way.
@@ -792,4 +846,12 @@ This concludes our tour of Clojure basics. While we only touched on only a small
 * [Clojure cheatsheet](http://clojure.org/api/cheatsheet)
 * [Clojure style guide](https://github.com/bbatsov/clojure-style-guide)
 
-Copyright © 2016 Dmitri Sotnikov
+<p>
+Copyright &copy; <span id="year">2015</span> Dmitri Sotnikov
+</p>
+</div>
+<script type="text/javascript">
+    document.getElementById("year").innerHTML = new Date().getFullYear();
+</script>
+</body>
+</html>
