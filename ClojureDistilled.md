@@ -841,6 +841,7 @@ This concludes our tour of Clojure basics. While we only touched on only a small
 * [Official Clojure documentation](http://clojure.org/guides/getting_started)
 * [Clojure for the Brave and True](http://www.braveclojure.com/)
 * [Community Clojure documentation site](http://clojure-doc.org/)
+* [Clojure from the ground up](https://aphyr.com/posts/301-clojure-from-the-ground-up-welcome)
 * [Clojure API documentation](https://www.conj.io/)
 * [Clojure quick reference](http://clojuredocs.org/quickref)
 * [Clojure cheatsheet](http://clojure.org/api/cheatsheet)
