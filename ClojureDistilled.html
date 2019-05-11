@@ -289,7 +289,7 @@
 </code></pre>
 <p>Destructuring can also be applied to maps. When destructuring a map, we create a new map where we supply the names for the local bindings pointing to the keys from the original map:</p>
 <pre><code class="lang-clojure hljs "><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">let</span></span> <span class="hljs-collection">[<span class="hljs-collection">{foo <span class="hljs-attribute">:foo</span> bar <span class="hljs-attribute">:bar</span>}</span> <span class="hljs-collection">{<span class="hljs-attribute">:foo</span> <span class="hljs-string">"foo"</span> <span class="hljs-attribute">:bar</span> <span class="hljs-string">"bar"</span>}</span>]</span>
-  <span class="hljs-list">(<span class="hljs-title">println</span> foo bar)</span>
+  <span class="hljs-list">(<span class="hljs-title">println</span> foo bar))</span>
 </span></code></pre>
 <p>It's also possible to destructure a nested data structure. As long as you know the structure of the data being passed in, you can simply write it out:</p>
 <pre><code class=" hljs clojure"><span class="hljs-list">(<span class="hljs-title"><span class="hljs-built_in">let</span></span> <span class="hljs-collection">[<span class="hljs-collection">{<span class="hljs-collection">[a b c]</span> <span class="hljs-attribute">:items</span> id <span class="hljs-attribute">:id</span>}</span> <span class="hljs-collection">{<span class="hljs-attribute">:id</span> <span class="hljs-string">"foo"</span> <span class="hljs-attribute">:items</span> <span class="hljs-collection">[1<span class="hljs-number"> 2</span><span class="hljs-number"> 3</span>]</span>}</span>]</span>
