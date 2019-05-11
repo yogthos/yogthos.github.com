@@ -120,7 +120,7 @@ Clojure provides a number of standard data types, most of which should look fami
 * Symbols are used as identifiers for variables.
 * Keywords are symbols that reference themselves and are denoted by a colon; these are often used as keys in maps.
 * Strings are denoted by double quotes and can span multiple lines.
-* Characters are denoted by a by preceding backslash.
+* Characters are denoted by a preceding backslash.
 * Regular expressions are strings prefixed with a hash symbol.
 
 In addition to the data types, Clojure provides us with a literal notation for common collection types such as lists, vectors, maps, and sets:
