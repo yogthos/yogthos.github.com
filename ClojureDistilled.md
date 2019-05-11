@@ -432,7 +432,7 @@ Destructuring can also be applied to maps. When destructuring a map, we create a
 
 ```clojure
 (let [{foo :foo bar :bar} {:foo "foo" :bar "bar"}]
-  (println foo bar)
+  (println foo bar))
 ```
 
 It's also possible to destructure a nested data structure. As long as you know the structure of the data being passed in, you can simply write it out:
