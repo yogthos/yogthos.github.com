@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Clojure High Performance Programming Review</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>December 9, 2013</strong>
+        
+    </div>
+    <h1>Clojure High Performance Programming Review</h1>
+</div>
+<div>
+    
+    <p>First thing I'd like to say is that I'm very excited by the shift in nature of Clojure books that are coming out. There are already many excellent books about the language itself. Some of these include <a href='http://www.amazon.com/The-Joy-Clojure-Michael-Fogus/dp/1617291412/'>The Joy of Clojure</a>, <a href='http://www.amazon.com/Programming-Clojure-Stuart-Halloway/dp/1934356867'>Programming Clojure</a>, and <a href='http://www.amazon.com/Clojure-Action-Amit-Rathore/dp/1935182595'>Clojure in Action</a>.</p><p>This year we can add <a href='http://www.amazon.com/Clojure-Data-Analysis-Cookbook-Rochester-ebook/dp/B00BECVV9C'>Clojure Data Analysis Cookbook</a>, <a href='http://clojure-cookbook.com/'>Clojure Cookbook</a>, my own <a href='http://pragprog.com/book/dswdcloj/web-development-with-clojure'>Web Development With Clojure</a>, and <a href='http://www.amazon.com/Clojure-Performance-Programming-Shantanu-Kumar-ebook/dp/B00GTE1RVW'>Clojure High Performance Programming</a> to the roster. All these books focus on applying the language in the real world.</p><p>To me this indicates that developers are moving from simply experimenting with the language to actually using it professionally. The results from the <a href='http://cemerick.com/2013/11/18/results-of-the-2013-state-of-clojure-clojurescript-survey/'>2013 State of Clojure & ClojureScript</a>, where more than half the respondents reported using Clojure at work, appear to corroborate this idea.</p><p>One of the things that makes Clojure attractive is the fact that it's one of the more performant dynamic languages. As can be seen in the recent round of <a href='http://www.techempower.com/benchmarks/'>TechEmpower Benchmarks</a>, Clojure web frameworks fare quite well compared to the popular offerings in Ruby and Python. Since performance is a major factor in using Clojure, a book discussing high performance programming is a welcome addition.</p><p>The book starts off by introducing the reader to performance use case classification. It does a decent job of explaining the background concepts and the vocabulary that will be used throughout.</p><p>Different types of scenarios are discussed and their related performance concerns. For example, when we deal with user interfaces, responsiveness is our main concern. On the other hand if we're doing data-processing then we want to optimize CPU and memory usage.</p><p>The author then moves on to discuss how common Clojure idioms impact the performance of the application. Understanding what goes on behind the scenes helps reason about potential pitfalls down the road.</p><p>There's a good discussion about the explicit use of <code>loop/recur</code> over higher order functions that illustrates a way to squeeze out additional performance. In another section the author goes on to explain the impact of laziness on performance in functional languages. </p><p>There are also tips regarding the use of different data formats. One example compares the benefits of EDN over JSON. EDN can save memory by using interned symbols and keywords, while JSON uses string keys which will not be interned. The author explains that in addition to saving memory, interning also avoids heap usage and this helps minimize garbage collection. This is something you would definitely want to consider if you were working with a high performance application.</p><p>The techniques used by some of the popular libraries, such as <a href='https://github.com/ptaoussanis/nippy'>Nippy</a>, are examined to see how they achieve high performance. These kinds of real world examples are very helpful. Not only do we learn about the theory, but we also get to see how it's applied in practice.</p><p>In general, the book covers a wide range of topics, but only offers a superficial overview for many. The reader will most certainly need to do further research in order to apply many of the concepts discussed.</p><p>If you're looking for a refresher or a primer on the topics discussed, then it's not a bad place to start. However, if you're looking for a comprehensive discussion on doing high performance programming with Clojure, you'll likely be left wanting.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure/">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2014-01-26-No-Free-Lunch/">&laquo; No Free Lunch</a>
+        
+        
+        <a class="right button" href="/posts/2013-11-21-Making-Selmer-User-Friendly/">Making Selmer User Friendly &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

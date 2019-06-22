@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): ClojureScript Adventures</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>October 26, 2012</strong>
+        
+    </div>
+    <h1>ClojureScript Adventures</h1>
+</div>
+<div>
+    
+    <p>I finally got a chance to play around a bit more with ClojureScript. When I was updating <a href='https://github.com/yogthos/markdown-clj'>markdown-clj</a> to compile to it, the extent of interaction was to accept a markdown string and return the corresponding HTML.</p><p>This time around I decided to dive into doing interop with JavaScript and actual interaction with the page. I wrote a silly <a href='https://github.com/yogthos/Clojure-Tetris'>Tetris game</a> a while back, and it seemed like a perfect fit for the task.</p><p>So, let's see what's involved in porting Clojure to ClojureScript and Canvas. First, I had to separate the pure Clojure code from any code which relies on Java interop. The original code can be seen <a href='https://github.com/yogthos/Clojure-Tetris/blob/f614a66524647870bc387ca9615a119bc7d76a36/src/tetris.clj'>here</a>.</p><p>After, splitting it up, I ended up with a <a href='https://github.com/yogthos/Clojure-Tetris/blob/master/src/tetris/game.clj'>game namespace</a> which contains the bulk of the game logic, and a <a href='https://github.com/yogthos/Clojure-Tetris/blob/master/src/tetris/core.clj'>core namespace</a> containing all the logic pertaining to the UI and input. The split turned out to be fairly painless since I already had the game logic separated from UI in the original design.</p><p>Now it's time to add some ClojureScript to the project. First, we need to create a new source folder for the ClojureScript namespaces. In my project I called this folder <code>src-cljs</code>. Then we need some way to compile our script.</p><p>The easiest way to do that is to use the <a href='https://github.com/emezeske/lein-cljsbuild'>lein-cljsbuild plugin</a>. With it you can specify the ClojureScript sources, Clojure namespaces you'd like to reference, and the output Js files to produce.</p><p>In my case the project file looks as follows:</p><pre><code class="clojure">&#40;defproject tetris &quot;0.1.0-SNAPSHOT&quot;
+  :description &quot;a simple Tetris game&quot;
+  :url &quot;https://github.com/yogthos/Clojure-Tetris&quot;
+  :license {:name &quot;Eclipse Public License&quot;
+            :url &quot;http://www.eclipse.org/legal/epl-v10.html&quot;}
+  
+  :dependencies &#91;&#91;org.clojure/clojure &quot;1.4.0&quot;&#93;&#93;
+  :plugins &#91;&#91;lein-cljsbuild &quot;0.2.9&quot;&#93;&#93;
+  
+  :source-paths &#91;&quot;src&quot;&#93;
+  :main tetris.core
+
+  :cljsbuild {:crossovers &#91;tetris.game&#93;
+              :builds
+              &#91;{:source-path &quot;src-cljs&quot;
+                :compiler
+                {:output-to &quot;js/tetris.js&quot;
+                 :optimizations :advanced
+                 :pretty-print false}}&#93;}&#41;
+</code></pre><p>All that's needed to include ClojureScript compilation is to add the <code>lein-cljsbuild</code> in the plugins and specify the options for the <code>cljsbuild</code>. The <code>crossovers</code> section specifies a vector of Clojure namespaces which will be included during compilation.</p><p>Once the project file is setup, we have two options for invoking ClojureScript compilation. We can either run <code>lein cljsbuild once</code> or <code>lein cljsbuild auto</code>. When using the auto option, the build will watch for changes in the source and automatically recompile the Js files as needed. This takes much less time than when compiling using the once option, and turns out to be quite handy for development.</p><p>The ClojureScript version of the UI, which uses the canvas, can be seen <a href='https://github.com/yogthos/Clojure-Tetris/blob/master/src-cljs/tetris/core.cljs'>here</a> . </p><p>Interacting with JavaScript turns out to be pretty simple and the syntax is similar to Java interop in Clojure. However, there are some differences  which are worth mentioning.</p><p>Any standard Js functions can be accessed using the <code>js</code> namespace, for example if we want to make a logger which logs to the console we can write something like the following:</p><pre><code class="clojure">&#40;defn log &#91;&amp; items&#93;
+  &#40;.log js/console &#40;apply str items&#41;&#41;&#41;
+</code></pre><p>This works exactly like the Java interop, where we denote methods by using the <code>.</code> notation and pass in the object as the first argument.</p><p>Exporting functions so that they're visible from JavaScript is also quite simple. Instead of denoting them with <code>-</code> as we do when we interop with Java, we use <code>&#94;:export</code> annotation:</p><pre><code class="clojure">&#40;defn &#94;:export init &#91;&#93;
+  &#40;log &quot;Hello ClojureScript!&quot;&#41;&#41;
+</code></pre><p>One thing that's not obvious is the interaction with JavaScript object properties. To access these we use <code>&#40;.-property obj&#41;</code> notation. Where <code>-</code> indicates that we're referencing a property and not a function. Writing properties is accomplished by calling the <code>set!</code> function. Here's an example:</p><pre><code class="clojure">&#40;defn &#94;:export init &#91;&#93;
+  &#40;let &#91;canvas &#40;.getElementById js/document &quot;canvas&quot;&#41;
+        ctx    &#40;.getContext canvas &quot;2d&quot;&#41;
+        width  &#40;.-width canvas&#41; 
+        height &#40;.-height canvas&#41;&#93;
+ 
+    &#40;log &quot;width: &quot; width &quot;, height: &quot; height&#41;
+
+    ;;set a property
+    &#40;set! &#40;.-fillStyle ctx&#41; &quot;black&quot;&#41;
+
+    &#40;.fillRect ctx 0 0 width height&#41;&#41;&#41;
+</code></pre><p>Another quirk I ran into is that <code>:use</code> doesn't seem to work in the namespace declaration as it expects a collection.</p><p>For example, if you have the following setup:<pre><code class="clojure">&#40;ns foo&#41;
+
+&#40;defn bar &#91;&#93;&#41;
+
+&#40;ns hello
+ &#40;:use foo&#41;&#41;
+
+&#40;defn &#94;:export init &#91;&#93;
+	&#40;js/alert &quot;Hello from ClojureScript!&quot;&#41;&#41;
+</code></pre></p><p>the compiler throws the following error:<pre><code class="clojure">java.lang.UnsupportedOperationException: nth not supported on this type: Symbol
+</code></pre></p><p>Fortunately, both <code>&#40;:use &#91;foo :only &#91;bar&#93;&#93;&#41;</code> and <code>&#40;:require foo&#41;</code> work as expected. </p><p>Finally, to make a timer, it's possible to use <code>js/setTimeout</code> and simply pass it the function to call after the timeout:</p><pre><code class="clojure">&#40;declare game-loop&#41;
+&#40;defn game-loop &#91;state&#93;
+  &#40;if &#40;not &#40;:game-over state&#41;&#41;
+    &#40;js/setTimeout
+      &#40;fn &#91;&#93; &#40;game-loop &#40;update-state state&#41;&#41;&#41;
+      10&#41;&#41;&#41;     
+</code></pre><p>Everything else appeared to work exactly as it does in Clojure itself. The only caveat when porting code is that it cannot contain any Java interop or use libraries which do so. In case of the game, I simply put the game logic into a shared namespace and wrote separate UI logic for both Java and JavaScript versions.</p><p>To try out the ClojureScript version simply grab <a href='https://raw.github.com/yogthos/Clojure-Tetris/master/js/tetris.js'>tetris.js</a> and <a href='https://raw.github.com/yogthos/Clojure-Tetris/master/tetris.html'>tetris.html</a> which expects the tetris.js file to be in the <code>js</code> folder relative to it. </p><p>One thing to note is that ClojureScript is definitely chunky compared to writing JavaScript by hand. The game weighs in at a hefty 100k. That said, it should be noted that jQuery weighs in about that as well, and nobody would claim that it's outrageous for a site to include it. </p><p>I feel that the benefits of ClojureScript offers far outweigh the downsides of its size. You get a much nicer language without all the quirks of working in JavaScript, immutability, persistent data structures, and the ability to easily share code between the server and the browser.</p><p>The good news is that ClojureScript is under active development, and performance and size are both targets for future improvement. As it stands I find it very usable for many situations.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure/">clojure</a>
+    
+    <a href="/clojurescript/">clojurescript</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-12-15-Moving-to-Compojure/">&laquo; Moving to Compojure</a>
+        
+        
+        <a class="right button" href="/posts/2012-10-17-making-reporting-easy/">making reporting easy &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

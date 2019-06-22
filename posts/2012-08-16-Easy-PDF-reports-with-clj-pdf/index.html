@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Easy PDF reports with clj-pdf</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 16, 2012</strong>
+        
+    </div>
+    <h1>Easy PDF reports with clj-pdf</h1>
+</div>
+<div>
+    
+    <p>A few months ago I was tasked with generating reports for one of the applications I was working on. I looked around for some off the shelf libraries for doing this sort of thing. The most popular library in the Java world appears to be iText. It's a mature library with lots of features, but it takes entirely too much code to produce anything useful with it. On top of that, the latest version licensed under LGPL2 is 2.1.7 which, while serviceable, is full of quirks and odd behaviors.</p><p>After spending a bit of time playing with it I decided that it would make more sense to have a declarative API for describing the PDF document. I really like the way <a href='http://weavejester.github.com/hiccup/'>Hiccup</a> allows generating HTML using nested vectors, and decided that something similar could be done for generating PDF documents.</p><p>This lead to the creating of <a href='https://github.com/yogthos/clj-pdf'>clj-pdf</a>, which allows describing the document using this approach. Each vector represents a different element, such as a paragraph, a list, or a table. Internally, I leverage iText to produce the actual PDF document, but the API is completely declarative. The library attempts to abstract away any of the quirks as well as provide useful elements such as headings, spacers, page breaks, etc.</p><p>Let's look at how this all works in practice. A document is simply a vector which contains metadata describing it followed by one or more inner elements:<pre><code class="clojure">&#91;{:title &quot;My document&quot;} &quot;some content here...&quot;&#93;
+</code></pre></p><p>In the spirit of Hiccup, each element is represented by a vector, where the first item must be a tag describing the type of the element, followed by optional metadata, and finally the content of the element. For example if we wanted to create a paragraph we'd do the following:<pre><code class="clojure">&#91;:paragraph &quot;a fine paragraph&quot;&#93;
+</code></pre></p><p>to set the font style we could add the following metadata:<pre><code class="clojure">&#91;:paragraph
+  {:style :bold :size 10 :family :halvetica :color &#91;0 255 221&#93;}
+  &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&quot;&#93;
+</code></pre></p><p>any metadata in an element will propagate to its children:<pre><code class="clojure">&#91;:paragraph
+  {:style :bold :size 12 :family :halvetica :color &#91;0 255 221&#93;}
+  &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&quot;
+  &#91;:phrase &quot;some text here&quot;&#93;&#93;
+</code></pre></p><p>here the phrase will inherit the font style of its parent paragraph. However, the child element is always free to overwrite the parent metadata:<pre><code class="clojure">&#91;:paragraph
+  {:style :bold :size 12}
+  &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&quot;
+  &#91;:phrase {:style :normal :size 10} &quot;some text here&quot;&#93;&#93;
+</code></pre></p><p>This provides us with a lot of flexibility, while allowing to specify defaults for the entire document. The library attempts to provide reasonable behavior out of the box, so that adding metadata should not be necessary in most cases. </p><p>Some reports might include things like usage statistics. And to that end I leveraged the excellent <a href='http://www.jfree.org/jfreechart/'>JFreeChart</a> library to provide a simple charting API:<pre><code class="clojure">&#91;:chart {:type :line-chart 
+         :title &quot;Line Chart&quot; 
+         :x-label &quot;checkpoints&quot; 
+         :y-label &quot;units&quot;} 
+  &#91;&quot;Foo&quot; &#91;1 10&#93; &#91;2 13&#93; &#91;3 120&#93; &#91;4 455&#93; &#91;5 300&#93; &#91;6 600&#93;&#93;
+  &#91;&quot;Bar&quot; &#91;1 13&#93; &#91;2 33&#93; &#91;3 320&#93; &#91;4 155&#93; &#91;5 200&#93; &#91;6 300&#93;&#93;&#93;
+</code></pre></p><p>At this time bar charts, line charts, time series, and pie charts are supported. And because a chart is just an image, all the image styling, such as scaling and alignment, can be applied to it as well.</p><p>Since the API is completely declarative, it doesn't actually have to be encoded in Clojure structures. We could instead encode it in something like JSON, which is exactly what I ended up doing next. I created a service which would accept POST requests containing JSON encoded documents and return PDF documents. The service can be accessed by any application regardless of what language its written in, and can even be called by JavaScript from a browser as can be seen <a href='http://yogthos.net/instant-pdf/'>here</a>.</p><p>Documentation and examples are available on the <a href='https://github.com/yogthos/clj-pdf'>github project page</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure/">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-08-17-Noir-tutorial-part-1/">&laquo; Noir tutorial - part 1</a>
+        
+        
+        <a class="right button" href="/posts/2012-08-14-Blogging-with-Noir/">Blogging with Noir &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

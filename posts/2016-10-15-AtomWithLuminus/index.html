@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Configuring Atom for Luminus</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>October 15, 2016</strong>
+        
+    </div>
+    <h1>Configuring Atom for Luminus</h1>
+</div>
+<div>
+    
+    <p>There are many editors and IDEs available for Clojure today. The most popular ones are Emacs with <a href='https://github.com/clojure-emacs/cider'>CIDER</a> and IntelliJ with <a href='https://cursive-ide.com/'>Cursive</a>. While both of these options provide excellent development environments, they also require a bit of learning to become productive in.</p><p>Good news is that you don't have to learn a complex environment to get started. This post will walk you through the steps of configuring <a href='https://atom.io/'>Atom editor</a> editor to work with a <a href='http://www.luminusweb.net/'>Luminus</a> project. We'll see how to configure Atom for editing Clojure code and how to connect it to the remote REPL started by the Luminus app for interactive development.</p><h3 id="prerequisites">Prerequisites</h3><p>You'll need the following installed to follow along with this post:</p><ul><li><a href='http://www.azul.com/downloads/zulu/'>OpenJDK</a></li><li><a href='http://leiningen.org/'>Leiningen</a></li><li><a href='https://atom.io/'>Atom</a></li></ul><h3 id="configuring&#95;atom">Configuring Atom</h3><p>Let's take a look at the bare minimum Atom configuration for working with Clojure. Once you're up and running, you may with to look <a href='https://gist.github.com/jasongilman/d1f70507bed021b48625'>here</a> for a more advanced configuration. We'll start by installing the following packages:</p><ul><li><a href='https://atom.io/packages/parinfer'>parinfer</a> or <a href='https://atom.io/packages/lisp-paredit'>lisp-paredit</a> package for structural editing</li><li><a href='https://atom.io/packages/proto-repl'>proto-repl</a> to connect to a Clojure REPL</li></ul><h3 id="structural&#95;editing">Structural Editing</h3><p>A structural editor understands the structure of Clojure code and provides shortcuts for manipulating s-expressions instead of lines of text. It also eliminates the need to manually balance the parens. This takes a bit of getting used to, but it will make working with Clojure a lot more pleasant in the long run.</p><h4 id="parinfer">Parinfer</h4><p>The <code>parinfer</code> mode will attempt to automatically infer the necessary parens based on the indentation. This mode has a gentle learning curve and attempts to get our of your way as much as possible. You can read more about how it works <a href='https://shaunlebron.github.io/parinfer/#introduction'>here</a>.</p><h4 id="paredit">Paredit</h4><p>The <code>paredit</code> mode takes a bit more getting used to, but provides you with precise control over code structure. Whenever you add a peren, a matching closing paren will be inserted automatically. Paredit will also prevent you you from deleting parens unless you have an empty pair. </p><p>The package also provides a handy <code>ctrl-w</code> shortcut that will extend the selection by s-expression. This is the recommended way to select code as you don't have to manually match the start and end of an expression when selecting.</p><h3 id="the&#95;repl">The REPL</h3><p>The REPL is an essential tool for working with Clojure. When integrated with the editor, it allows running any code that you write directly in the application.</p><h4 id="connecting&#95;the&#95;repl">Connecting the REPL</h4><p>We'll create a new Luminus project with SQLite database support by running the following command:</p><pre><code>lein new luminus myapp +sqlite</code></pre><p>Once the project is created, we can go to the project folder and run the migrations:</p><pre><code>cd myapp 
+lein run migrate
+</code></pre>We're now ready to start the app in development mode:  <br /><pre><code>lein run</code></pre><p>The app will start the nREPL server on <code>localhost:7000</code> once it loads. Let's open the project in Atom and connect to the nREPL instance.</p><p>The default keybinding for connecting to the nREPL is <code>ctrl-alt-, y</code> on Windows/Linux and <code>cmd-alt-, y</code> on OS X. This should pop up a dialog asking for the host and the port.</p><p><img src="//img/atom/atom-nrepl.png" alt="" /></p><p>Enter <code>7000</code> as the port and hit <code>enter</code>. If everything went well the REPL should now be connected to your project.</p><p>Once the REPL is connected we can try to evaluate some code in it. For example, let's check what namespace we're currently in by typing <code>&#42;ns&#42;</code> in the REPL and then hitting <code>shift-enter</code>. The result should look something like the following:</p><p><img src="//img/atom/atom-repl-ns.png" alt="" /></p><p>Let's navigate to the <code>myapp.routes.home</code> namespace and try to run some of the database query functions from there. We'll first need to require the database namespace:</p><pre><code class="clojure">&#40;ns myapp.routes.home
+  &#40;:require &#91;myapp.layout :as layout&#93;
+            &#91;compojure.core :refer &#91;defroutes GET&#93;&#93;
+            &#91;ring.util.http-response :as response&#93;
+            &#91;clojure.java.io :as io&#93;
+            ;; add a reference to the db namespace
+            &#91;myapp.db.core :as db&#93;&#41;&#41;
+</code></pre><p>Once we've done that, we'll need to reload <code>myapp.routes.home</code> namespace. To do that we'll need to send the code from the editor to the REPL for evaluation.</p><p>There are a few commands for doing this. I recommend starting by using the <code>ctrl-alt-, B</code> shortcut that sends the top-level block of code to the REPL for execution. Place the cursor inside the <code>ns</code> declaration and hit <code>ctrl-alt-, B</code> to send it to the REPL. We can see that the REPL displays the code that was sent to it along with the result:</p><p><img src="//img/atom/send-to-repl.png" alt="" /></p><p>Now that we have the <code>db</code> namespace required, we can start the database connection state by typing the following command in the REPL:</p><pre><code class="clojure">&#40;mount.core/start #'db/&#42;db&#42;&#41;
+</code></pre><p>The result should look as follows:</p><p><img src="//img/atom/atom-start-db.png" alt="" /></p><p>With the database is started, let's add a user to it by running the following code in the REPL:</p><pre><code class="clojure">&#40;db/create-user!
+ {:id &quot;foo&quot;
+  :first&#95;name &quot;Bob&quot;
+  :last&#95;name &quot;Bobberton&quot;
+  :email &quot;bob@foo.bar&quot;
+  :pass &quot;secret&quot;}&#41;
+</code></pre><p>We can also test that the user was added successfully by running:</p><pre><code class="clojure">&#40;db/get-user {:id &quot;foo&quot;}&#41;
+</code></pre><p>We can see that the user record exists in the database:</p><pre><code class="clojure">{:id &quot;foo&quot;
+ :admin nil
+ :is&#95;active nil
+ :last&#95;login nil
+ :first&#95;name &quot;Bob&quot;
+ :last&#95;name &quot;Bobberton&quot;
+ :email &quot;bob@foo.bar&quot;
+ :pass &quot;secret&quot;}
+</code></pre><p>As you can see, the code that we run in the REPL executes in the context of the application and has access to all the resources and the application state. Let's take a closer look at how this helps us during development.</p><p>You might have noticed that the records we get back from the database use the <code>&#95;</code> character as word separator. Meanwhile, idiomatic Clojure code uses the <code>-</code> character. Let's write a couple of functions to transform the key names in the results.</p><p>A Clojure map represents its entities as vectors containing key-value pairs. We'll start by writing a function to rename underscores to dashes in map entries:</p><pre><code class="clojure">&#40;defn clojurize &#91;&#91;k v&#93;&#93;
+  &#91;&#40;-&gt; k name &#40;.replaceAll &quot;&#95;&quot; &quot;-&quot;&#41; keyword&#41; v&#93;&#41;
+</code></pre><p>We'll load the function in the namespace by placing the cursor anywhere inside it and hitting <code>ctrl-alt-, B</code> to load it. Let's run this function in the REPL to see that it works:</p><pre><code class="clojure">&#40;clojurize &#91;:first&#95;name &quot;Bob&quot;&#93;&#41;
+=&gt;&#91;:first-name &quot;Bob&quot;&#93;
+</code></pre><p>We can see that the result is what we expect. Next, let's write a function to rename the keys in a map:</p><pre><code class="clojure">&#40;defn clojurize-keys &#91;m&#93;
+  &#40;-&gt;&gt; m &#40;map clojurize&#41; &#40;into {}&#41;&#41;&#41;
+</code></pre><p>We'll load the new function and test that this works as expected in the REPL:</p><pre><code class="clojure">&#40;clojurize-keys &#40;db/get-user {:id &quot;foo&quot;}&#41;&#41;
+</code></pre><p>We see that the result is the translated map that we want:</p><pre><code class="clojure">{:id &quot;foo&quot;
+ :admin nil
+ :is-active nil
+ :last-login nil
+ :first-name &quot;Bob&quot;
+ :last-name &quot;Bobberton&quot;
+ :email &quot;bob@foo.bar&quot;
+ :pass &quot;secret&quot;}
+</code></pre><p>Now that we have a nicely formatted result, let's add a route to query it in the browser:</p><pre><code class="clojure">&#40;defroutes home-routes
+  &#40;GET &quot;/&quot; &#91;&#93; &#40;home-page&#41;&#41;
+  &#40;GET &quot;/user/:id&quot; &#91;id&#93;
+       &#40;-&gt; &#40;db/get-user {:id id}&#41;
+           &#40;clojurize-keys&#41;
+           &#40;response/ok&#41;&#41;&#41;
+  &#40;GET &quot;/about&quot; &#91;&#93; &#40;about-page&#41;&#41;&#41;
+</code></pre><p>We can now navigate to <code>http://localhost:3000/user/foo</code> and see the user data.</p><h3 id="conclusion">Conclusion</h3><p>That's all there is to it. While this setup is fairly minimal, it will let you play with a lot of Clojure features without having to spend practically any time learning and configuring an editor. </p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure/">clojure</a>
+    
+    <a href="/atom/">atom</a>
+    
+    <a href="/luminus/">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2016-11-05-LuminusPostgresNotifications/">&laquo; PostgreSQL Async Notifications in Luminus</a>
+        
+        
+        <a class="right button" href="/posts/2016-09-25-ReagentComponents/">Reusable Components &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

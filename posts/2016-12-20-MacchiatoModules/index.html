@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Macchiato Modules</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>December 20, 2016</strong>
+        
+    </div>
+    <h1>Macchiato Modules</h1>
+</div>
+<div>
+    
+     <p>As I discussed in the last <a href='http://yogthos.net/posts/2016-12-17-MacchiatoProgress.html'>post</a>, Ring middleware stack closely resembles modules in a framework. However, one notable difference is that middleware functions aren't directly aware of one another. When the handler is passed to a middleware function, that function has no way of knowing what other middleware might have been wrapped around the handler by the time it got to it.</p><p>Conversely, these functions can't know what middleware will be wrapped after that they may depend on. Since middleware that was wrapped last will be invoked first, inner middleware ends up being dependent on the outer middleware.</p><p>This presents a number of problems. We can end up with multiple copies of the same middleware wrapped around the handler, middleware could be wrapped in the wrong order, or required middleware might be missing altogether. All of the above cases can lead to unpredictable behaviors, and can be difficult to debug.</p><p>One way to mitigate the problem is by creating a default middleware stack, such as seen in the <a href='https://github.com/ring-clojure/ring-defaults'>ring-defaults</a> library. This takes care of ensuring that all the core middleware is wrapped correctly, but doesn't help with middleware libraries added by the user. Another approach is to wrap the Ring stack in a higher level abstraction as seen with <a href='https://github.com/weavejester/integrant'>Integrant</a>.</p><p>The solution I came up with for Macchiato is to use metadata attached to the handler to track the middleware that's been applied to it. This metadata can be used to inform how the middleware is loaded, and address the problems outlined above.</p><p>Let's take a look at an example of how this works in practice. Let's say we have the default handler such as:</p><pre><code class="clojure">&#40;defn handler &#91;req res raise&#93;
+  &#40;res {:body &#40;str &#40;-&gt; req :params :name&#41;&#41;}&#41;&#41;
+</code></pre><p>Then, let's say we have two pieces of middleware we wish to wrap the handler with. The first will parse the request params, and the second will keywordize the params. The second middleware function depends on the first in order to work.</p><pre><code class="clojure">&#40;defn parse-params &#91;req&#93;
+  ;;parses request parameters into a map
+  &#41;
+
+&#40;defn wrap-params &#91;handler&#93;
+  &#40;fn &#91;req res raise&#93;
+    &#40;handler &#40;parse-params req&#41; res raise&#41;&#41;&#41;
+
+&#40;defn keywordize-params &#91;params&#93;
+  ;;keywordizes the params
+  &#41;
+          
+&#40;defn wrap-keyword-params &#91;handler&#93;
+  &#40;fn &#91;req res raise&#93;
+    &#40;handler &#40;update req :params keywordize-params&#41; res raise&#41;&#41;&#41;
+</code></pre><p>We have to make sure that the middleware is chained as follows to get keywordized params:</p><pre><code class="clojure">&#40;def wrapped-handler &#40;-&gt; handler
+                         wrap-keyword-params
+                         wrap-params&#41;&#41;
+</code></pre><p>However, it's not possible to deduce that this actually happened given the resulting handler function. Let's see how we can use metadata to address this problem. We'll update the <code>wrap-params</code> and the <code>wrap-keyword-params</code> functions as follows:</p><pre><code class="clojure">&#40;defn
+  &#94;{:macchiato/middleware
+    {:id :wrap-params}}    
+  wrap-params &#91;handler&#93;
+  &#40;fn &#91;req res raise&#93;
+    &#40;handler &#40;parse-params req&#41; res raise&#41;&#41;&#41;
+
+&#40;defn
+ &#94;{:macchiato/middleware
+   {:id :wrap-keyword-params
+    :required &#91;:wrap-params&#93;}}
+  wrap-keyword-params &#91;handler&#93;
+  &#40;fn &#91;req res raise&#93;
+    &#40;handler &#40;update req :params keywordize-params&#41; res raise&#41;&#41;&#41;
+</code></pre><p>The <code>:id</code> key in the metadata is meant to specify the specific type of middleware as opposed to a concrete implementation. If two pieces of middleware happen to implement the same functionality they should use the same <code>:id</code>. </p><p>The <code>:required</code> key specifies the keys for the <code>:id</code>s that the particular middleware function depends on. In this case, <code>wrap-keyword-params</code> requires <code>wrap-params</code> to be present.</p><p>Next, we can write the code that will update the handler metadata each time it's wrapped with a middleware function.</p><pre><code class="clojure">&#40;defn update-middleware-meta &#91;handler handler-middleware middleware-meta&#93;
+  &#40;with-meta
+    handler
+    {:macchiato/middleware
+     &#40;conj handler-middleware middleware-meta&#41;}&#41;&#41;
+
+&#40;defn loaded? &#91;middleware {:keys &#91;id&#93;}&#93;
+  &#40;some #{id} &#40;map :id middleware&#41;&#41;&#41;
+
+&#40;defn- middleware-from-handler &#91;handler&#93;
+  &#40;-&gt;&gt; handler meta :macchiato/middleware &#40;remove nil?&#41; vec&#41;&#41;
+
+&#40;defn wrap
+  &#40;&#91;handler middleware-fn&#93;
+   &#40;wrap handler middleware-fn nil&#41;&#41;
+  &#40;&#91;handler middleware-fn opts&#93;
+   &#40;let &#91;handler-middleware &#40;middleware-from-handler handler&#41;
+         middleware-meta    &#40;-&gt; middleware-fn meta :macchiato/middleware&#41;&#93;
+     &#40;if &#40;loaded? handler-middleware middleware-meta&#41;
+       handler
+       &#40;update-middleware-meta
+         &#40;if opts
+           &#40;middleware-fn handler opts&#41;
+           &#40;middleware-fn handler&#41;&#41;
+         handler-middleware
+         middleware-meta&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>The <code>wrap</code> function uses the <code>:macchiato/middleware</code> metadata key to get the currently applied middleware. When a middleware function with the same <code>:id</code> is already present, then the original handler is returned. Otherwise, the handler is wrapped with the middleware and its metadata is updated.</p><p>Let's update the original code that wrapped the handler to use the <code>wrap</code> function:</p><pre><code class="clojure">&#40;def wrapped-handler &#40;-&gt; handler
+                         &#40;wrap #'wrap-keyword-params&#41;
+                         &#40;wrap #'wrap-params&#41;&#41;&#41;
+</code></pre><p>We can now use the <code>meta</code> function to access the metadata that was generated for the handler:</p><pre><code class="clojure">&#40;meta wrapped-handler&#41;
+
+{:macchiato/middleware
+ &#91;{:id :wrap-params}
+  {:id :wrap-keyword-params
+   :required &#91;:wrap-params&#93;}&#93;}
+</code></pre><p>This tells us exactly what middleware has been applied to the handler and in what order, allowing us to validate that the middleware chain. This is accomplished as follows:</p><pre><code class="clojure">&#40;defn validate &#91;handler-middleware
+   {:keys &#91;id required&#93; :as middleware-meta}&#93;
+  &#40;when &#40;not-empty &#40;difference &#40;set required&#41;
+                               &#40;set &#40;map :id handler-middleware&#41;&#41;&#41;&#41;
+    &#40;throw &#40;js/Error. &#40;str id &quot; is missing required middleware: &quot; required&#41;&#41;&#41;&#41;
+  middleware-meta&#41;
+  
+&#40;defn validate-handler &#91;handler&#93;
+  &#40;let &#91;middleware &#40;middleware-from-handler handler&#41;&#93;
+    &#40;loop &#91;&#91;middleware-meta &amp; handler-middleware&#93; middleware&#93;
+      &#40;when middleware-meta
+        &#40;validate handler-middleware middleware-meta&#41;
+        &#40;recur handler-middleware&#41;&#41;&#41;
+    handler&#41;&#41;  
+</code></pre><p>With the above code in place we're now able to ensure that middleware functions are not loaded more than once, and that the order of middleware is correct.</p><p>Finally, Macchiato provides the <code>macchiato.middleware/wrap-middleware</code> convenience function that allows wrapping multiple middleware functions around the handler:</p><pre><code class="clojure">&#40;m/wrap-middleware
+  handler
+  #'wrap-anti-forgery
+  &#91;#'wrap-session {:store &#40;mem/memory-store&#41;}&#93;
+  #'wrap-nested-params
+  #'wrap-keyword-params
+  #'wrap-params&#41;
+</code></pre><p>I think that the approach of using metadata provides an elegant view into the state of the middleware chain, while allowing Macchiato to stay compliant with Ring middleware semantics.</p><p>Another advantage of using metadata is that it makes the mechanism user extensible. If you're using a piece of middleware that doesn't have the metadata you need, you can always set it yourself.</p><p>The latest release of Macchiato has all the core middleware tagged with the appropriate metadata, and <a href='https://github.com/macchiato-framework/macchiato-defaults'>macchiato-defaults</a> generates a handler that has the <code>:macchiato/middleware</code> key pointing to the vector of the middleware that was applied.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/macchiato/">macchiato</a>
+    
+    <a href="/clojurescript/">clojurescript</a>
+    
+    <a href="/node/">node</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2016-12-26-MacchiatoDebugging/">&laquo; Using Chrome DevTools with Macchiato</a>
+        
+        
+        <a class="right button" href="/posts/2016-12-17-MacchiatoProgress/">Frameworks, Foundations, and Macchiato &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

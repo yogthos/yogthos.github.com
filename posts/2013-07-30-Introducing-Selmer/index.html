@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Introducing Selmer</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/">Home</a></li>
+            <li ><a title="Archives" href="/archives/">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags/">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about/">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>July 30, 2013</strong>
+        
+    </div>
+    <h1>Introducing Selmer</h1>
+</div>
+<div>
+    
+    <h1 id="introducing&#95;selmer">Introducing Selmer</h1><h2 id="rationale">Rationale</h2><p>There are a number of templating engines available in Clojure. Some of the popular ones include <a href='https://github.com/weavejester/hiccup'>Hiccup</a>, <a href='https://github.com/cgrand/enlive'>Enlive</a>, <a href='https://github.com/Raynes/laser'>Laser</a>, <a href='https://github.com/davidsantiago/stencil'>Stencil</a>, <a href='https://github.com/shenfeng/mustache.clj'>mustache.clj</a> and <a href='https://github.com/danlarkin/clabango'>Clabango</a>.</p><p>As <a href='http://yogthos.net/blog/41-New+Templating+Engine+in+Luminus'>I've mentioned previously</a>, my personal preference is for Clabango syntax. In my opinion it provides the right balance between simplicity and flexibility. Being modeled on Django template syntax it's also very accessible to those who are new to Clojure web development.</p><p>However, one major downside to Clabango is that it's slow. On TechEmpower <a href='http://www.techempower.com/benchmarks/#section=data-r6&hw=i7&test=fortune&f=4-0-1s'>fortunes benchmark</a> Luminus is crawling behind the Compojure results. Yes, you read that right, it's nearly 20 times slower for Clabango to render the results. The difference being that the Compojure benchmark is using Hiccup for rendering the results while Luminus is using Clabango.</p><p>The core problem is that Clabango always parses the source files when rendering a template. This is very expensive as it involves disk access and scanning each character in the source file each time a page is served. Dan states that <a href='https://github.com/danlarkin/clabango/issues/13'>performance has not been a priority</a>.</p><p>On top of that, some of the existing behaviours put limitations on how much the performance can ultimately be improved. For example, the child templates aren't required to put their content inside blocks. Clabango parses the templates and creates the AST that's then evaluated. This means that you can put blocks inside the <code>if</code> tags and decide at runtime whether they will be included. If inheritance resolution is pushed to compile time this becomes a problem.</p><p>After having some discussions with <a href='https://github.com/bitemyapp'>bitemyapp</a> and <a href='https://github.com/cesarbp'>ceaserbp</a> we decided that it would be worth writing a fresh impelementation with pefromance as its primary goal. Another reason is that I would like to be able to ensure that the templating engine in Luminus isn't a compromise between speed and convenience. Owning the implementation is the best way to achieve that.</p><h2 id="enter&#95;selmer">Enter Selmer</h2><p>All this resulted in <a href='https://github.com/yogthos/Selmer'>Selmer</a> named after <a href='http://en.wikipedia.org/wiki/Selmer_guitar'>the guitar favored by Django Reinhardt</a> whom in turn Django is named after. Selmer aims to be a near drop in replacement for Clabango. The current version is already quite fast keeping pace with Stencil which is one of the faster engines around.</p><p>In order to minimize the work that's done at runtime Selmer splits the process into three distinct steps. These steps include preprocessing, compilation and rendering. </p><p>First, Selmer will resolve the inheritance hierarchy and generate the definitive template source to be compiled. The <code>extends</code> and <code>include</code> tags will be handled at this time.</p><p>The compilation step then produces a vector of text nodes and runtime transformer functions.</p><p>The renderer uses these compiled templates to generate its output. The text gets rendered without further manipulation while the transformers use the context map to generate their output at runtime.</p><p>Using this approach we minimize the amount of logic that needs to be executed during each request as well as avoiding any disk access in the process.</p><p>In order not to have to restart the application when the source templates are changed the renderer checks the last updated timestamp of the template. When the timestamp is changed a recompile is triggered.</p><h2 id="performance&#95;tricks">Performance Tricks</h2><p>To our chagrin the first run of the parser ran no better than Clabango. This was rather disappointing considering we took pains to be mindful of the performance issues. However, this mystery was quickly solved by profiling the parser.</p><p>Sure enough majority of time was spent in reflection calls. One major problem was that the renderer had to check whether each node was text or a function:</p><pre><code class="clojure">&#40;defn render &#91;template params&#93;  
+  &#40;let &#91;buf &#40;StringBuilder.&#41;&#93;
+    &#40;doseq &#91;element template&#93; 
+      &#40;.append buf &#40;if &#40;string? element&#41; element &#40;element params&#41;&#41;&#41;&#41;
+    &#40;.toString buf&#41;&#41;&#41;
+</code></pre><p>Protocols offer an elegant solution to this problem. With their help we can move this work to compile time as follows:</p><pre><code class="clojure">&#40;defprotocol INode
+  &#40;render-node &#91;this context-map&#93; &quot;Renders the context&quot;&#41;&#41;
+
+&#40;deftype FunctionNode &#91;handler&#93;
+  INode
+  &#40;render-node &#94;String &#91;this context-map&#93;
+    &#40;handler context-map&#41;&#41;&#41;
+
+&#40;deftype TextNode &#91;text&#93;
+  INode
+  &#40;render-node &#94;String &#91;this context-map&#93;
+    text&#41;&#41;
+</code></pre><p>Now our parser can happily run along and call <code>render-node</code> on each element:</p><pre><code class="clojure">&#40;defn render-template &#91;template context-map&#93;
+  &quot;&quot;&quot; vector of &#94;selmer.node.INodes and a context map.&quot;&quot;&quot;
+  &#40;let &#91;buf &#40;StringBuilder.&#41;&#93;
+    &#40;doseq &#91;&#94;selmer.node.INode element template&#93;
+        &#40;if-let &#91;value &#40;.render-node element context-map&#41;&#93;
+          &#40;.append buf value&#41;&#41;&#41;
+    &#40;.toString buf&#41;&#41;&#41;
+
+</code></pre><p>With this change and a few type annotations the performance improved dramatically. Running <a href='https://github.com/bitemyapp/clojure-template-benchmarks'>clojure-template-benchmarks</a> the results are comparable to Stencil. Here are the results from benchmarking on my machine:</p><h3 id="clabango">Clabango</h3><ul><li>Simple Data Injection<ul><li>Execution time mean : 657.530826 µs</li><li>Execution time std-deviation : 2.118301 µs</li></ul></li><li>Small List (50 items)<ul><li>Execution time mean : 2.446739 ms</li><li>Execution time std-deviation : 17.448003 µs</li></ul></li><li>Big List (1000 items)<ul><li>Execution time mean : 28.230365 ms</li><li>Execution time std-deviation : 173.518425 µs</li></ul></li></ul><h3 id="selmer">Selmer</h3><ul><li>Simple Data Injection<ul><li>Execution time mean : 42.444958 µs</li><li>Execution time std-deviation : 235.652171 ns</li></ul></li><li>Small List (50 items)<ul><li>Execution time mean : 209.158509 µs</li><li>Execution time std-deviation : 4.045131 µs</li></ul></li><li>Big List (1000 items)<ul><li>Execution time mean : 3.223797 ms</li><li>Execution time std-deviation : 55.511322 µs    </li></ul></li></ul><h3 id="stencil">Stencil</h3><ul><li>Simple Data Injection<ul><li>Execution time mean : 92.317566 µs</li><li>Execution time std-deviation : 213.253353 ns</li></ul></li><li>Small List (50 items)<ul><li>Execution time mean : 290.403204 µs</li><li>Execution time std-deviation : 1.801479 µs</li></ul></li><li>Big List (1000 items)<ul><li>Execution time mean : 1.223634 ms</li><li>Execution time std-deviation : 4.264979 µs    </li></ul></li></ul><p>As you can see Selmer is showing a large improvement over Clabango and has no trouble keeping up with Stencil.</p><p>Obviously, this benchmark is fairly simplistic so you can take it with a grain of salt. If anybody would like to put together a more comprehensive suite that would be great. :)</p><h2 id="current&#95;status">Current status</h2><p>The library implements all the functionality offered by Clabango and passes the Clabango test sutie. There are a few minor deviations, but overall it should work as a drop in replacement without the need to change your existing HTML templates. </p><p>We also have a few new features such as the Django <code>{{block.super}}</code> tag support and ability to use filters in if statements. In Selmer you can write things like:</p><pre><code class="clojure">&#40;selmer.filters/add-filter! :empty? empty?&#41;
+
+&#40;render 
+  &quot;{% if files|empty? %}
+   no files available 
+   {% else %} 
+       {% for file in files %}{{file}}{% endfor %} 
+   {% endif %}&quot;
+  {:files &#91;&#93;}&#41;
+</code></pre><p>Switching to Selmer involves swapping the <code>&#91;clabango &quot;0.5&quot;&#93;</code> dependency for <code>&#91;selmer &quot;0.5.3&quot;&#93;</code> and referencing <code>selmer.parser</code> instead of <code>clabango.parser</code>. Selmer provides the same API for rendering templates using the <code>selmer.parser/render</code> and <code>selmer.parser/render-file</code> functions.</p><p>One major area of difference is in how custom tags and filters are defined. Defining a filter is done by calling <code>selmer.filters/add-filter!</code> with the id of the filter and the filter function:</p><pre><code class="clojure">&#40;use 'selmer.filters&#41;
+
+&#40;add-filter! :embiginate #&#40;.toUpperCase %&#41;&#41;
+
+&#40;render &quot;{{shout|embiginate}}&quot; {:shout &quot;hello&quot;}&#41;
+=&gt;&quot;HELLO&quot;
+</code></pre><p>Defining custom tags is equally simple using the <code>selmer.parser/add-tag!</code> macro:</p><pre><code class="clojure">&#40;use 'selmer.parser&#41;
+
+&#40;add-tag! :foo
+  &#40;fn &#91;args context-map&#93;
+    &#40;str &quot;foo &quot; &#40;first args&#41;&#41;&#41;&#41;
+
+&#40;render &quot;{% foo quux %} {% foo baz %}&quot; {}&#41;
+=&gt;&quot;foo quux foo baz&quot;
+</code></pre><p>tags can also contain content and intermediate tags:</p><pre><code class="clojure">&#40;add-tag! :foo
+  &#40;fn &#91;args context-map content&#93;
+    &#40;str content&#41;&#41;
+  :bar :endfoo&#41;
+
+&#40;render &quot;{% foo %} some text {% bar %} some more text {% endfoo %}&quot; {}&#41;
+=&gt;&quot;{:foo {:args nil, :content \&quot; some text \&quot;}, :bar {:args nil, :content \&quot; some more text \&quot;}}&quot;
+</code></pre><p>Selmer also supports overriding the default tag characters using <code>:tag-open</code>, <code>:tag-close</code>, <code>:filter-open</code>, <code>:filter-close</code> and <code>:tag-second</code> keys:</p><pre><code class="clojure">&#40;render &quot;&#91;% for ele in foo %&#93;&lt;&lt;&#91;{ele}&#93;&gt;&gt;&#91;%endfor%&#93;&quot;
+                 {:foo &#91;1 2 3&#93;}
+                 {:tag-open \&#91;
+                  :tag-close \&#93;}&#41;
+</code></pre><p>This makes it much easier to use it in conjunction with client-side frameworks such as AngularJs.</p><p>One limitation Selmer has is the way it handles inheritance. Since the inheritance block hierarchy is compiled before the parsing step, any content in child templates must be encapsulated in block tags. Free-floating tags and text will simply be ignored by the parser. This is in line with <a href='http://stackoverflow.com/questions/1408925/django-templates-include-and-extends'>Django behavior</a>.</p><p>So there you have it. If you like Django template syntax or just want a fast templating engine then give Selmer a try.</p><p>As it is a new project there may be bugs and oddities so don't hesitate to open an issue on the project page if you find any. So far I haven't found any problems in switching my application from Clabango to Selmer and the test coverage is fairly extensive at this point. </p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/selmer/">selmer</a>
+    
+    <a href="/clojure/">clojure</a>
+    
+    <a href="/luminus/">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-08-18-Why-I-m-Productive-in-Clojure/">&laquo; Why I&#39;m Productive in Clojure</a>
+        
+        
+        <a class="right button" href="/posts/2013-06-12-lib-noir-access-rule-madness/">lib-noir access rule madness &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>
