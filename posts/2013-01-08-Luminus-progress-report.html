@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Luminus progress report</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>January 8, 2013</strong>
+        
+    </div>
+    <h1>Luminus progress report</h1>
+</div>
+<div>
+    
+    <p>The work on the framework continues steadily, and I've been integrating some of the feedback I got on the initial release.</p><p>I quickly discovered that simply using different files for template modules is insufficient. Many features need to update the <code>project.clj</code> with dependencies or other options.</p><p>To deal with this I made a <a href='https://github.com/yogthos/luminus-template/blob/master/src/leiningen/new/dependency_injector.clj'>util</a> which reads in the project file and injects dependencies, plugins and other options. Now each plugin can add its own project elements independently of others.</p><p>I'm considering taking the same approach to managing the layout as well. For example, if bootstrap support was selected, then its js/css would be included in <code>layout/common</code>. Another use case would be to update the application routes if a module provided some new routes of its own.</p><p>I'd also like to highlight some of the additions to lib-noir. There are several new namespaces, such as <code>noir.util.cache</code>, <code>noir.io</code>, and <code>noir.util.route</code>. Let's take a look at each of these in turn.</p><h4 id="caching">Caching</h4><p>Basic caching is provided via <code>noir.util.cache</code>. Cache allows wrapping any expr using <code>&#40;cache id expr&#41;</code>, and the expr will only be evaluated if it's not found in the cache or if the cache has been invalidated. In case expr throws an exception the current cached value will be kept.</p><p>There are a couple of helpers for invalidating the cache. First, there's <code>invalidate-cache!</code>, which takes a key and removes it from the cache. Then, there's <code>clear-cache!</code> which removes all currently cached items.</p><p>It's also possible to set the timeout for cached items using <code>set-cache-timeout!</code> and passing it a value in seconds. If an item remains in the cache longer than the timeout, the cache will attempt to refresh the value by running the expr associated with the item.</p><p>Finally, you can set the maximum size of the cache by calling <code>set-cache-size!</code>, when the cache grows past the specified size, oldest items will be removed to make room for new ones.</p><p>I'm currently using the cache in <a href='http://http://www.luminusweb.net/'>Luminus</a> for the documentation pages. Luminus fetches the documentation from github as markdown and then translates it to HTML. This is slow enough to be noticeable to the user. On top of that, github is known to have an occasional outage or two. :) </p><p>With this scheme, I can keep the docs up to date without having to redeploy the site, and I don't have to worry about the latency or github uptime. </p><h4 id="io">IO</h4><p>The <code>noir.io</code> namespace provides some helper functions to make it easier to handle static resources.</p><p>You can get the absolute path to the public directory of your application by calling <code>resource-path</code>.</p><p>If you need to read a file located in the public folder you can get a URL for the resource by calling <code>get-resource</code> and provided the path relative to the public directory.</p><p>If the resource is a text file, such as a markdown document, you can use <code>slurp-resource</code> to read it into a string.</p><p>Another addition is the <code>upload-file</code> function which saves the file generated by a <code>multipart/form-data</code> form POST to a path relative to the public folder. An example can be seen here:</p><pre><code class="clojure">&#40;ns myapp.upload
+  ...
+  &#40;:require &#91;noir.io :as io&#93;&#41;&#41;
+ 
+&#40;defn upload-page &#91;&#93;
+  &#40;common/layout
+    &#91;:h2 &quot;Upload a file&quot;&#93;
+    &#40;form-to {:enctype &quot;multipart/form-data&quot;}
+             &#91;:post &quot;/upload&quot;&#93;            
+             &#40;file-upload :file&#41;            
+             &#40;submit-button &quot;upload&quot;&#41;&#41;&#41;&#41;
+              
+&#40;defn handle-upload &#91;file&#93;
+  &#40;upload-file &quot;/uploads&quot; file&#41;
+  &#40;redirect
+    &#40;str &quot;/&quot; &#40;session/get :user&#41; &quot;/&quot; &#40;:filename file&#41;&#41;&#41;&#41;
+   
+&#40;defroutes upload-routes
+  &#40;GET &quot;/upload&quot; &#91;&#93; &#40;upload-page&#41;&#41;
+  &#40;POST &quot;/upload&quot; &#91;file&#93; &#40;handle-upload file&#41;&#41;&#41;
+</code></pre><h4 id="access&#95;rules">Access rules</h4><p>Noir used to have a <code>pre-route</code> macro, which allowed for filtering and redirecting based on some rules.</p><p>Now, <code>lib-noir</code> provides a <code>restricted</code> macro which provides similar functionality.</p><p>You can define access rules as functions which accept the method, url, and params. The function then returns a boolean to indicate if the rule succeeded or not.</p><p>For example, if we wanted to restrict access to a page so that it's only accessible if the id in session matches the id in the page, we could write a rule like this:</p><pre><code class="clojure">&#40;defn user-page &#91;method url params&#93; 
+  &#40;and &#40;= url &quot;/private/:id&quot;&#41;
+       &#40;= &#40;first params&#41; &#40;session/get :user&#41;&#41;&#41;&#41;
+</code></pre><p>Then we wrap our handler in <code>wrap-access-rules</code> middleware. The middleware accepts one or more access rule functions, and checks if restricted pages match any of the rules provided.</p><pre><code class="clojure">&#40;def app &#40;-&gt; all-routes
+             &#40;middleware/app-handler&#41;
+             &#40;middleware/wrap-access-rules user-page&#41;&#41;&#41;  
+</code></pre><p>With that in place, we can restrict access to our page as follows.</p><pre><code class="clojure">&#40;restricted GET &quot;/private/:id&quot; &#91;id&#93; &quot;private!&quot;&#41;
+</code></pre><p>Note that, you have to use <code>noir.util.middleware/app-handler</code> for <code>wrap-access-rules</code> to work correctly. Or manually bind the <code>noir.request/&#42;request&#42;</code>, eg:</p><pre><code class="clojure">&#40;defn wrap-request-map &#91;handler&#93;
+  &#40;fn &#91;req&#93;
+    &#40;binding &#91;noir.request/&#42;request&#42; req&#93;
+      &#40;handler req&#41;&#41;&#41;&#41;
+</code></pre><p><strong>update</strong> I've since made <code>wrap-request-map</code> public in <code>lib-noir</code>, so if you need to wrap the request for any reason, you don't need to roll your own.</p><p>I hope you find the new features useful, and as always I'm open to feedback and suggestions for improvements as well as new features.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/luminus.html">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-01-11-One-Ring-to-rule-them-all.html">&laquo; One Ring to rule them all</a>
+        
+        
+        <a class="right button" href="/posts/2012-12-28-Luminus-progress-updates.html">Luminus progress updates &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Blogging with Noir</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 14, 2012</strong>
+        
+    </div>
+    <h1>Blogging with Noir</h1>
+</div>
+<div>
+    
+    <p>Writing a blog engine in Noir turned out to be a very pleasant experience. The <a href='https://github.com/yogthos/yuggoth'>engine</a> which is currently powering this blog  supports all the features one would expect from a blogging engine, some of which include:</p><ul><li>content caching</li><li>RSS feed</li><li>tags</li><li>markdown in posts and comments with live preview</li><li>syntax highlighting</li><li>file uploads and management through web UI</li><li>captchas for comments</li><li>latest comments view</li><li>controlling post visibility</li></ul><p>All that weighs in at under 1K lines of Clojure, and some 50 lines of Js. I've outlined some of the quirks I ran into <a href='http://yogthos.net/blog/16-Noir+tricks'>previously</a>. Now, I'd like to talk about what went right and what facilitated writing a complete functional website in only a few hundred lines of code.</p><p>I used <a href='https://github.com/clojure/java.jdbc/'>clojure.java.jdbc</a> for database access. The library is very easy to use and provides all the basic functionality you'd expect with minimal fuss. You can define a database either using a map:<pre><code class="clojure">&#40;def mysql-db {:subprotocol &quot;postgresql&quot;
+               :subname &quot;//127.0.0.1:3306/clojure&#95;test&quot;
+               :user &quot;clojure&#95;test&quot;
+               :password &quot;clojure&#95;test&quot;}&#41;
+</code></pre></p><p>by providing a JNDI name and configuring a JNDI data source on the app server:<pre><code class="clojure">&#40;def my-db {:name &quot;jdbc/myDatasource&quot;}&#41;
+</code></pre></p><p>or by simply instantiating a data source as I do in the blog:<pre><code class="clojure">&#40;def db 
+  {:datasource 
+    &#40;doto &#40;new PGPoolingDataSource&#41;
+       &#40;.setServerName   &#40;:host blog-config&#41;&#41;
+       &#40;.setDatabaseName &#40;:schema blog-config&#41;&#41;
+       &#40;.setUser         &#40;:user blog-config&#41;&#41;
+       &#40;.setPassword     &#40;:pass blog-config&#41;&#41;
+       &#40;.setMaxConnections 10&#41;&#41;}&#41;
+</code></pre></p><p>Calling SQL commands is straightforward as well, all statements must be wrapped with a <code>with-connection</code> statement. This ensures that any result sets are cleaned up and the connection is closed once you're done with it. I found the library to be very intuitive and easy to work with. The documentation <a href='https://github.com/clojure/java.jdbc/tree/master/doc/clojure/java/jdbc'>is available on github</a> and covers most use cases. All of my db interaction ended up fitting in just under 250 lines, which makes it easy to keep on top of.</p><p><a href='http://www.webnoir.org/'>Noir</a> has been indispensable in making things concise and easy to manage. Noir and <a href='http://weavejester.github.com/hiccup/'>Hiccup</a> make it trivial to organize the pages and their controllers into self contained chunks.</p><p>Because it encourages making things stateless, it's easy to add functionality in isolated chunks. This means that you can add a particular feature, such as RSS support, without having to worry how it might interact with existing code. I find this especially important when writing side projects as it means that you have a very short ramp up time when you come back to a project after not having touched it for a while.</p><p>I'm personally a fan of using Hiccup for generating HTML, as it allows using the full power of Clojure for templating. However, some people have concerns about not having the actual HTML that designers can then style. Fortunately, there's nothing inherent to Noir that ties it to Hiccup. A <code>defpage</code> simply has to return an HTML string, how that string gets generated is entirely up to you. And there's a <a href='http://paulosuzart.github.com/blog/2012/03/25/web-noir-plus-enlive-template/'>great guide</a> for using Noir with <a href='https://github.com/cgrand/enlive/'>Enlive</a>, which is designed for HTML based templating. Again, I have to point out the thoughtfulness of design which separates creating routes and serving pages from the libraries which deal with actually generating them.</p><p>For Markdown parsing I dredged up <a href='https://github.com/yogthos/markdown-clj'>an old library of mine</a>, and with a few tweaks it's been doing its job as far as far as this blog is concerned. One advantage of this particular library is that it compiles to both Clojure and ClojureScript, so I can do previews in the browser and guarantee that they will be rendered the same by the server.</p><p>I added the ability to add language hinting using github style markdown, eg: &#96;&#96;&#96;clojure, to output tags compatible with the <a href='http://alexgorbatchev.com/SyntaxHighlighter/'>syntax highlighter</a>, which I then use to do code highlighting in the browser.</p><p>I also didn't find any readily available libraries for generating RSS from Clojure, so I proceeded to make <a href='https://github.com/yogthos/clj-rss'>clj-rss</a>, which turned out to be very easy thanks to the excellent XML support in the standard library and a few macros.</p><p>For my captcha needs I turned to a Java library called <a href='http://mvnrepository.com/artifact/net.sf.jlue/jlue-core'>jlue</a>. Thanks to the excellent Java interop, using it is quite seamless:<pre><code class="clojure">&#40;defn gen-captcha &#91;&#93;
+  &#40;let &#91;text &#40;gen-captcha-text&#41;
+        captcha &#40;doto &#40;new Captcha&#41;&#41;&#93;
+    &#40;session/put! :captcha 
+                  {:text text 
+                   :image &#40;.gen captcha text 250 40&#41;}&#41;&#41;&#41;
+
+&#40;defpage &quot;/captcha&quot; &#91;&#93;
+  &#40;gen-captcha&#41;
+  &#40;resp/content-type 
+    &quot;image/jpeg&quot; 
+    &#40;let &#91;out &#40;new ByteArrayOutputStream&#41;&#93;
+      &#40;ImageIO/write &#40;:image &#40;session/get :captcha&#41;&#41; &quot;jpeg&quot; out&#41;
+      &#40;new ByteArrayInputStream &#40;.toByteArray out&#41;&#41;&#41;&#41;&#41;
+</code></pre></p><p>Finally, all of the building and packaging is handled by <a href='http://github.com/technomancy/leiningen/'>Leiningen</a>, which makes it trivial to track dependencies and package up the resulting application. In my case I'm deploying the blog to Tomcat, and so I simply build a WAR using:<pre><code class="bash">lein ring uberwar
+</code></pre></p><p>The resulting WAR can be dropped on any Java application server. If you wanted to deploy to Heroku, you simply have to add a <code>Procfile</code> to the root directory of the project with the following contents:<pre><code class="bash">web: lein trampoline run -m yuggoth.server
+</code></pre></p><p>Overall, I experienced very few issues and found the experience to be overwhelmingly positive. In my opinion the current tools and libraries available in Clojure allow writing web sites just as easily, if not more so, as most of the established languages out there.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/noir.html">noir</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-08-16-Easy-PDF-reports-with-clj-pdf.html">&laquo; Easy PDF reports with clj-pdf</a>
+        
+        
+        <a class="right button" href="/posts/2012-08-11-Why-be-conservative.html">Why be conservative &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

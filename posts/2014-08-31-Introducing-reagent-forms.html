@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Introducing reagent-forms</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 31, 2014</strong>
+        
+    </div>
+    <h1>Introducing reagent-forms</h1>
+</div>
+<div>
+    
+    <p>One thing I’ve always found to be particularly tedious is having to create data bindings for form elements. Reagent makes this much more palatable than most libraries I’ve used. All you need to do is create an atom and use it to track the state of the components.</p><p>However, creating the components and binding them to the state atom is still a manual affair. I decided to see if I could roll this into a library that would provide a simple abstraction for tracking the state of the fields in forms.</p><p>The usual way to bind inputs to atoms as illustrated in the <a href='http://holmsand.github.io/reagent/'>official Reagent docs</a> can be seen below:</p><pre><code class="clojure">&#40;ns example
+  &#40;:require &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;&#41;&#41;
+
+&#40;defn atom-input &#91;value&#93;
+  &#91;:input {:type &quot;text&quot;
+           :value @value
+           :on-change #&#40;reset! value &#40;-&gt; % .-target .-value&#41;&#41;}&#93;&#41;
+
+&#40;defn shared-state &#91;&#93;
+  &#40;let &#91;val &#40;atom &quot;foo&quot;&#41;&#93;
+    &#40;fn &#91;&#93;
+      &#91;:div
+       &#91;:p &quot;The value is now: &quot; @val&#93;
+       &#91;:p &quot;Change it here: &quot; &#91;atom-input val&#93;&#93;&#93;&#41;&#41;&#41;
+</code></pre><p>We create an atom with some state and then pass it to our input component. The component will display the current value and update the state when its <code>:on-change</code> event is triggered.</p><p>Normally, we’d have to go through each field in the form and pass the state to it so that it can bind itself to the document we’re generating.</p><p>I wanted to be able to specify a template for a form and then pass the entire template to a function that would take care of binding all the fields to an atom representing the document.</p><p>This function would need to know what parts of the form need to be bound, how to bind each type of element, and how to uniquely identify it in the document.</p><p>My solution was to introduce the <code>:field</code> attribute that would identify the component as a form field, and to use the <code>:id</code> attribute as the unique key for the element.</p><p>The binding function would then walk the form and check for any component that contain the <code>:field</code> key in its attribute map. The key would point to the type of component such as text, numeric, list, and so on.</p><p>Then it could pass the component to a specific binding function that would be responsible for linking the field with the document and return a bound component. Let’s take a look at how this all works with an example.<br /></p><p>We’ll first need to include the library in our project `[reagent-forms "0.1.3"] <code>, then we’ll require the </code>reagent-forms.core/bind-fields` function in our namespace:</p><pre><code class="clojure">&#40;ns myform.core
+  &#40;:require &#91;reagent-forms.core :refer &#91;bind-fields&#93;&#93;&#41;
+</code></pre><p>Next, we need to create a form template to represent our form:</p><pre><code class="clojure">&#40;defn row &#91;label input&#93;
+  &#91;:div.row
+    &#91;:div.col-md-2 &#91;:label label&#93;&#93;
+    &#91;:div.col-md-5 input&#93;&#93;&#41;
+
+&#40;def form-template
+  &#91;:div
+   &#40;row &quot;first name&quot; &#91;:input {:field :text :id :person.first-name}&#93;&#41;
+   &#40;row &quot;last name&quot; &#91;:input {:field :text :id :person.last-name}&#93;&#41;
+   &#40;row &quot;age&quot; &#91;:input {:field :numeric :id :person.age}&#93;&#41;
+   &#40;row &quot;email&quot; &#91;:input {:field :email :id :person.email}&#93;&#41;
+   &#40;row &quot;comments&quot; &#91;:textarea {:field :textarea :id :comments}&#93;&#41;&#93;&#41;
+</code></pre><p>Note that we call helper functions, such as <code>row</code>, eagerly. The <code>bind-fields</code>  function will walk the template to construct the actual components that will be used by Reagent.</p><p>The <code>.</code> in the <code>:id</code> key indicates nested structure. When we have a key like <code>:person.first-name</code>, then its value will be stored under <code>{:person {:first-name &lt;field-value&gt;}}</code>.</p><p>Our form component will then create an atom to represent the document and bind it to the template to produce the actual form:</p><pre><code class="clojure">&#40;defn form &#91;&#93;
+  &#40;let &#91;doc &#40;atom {}&#41;&#93;
+    &#40;fn &#91;&#93;
+      &#91;:div
+       &#91;:div.page-header &#91;:h1 &quot;Reagent Form&quot;&#93;&#93;
+       &#91;bind-fields form-template doc&#93;
+       &#91;:label &#40;str @doc&#41;&#93;&#93;&#41;&#41;&#41;
+</code></pre><p>That’s all there is to it. Whenever the state of any of the components changes the <code>doc</code> atom will be updated and vice versa.</p><p>The <code>bind-fields</code> function also accepts optional events. Events are triggered whenever the document is updated, and will be executed in order they are listed. Each event sees the document modified by its predecessor. The event must take 3 parameters, which are the id, the value, and the document.</p><p>The id and the value represent the value that was changed to trigger the event, and the document is the atom that contains the state of the form. Note that the id is in form of a vector representing the path in the document. The event can either return an updated document or <code>nil</code>, when <code>nil</code> is returned then the state of the document is unmodified. The following is an example of an event to calculate the value of the <code>:bmi</code> key when the <code>:weight</code> and <code>:height</code> keys are populated:</p><pre><code class="clojure">&#40;defn row &#91;label input&#93;
+  &#91;:div.row
+    &#91;:div.col-md-2 &#91;:label label&#93;&#93;
+    &#91;:div.col-md-5 input&#93;&#93;&#41;
+
+&#40;def form-template
+ &#91;:div
+   &#91;:h3 &quot;BMI Calculator&quot;&#93;
+   &#40;row &quot;Height&quot; &#91;:input {:field :numeric :id :height}&#93;&#41;
+   &#40;row &quot;Weight&quot; &#91;:input {:field :numeric :id :weight}&#93;&#41;
+   &#40;row &quot;BMI&quot; &#91;:input {:field :numeric :id :bmi :disabled true}&#93;&#41;&#93;&#41;
+
+&#91;w/bind-fields
+  form-template
+  doc
+  &#40;fn &#91;&#91;id&#93; value {:keys &#91;weight height&#93; :as doc}&#93;
+    &#40;when &#40;and &#40;some #{id} &#91;:height :weight&#93;&#41; weight height&#41;
+      &#40;assoc-in doc &#91;:bmi&#93; &#40;/ weight &#40;&#42; height height&#41;&#41;&#41;&#41;&#41;&#93;
+</code></pre><p>The library provides support for a number of common fields such as inputs, checkboxes, radio buttons, lists, and multi-selects. However, it also makes it easy to add your own custom fields by implementing the <code>reagent-forms.core/init-field</code> multimethod.</p><p>The method must take two parameters, where the first parameter is the field component and the second is the options map. The options contain two keys called  <code>get</code> and <code>save!</code>. The <code>get</code> key points to a function that accepts an id and returns the document value associated with it. The <code>save!</code> function accepts an id and a value that will be associated with it. Let’s take a look at the <code>:radio</code> field implementation as an example:<pre><code class="clojure">&#40;defmethod init-field :radio
+  &#91;&#91;type {:keys &#91;field id value&#93; :as attrs} &amp; body&#93;
+   {:keys &#91;get save!&#93;}&#93;
+  &#40;let &#91;state &#40;atom &#40;= value &#40;get id&#41;&#41;&#41;&#93;
+    &#40;fn &#91;&#93;
+      &#40;into
+        &#91;type
+         &#40;merge {:type :radio
+                 :checked @state
+                 :class &quot;form-control&quot;
+                 :on-change
+                 #&#40;do
+                    &#40;save! id value&#41;
+                    &#40;reset! state &#40;= value &#40;get id&#41;&#41;&#41;&#41;}
+                attrs&#41;&#93;
+         body&#41;&#41;&#41;&#41;
+</code></pre></p><p>As you can see, the method simply returns a new component that’s bound to the supplied id in the document. For more details please see the <a href='https://github.com/yogthos/reagent-forms'>documentation</a> on the project page.</p><p>The library is still rather new and as such has some rough edges, such as poor error reporting. However, I already find it to be quite useful in my own projects.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/reagent.html">reagent</a>
+    
+    <a href="/clojurescript.html">clojurescript</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2014-09-20-Using-ClojureScript-REPL-from-Light-Table.html">&laquo; Using ClojureScript REPL from Light Table</a>
+        
+        
+        <a class="right button" href="/posts/2014-08-17-File-Snooping.html">File Snooping &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

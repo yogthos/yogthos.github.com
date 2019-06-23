@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Noir tutorial - part 2</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 18, 2012</strong>
+        
+    </div>
+    <h1>Noir tutorial - part 2</h1>
+</div>
+<div>
+    
+    <p>This is the second part of the Noir tutorial, where we'll continue to cover the basics of building a website. In the comments for part 1, somebody suggested  that Noir might be abandoned. This is absolutely not the case, I've contacted Chris Granger and this is what he has to say:</p><blockquote><p>Hey Dmitri,<br /></p></blockquote><blockquote><p>Light Table actually uses Noir, so it's certainly still alive. I'm not the primary one driving things day to day right now, Raynes has been helping out with that. </p></blockquote><blockquote><p>Cheers,<br /></p></blockquote><blockquote><p>Chris. </p></blockquote><p>Hopefully, this should put any fears regarding the health of the project to rest. And with that out of the way, lets continue building our site. In the <a href='http://yogthos.net/blog/22-Noir+tutorial+-+part+1'>previous section of the tutorial</a> we setup a basic project and learned how to add pages to it. This time let's look at how to persist data to a database, create sessions, and do some basic user management.</p><h3 id="database&#95;access">Database Access</h3><p>There are several Clojure libraries for dealing with relational databases, such as <a href='http://sqlkorma.com/'>SQLKorma</a>, <a href='http://clojureql.org/'>ClojureQL</a>, <a href='http://budu.github.com/lobos/index.html'>Lobos</a>, and [clojure.data.jdbc])(http://clojure.github.com/java.jdbc/doc/clojure/java/jdbc/UsingSQL.html). In this tutorial we'll be using clojure.data.jdbc to keep things simple, but I do encourage you to take a look at the others.</p><h4 id="setting&#95;up&#95;the&#95;db&#95;connection">Setting up the DB connection</h4><p>First, we'll need to define our database connection, this can be done by either providing a map of connection parameters:<pre><code class="clojure">&#40;def db {:subprotocol &quot;postgresql&quot;
+         :subname &quot;//localhost/my&#95;website&quot;
+         :user &quot;admin&quot;
+         :password &quot;admin&quot;}&#41;
+</code></pre></p><p>by specifying the JNDI name for a connection managed by the application server:<pre><code class="clojure">&#40;def db {:name &quot;jdbc/myDatasource&quot;}&#41;
+</code></pre></p><p>I personally like this option, because it completely separates the code in the application from the environment. For example, if you have dev/staging/production servers, you can point the JNDI connection to their respective databases, and when you deploy your application it will pick it up from the environment.</p><p>Finally, you can provide a JDBC data source, which you configure manually:<pre><code class="clojure">&#40;def db
+  {:datasource
+    &#40;doto &#40;new PGPoolingDataSource&#41;
+     &#40;.setServerName   &quot;localhost&quot;&#41;
+     &#40;.setDatabaseName &quot;my&#95;website&quot;&#41;
+     &#40;.setUser         &quot;admin&quot;&#41;
+     &#40;.setPassword     &quot;admin&quot;&#41;
+     &#40;.setMaxConnections 10&#41;&#41;}&#41;
+</code></pre></p><p>At this point you should setup a database and create a schema for this tutorial called <code>my&#95;website</code>. I will be using PostgreSQL so if you use a different DB there might be slight syntactic differences in your SQL. Once you have the DB up and running, we'll need to add the clojure.data.jdbc and JDBC driver dependencies to <code>project.clj</code>:<pre><code class="clojure">&#40;defproject my-website &quot;0.1.0-SNAPSHOT&quot;
+  :description &quot;&quot;my Noir website&quot;&quot;
+  :dependencies &#91;&#91;org.clojure/clojure &quot;1.4.0&quot;&#93;
+                 &#91;noir &quot;1.3.0-beta3&quot;&#93;
+                 &#91;org.clojure/java.jdbc &quot;0.2.3&quot;&#93;
+                 &#91;postgresql/postgresql &quot;9.1-901.jdbc4&quot;&#93;&#93;
+  :main my-website.server&#41;
+</code></pre></p><h4 id="using&#95;to&#95;the&#95;database">Using to the Database</h4><p>Next, let's create a new namespace called <code>my-website.models.db</code> in the models directory of our project, and open it up. Here we'll first need to add a require statement for clojure.data.jdbc:<pre><code class="clojure">&#40;ns my-website.models.db
+  &#40;:require &#91;clojure.java.jdbc :as sql&#93;&#41;&#41;
+</code></pre></p><p>now let's create a connection:<pre><code class="clojure">&#40;def db 
+  {:subprotocol &quot;postgresql&quot;
+   :subname &quot;//localhost/my&#95;website&quot;
+   :user &quot;admin&quot;
+   :password &quot;admin&quot;}&#41;
+</code></pre></p><p>we'll add the following function which will allow us to create the <code>users</code> table:<pre><code class="clojure">&#40;defn init-db &#91;&#93;
+  &#40;try
+  &#40;sql/with-connection
+    db
+    &#40;sql/create-table
+      :users
+      &#91;:id &quot;SERIAL&quot;&#93;
+      &#91;:handle &quot;varchar&#40;100&#41;&quot;&#93;
+      &#91;:pass   &quot;varchar&#40;100&#41;&quot;&#93;&#41;&#41;
+  &#40;catch Exception ex
+    &#40;.getMessage &#40;.getNextException ex&#41;&#41;&#41;&#41;&#41;
+</code></pre></p><p>Here's you'll notice that the <code>create-table</code> needs to be wrapped in a <code>with-connection</code> statement which ensures that the connection is cleaned up correctly after we're done with it. The only other thing to note is the use of "SERIAL" for the id field in the table, which is PostgreSQL specific way to create auto incrementing fields. It's also possible to use keywords such as <code>:int</code>, <code>:boolean</code>, and <code>:timestamp</code> for field types as well as the corresponding SQL string as is done in the above example. The whole statement is wrapped in a try block, so if we get any errors when it runs we'll print the error message.</p><p>In the REPL we'll run:</p><pre><code>&#40;init-db&#41;
+</code></pre><p>If your DB is configured correctly, then you should now have a <code>users</code> table. We'll now write a function to add a user to it:<pre><code class="clojure">&#40;defn add-user &#91;user&#93;
+  &#40;sql/with-connection 
+    db
+    &#40;sql/insert-record :users user&#41;&#41;&#41;
+</code></pre></p><p>now test that the function works correctly:<pre><code class="clojure">&#40;add-user {:handle &quot;foo&quot; :pass &quot;bar&quot;}&#41;
+=&gt;{:pass &quot;bar&quot;, :handle &quot;foo&quot;, :id 1}
+</code></pre></p><p>finally we'll need a way to read the records from the database, I wrote the following helper function to do that:<pre><code class="clojure">&#40;defn db-read &#91;query &amp; args&#93;
+  &#40;sql/with-connection 
+    db
+    &#40;sql/with-query-results 
+      res 
+      &#40;vec &#40;cons query args&#41;&#41; &#40;doall res&#41;&#41;&#41;&#41;
+</code></pre></p><p>the function accepts an SQL string and optional parameters:<pre><code class="clojure">&#40;db-read &quot;select &#42; from users&quot;&#41;
+&#40;{:pass &quot;bar&quot;, :handle &quot;foo&quot;, :id 1}&#41;
+
+&#40;db-read &quot;select &#42; from users where id=?&quot; 1&#41;
+&#40;{:pass &quot;bar&quot;, :handle &quot;foo&quot;, :id 1}&#41;
+
+</code></pre></p><p>we'll write another helper function to fetch the user by handle<pre><code class="clojure">&#40;defn get-user &#91;handle&#93;
+  &#40;first 
+    &#40;db-read &quot;select &#42; from users where handle=?&quot; handle&#41;&#41;&#41;
+</code></pre></p><p>at this point we've got a user table and helper functions to create and query users. Let's hook that up to our pages and provide the functionality to create user accounts and allow users to login.</p><h3 id="creating&#95;a&#95;registration&#95;page">Creating a Registration Page</h3><p>Noir provides a very simple way to manage sessions using <a href='http://www.webnoir.org/autodoc/1.2.0/noir.session-api.html'>noir.ession</a> namespace. Let's update our site to allow a user to create an account. First we'll create a new namespace called <code>my-website.views.users</code> and add the following code to it:<pre><code class="clojure">&#40;ns my-website.views.users
+  &#40;:use &#91;noir.core&#93;
+        hiccup.core hiccup.form&#41;
+  &#40;:require &#91;my-website.views.common :as common&#93;
+            &#91;my-website.models.db :as db&#93;
+            &#91;noir.util.crypt :as crypt&#93;
+            &#91;noir.session :as session&#93;
+            &#91;noir.response :as resp&#93;&#41;&#41;
+
+&#40;defpage &quot;/signup&quot; {:keys &#91;handle error&#93;}
+  &#40;common/layout
+    &#91;:div.error error&#93;
+    &#40;form-to &#91;:post &quot;/signup&quot;&#93;
+             &#40;label &quot;user-id&quot; &quot;user id&quot;&#41;
+             &#40;text-field &quot;handle&quot; handle&#41;
+             &#91;:br&#93;
+             &#40;label &quot;pass&quot; &quot;password&quot;&#41;
+             &#40;password-field &quot;pass&quot;&#41;             
+             &#91;:br&#93;
+             &#40;submit-button &quot;create account&quot;&#41;&#41;&#41;&#41;
+
+&#40;defpage &#91;:post &quot;/signup&quot;&#93; user
+  &#40;try 
+    &#40;db/add-user &#40;update-in user &#91;:pass&#93; crypt/encrypt&#41;&#41;
+    &#40;resp/redirect &quot;/&quot;&#41;
+    &#40;catch Exception ex
+      &#40;render &quot;/signup&quot; &#40;assoc user :error &#40;.getMessage ex&#41;&#41;&#41;&#41;&#41;&#41;
+</code></pre></p><p>You'll notice that we've required a few new namespaces which we'll be using shortly. Otherwise, we see a similar setup to what we did in the first part of the tutorial, except when we accept the post from the form, we actually add the user to the database.</p><p>We will encrypt the user password using <code>noir.util.crypt</code> and then attempt to store the user in the database. If we fail to add the user we'll render our signup page again, but this time with an error message.</p><p><center> <img src="//files/noirtutorial1.3.png" alt="create user" /> <br/> create user page</p><p><img src="//files/noirtutorial1.4.png" alt="create user error" /> <br/> error displayed when user creation fails</p><p></center> Notice that we pass the user fields back to the defpage displaying the form, so if we get an error we don't have to make the user retype all their information.</p><h3 id="session&#95;management">Session Management</h3><p>At this point we need to provide the users with the ability to login with their accounts. Let's go to the <code>common</code> namespace and add a way for users to login. We'll need to add <a href='http://www.webnoir.org/autodoc/1.2.0/noir.session-api.html'><code>noir.session</code></a> to our <code>:require</code> statement:<pre><code class="clojure">&#40;ns my-website.views.common
+  ...
+  &#40;:require &#91;noir.session :as session&#93;&#41;
+</code></pre></p><p>then we'll go back to <code>users</code> namespace and create a page to handle logins:<pre><code class="clojure">&#40;defpage &#91;:post &quot;/login&quot;&#93; {:keys &#91;handle pass&#93;}
+  &#40;render &quot;/&quot; 
+          &#40;let &#91;user &#40;db/get-user handle&#41;&#93; 
+            &#40;if &#40;and user &#40;crypt/compare pass &#40;:pass user&#41;&#41;&#41;
+              &#40;session/put! :user handle&#41;
+              {:handle handle :error &quot;login failed&quot;}&#41;&#41;&#41;&#41;
+</code></pre></p><p>We'll use <code>noir.crypt</code> to validate the password against the one we have in the database, and if the password matches we'll stick the user handle into the session. The syntax for updating the session is fairly straightforward, and the <a href='http://www.webnoir.org/autodoc/1.2.0/noir.session-api.html'>documentation page</a> explains it well. We'll be using <code>get</code>, <code>put!</code>, and <code>clear!</code> functions, notice that <code>put!</code> and <code>clear!</code> have an exclamation mark at the end indicating that they mutate the data in place.</p><p>The users will also need a way to logout, so let's add a page to handle that as well:<pre><code class="clojure">&#40;defpage &#91;:post &quot;/logout&quot;&#93; &#91;&#93;
+  &#40;session/clear!&#41;
+  &#40;resp/redirect &quot;/&quot;&#41;&#41;
+</code></pre></p><p>When the user logs out, we'll simply clear the session and send them back to the homepage. We will now go to our <code>common</code> namespace and add the <code>noir.session</code> and <code>hiccup.form</code> in our namespace:<pre><code class="clojure">&#40;ns my-website.views.common
+  &#40;:use &#91;noir.core :only &#91;defpartial&#93;&#93;
+        hiccup.element 
+        hiccup.form
+        &#91;hiccup.page :only &#91;include-css html5&#93;&#93;&#41;
+  &#40;:require &#91;noir.session :as session&#93;&#41;&#41;
+</code></pre></p><p>then add a helper function to create the login form:<pre><code class="clojure">&#40;defn login-form &#91;&#93;
+  &#40;form-to &#91;:post &quot;/login&quot;&#93;           
+           &#40;text-field {:placeholder &quot;user id&quot;} &quot;handle&quot;&#41;                        
+           &#40;password-field {:placeholder &quot;password&quot;} &quot;pass&quot;&#41;                        
+           &#40;submit-button &quot;login&quot;&#41;&#41;&#41;
+</code></pre></p><p>and finally add it to our layout:<pre><code class="clojure">&#40;defpartial layout &#91;&amp; content&#93;
+            &#40;html5
+              &#91;:head
+               &#91;:title &quot;my-website&quot;&#93;
+               &#40;include-css &quot;/css/reset.css&quot;&#41;&#93;
+              &#91;:body               
+               &#40;if-let &#91;user &#40;session/get :user&#41;&#93;
+                  &#91;:h2 &quot;welcome &quot; user 
+                    &#40;form-to &#91;:post &quot;/logout&quot;&#93; &#40;submit-button &quot;logout&quot;&#41;&#41;&#93;
+                  &#91;:div.login
+                   &#40;login-form&#41; &#91;:p &quot;or&quot;&#93; &#40;link-to &quot;/signup&quot; &quot;sign up&quot;&#41;&#93;&#41;
+               
+               content&#93;&#41;&#41;
+</code></pre></p><p>At this point our main page should look like the following: <center> <img src="//files/noirtutorial1.5.png" alt="login" /> </center></p><p>and after we sign up and login, we should see:</p><p><center> <img src="//files/noirtutorial1.6.png" alt="logged in" /> </center></p><p>The logout button should take us back to the login page by clearing the user session. We now have a complete website with some basic user management, the only thing left to add is actual content. :)</p><h3 id="summary">Summary</h3><p>In this section we learned the following:</p><ul><li>how to setup the database and do basic queries</li><li>do basic authentication using <code>noir.crypt</code></li><li>use sessions to store user information</li></ul><p>Hopefully this is enough to get you started using Noir and making your sites with it. If I omitted anything important let me know in comments and I'll be glad to go over it.</p><p>The complete source for this part of the tutorial is available <a href='https://github.com/yogthos/Noir-tutorial/tree/f83a894933922eda2b78c84de2e8eb28891eeda5'>here</a>. Also, for an example of a complete real world site you can see the source for this blog <a href='https://github.com/yogthos/yuggoth'>here</a>.</p><p>In the <a href='http://yogthos.net/blog/25-Noir+tutorial+-+part+3'>next section</a> we'll talk about setting content types and doing file uploads and downloads.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/noir.html">noir</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-08-21-Reflecting-on-performance.html">&laquo; Reflecting on performance</a>
+        
+        
+        <a class="right button" href="/posts/2012-08-17-Noir-tutorial-part-1.html">Noir tutorial - part 1 &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

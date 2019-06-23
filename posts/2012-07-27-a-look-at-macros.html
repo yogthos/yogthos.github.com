@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): a look at macros</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>July 27, 2012</strong>
+        
+    </div>
+    <h1>a look at macros</h1>
+</div>
+<div>
+    
+    <p>Lisp macros can be rather confusing and especially so for newcomers. In fact, the rule of thumb is not to use macros if you can avoid them. That said, macros can be an incredibly powerful tool and have innumerable uses. I'd like to give a concrete example of a macro that I'm using in this blog engine.</p><p>I wanted to be able to cache page content in memory, so that the page doesn't need to be generated for every single request. This means that before rendering a page I want to check if the page is in my cache, and if the cache hasn't expired then serve the cached page, otherwise render a new version and cache it.</p><p>First I created an atom which would store the cached content:<pre><code class="clojure">&#40;def cache &#40;atom {}&#41;&#41;
+</code></pre></p><p>Next I wrote the cache logic for the <code>/blog</code> page:<pre><code class="clojure">&#40;defpage &quot;/blog/:postid&quot; {:keys &#91;id&#93;}
+  &#40;let &#91;last-updated &#40;:time &#40;get @cache id&#41;&#41;
+        cur-time     &#40;.getTime &#40;new java.util.Date&#41;&#41;&#93;
+
+    &#40;if &#40;or &#40;nil? last-updated&#41;
+            &#40;&gt; &#40;- cur-time last-updated&#41; 10000&#41;&#41;
+      &#40;swap! cache assoc id {:time cur-time 
+                             :content &#40;entry &#40;db/get-post id&#41;&#41;}&#41;&#41;
+    &#40;:content &#40;get @cache id&#41;&#41;&#41;
+</code></pre></p><p>Obviously, we don't want to repeat this logic each time we wish to cache something, and we'd like an easy way to modify existing functions to allow caching. Here's where macros come in. One property of macros is that, unlike functions, they do not execute the s-expressions which are passed in. Let's look at how this works in practice:<pre><code class="clojure">&#40;defn foo &#91;&#93; &#40;println &quot;foo was called&quot;&#41;&#41;
+
+&#40;defn bar &#91;f&#93;&#41;
+
+&#40;bar &#40;foo&#41;&#41;
+
+=&gt;foo was called
+</code></pre></p><p>Here <code>foo</code> is executed as we would expect and "foo was called" is printed, but what happens if we make bar a macro instead?<pre><code class="clojure">&#40;defmacro bar &#91;f&#93;&#41;
+&#40;bar &#40;foo&#41;&#41;
+=&gt;
+</code></pre></p><p>This time nothing is printed! In a macro the parameters are treated as data and are not evaluated unless we explicitly choose to do so:<pre><code class="clojure">&#40;defmacro bar &#91;f&#93; f&#41;
+&#40;bar &#40;foo&#41;&#41;
+=&gt;foo was called
+</code></pre></p><p>A macro allows us to change code before it is compiled, and at compile time it is replaced with its output. We can check this by running <code>macroexpand</code>:<pre><code class="clojure">&#40;macroexpand '&#40;bar &#40;foo&#41;&#41;&#41;
+=&gt;&#40;foo&#41;
+</code></pre></p><p>We can see that <code>&#40;bar &#40;foo&#41;&#41;</code> simply gets replaced with <code>&#40;foo&#41;</code> which is what our macro is returning. While the previous version would evaluate to nil, and <code>foo</code> would never be executed.</p><p>As you might have guessed by now, we can pass any s-expression to a macro and then decide inside the macro whether we'd like to evaluate it. So, let's see how we can use this to make our caching macro:<pre><code class="clojure">&#40;defmacro cache &#91;id content&#93;
+  `&#40;let &#91;last-updated# &#40;:time &#40;get @cached &#126;id&#41;&#41;
+         cur-time#     &#40;.getTime &#40;new java.util.Date&#41;&#41;&#93;
+
+      &#40;if &#40;or &#40;nil? last-updated#&#41;
+              &#40;&gt; &#40;- cur-time# last-updated#&#41; 10000&#41;&#41;
+        &#40;swap! cached assoc &#126;id {:time cur-time#
+                                 :content &#126;content}&#41;&#41;
+      &#40;:content &#40;get @cached &#126;id&#41;&#41;&#41;&#41;
+</code></pre></p><p>We can move the logic which checks if we should use a cached value into our macro and pass in the id and the s-expression to run if cache needs to be updated. The code looks very similar to our original version, except for a few new symbols. First thing you'll notice is that we used ` in front of our <i>let</i> expression, this quotes the body of the expression. The # at the end of the binding names ensures that the names are unique and won't collide with other symbols at compile time. Finally ~ says that the next expression should be unquoted.</p><p>Let's run <i>macroexpand</i> again to make sure our macro is outputting something reasonable:<pre><code class="clojure">&#40;pprint &#40;macroexpand '&#40;cache postid &#40;entry &#40;get-post postid&#41;&#41;&#41;&#41;&#41;
+
+&#40;let&#42;
+ &#91;last-updated&#95;&#95;1294&#95;&#95;auto&#95;&#95;
+  &#40;:time &#40;clojure.core/get @agents/cached postid&#41;&#41;
+  cur-time&#95;&#95;1295&#95;&#95;auto&#95;&#95;
+  &#40;.getTime &#40;new java.util.Date&#41;&#41;&#93;
+ &#40;if
+  &#40;clojure.core/or
+   &#40;clojure.core/nil? last-updated&#95;&#95;1294&#95;&#95;auto&#95;&#95;&#41;
+   &#40;clojure.core/&gt;
+    &#40;clojure.core/- cur-time&#95;&#95;1295&#95;&#95;auto&#95;&#95; last-updated&#95;&#95;1294&#95;&#95;auto&#95;&#95;&#41;
+    10000&#41;&#41;
+  &#40;clojure.core/swap!
+   agents/cached
+   clojure.core/assoc
+   postid
+   {:content &#40;entry &#40;get-post postid&#41;&#41;, :time cur-time&#95;&#95;1295&#95;&#95;auto&#95;&#95;}&#41;&#41;
+ &#40;:content &#40;clojure.core/get @agents/cached postid&#41;&#41;&#41;
+</code></pre></p><p>This definitely looks like the logic we're expecting. Any time we use this macro, it will be replaced with the code similar to the above, where the s-expression is inside the <i>if</i> block, and only gets called if cache needs to be updated. Now we can easily cache any s-expressions with minimal change to the original code and all the caching logic sits in one convenient place:<pre><code class="clojure">&#40;defpage &quot;/blog/:postid&quot; {:keys &#91;postid&#93;}
+  &#40;cache postid &#40;entry &#40;db/get-post postid&#41;&#41;&#41;&#41;
+</code></pre></p><p>As I've mentioned before, there are many other uses for macros, but I hope this gives a clear example of a concrete situation where a macro facilitates cleaner code and provides an easy way to avoid repetition.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-07-31-open-access.html">&laquo; open access</a>
+        
+        
+        <a class="right button" href="/posts/2012-07-20-perfection.html">perfection &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

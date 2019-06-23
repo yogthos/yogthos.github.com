@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Managing State in Luminus</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>December 5, 2015</strong>
+        
+    </div>
+    <h1>Managing State in Luminus</h1>
+</div>
+<div>
+    
+    <h3 id="the&#95;problem&#95;of&#95;state">The problem of State</h3><p>Most real-world applications will interact with external resources such as databases. Typically, in order to interact with a database we have to initialize a connection when our application starts, use this connection to access the database, and then tear it down when the application shuts down. </p><p>In some cases these resources may even depend on one another. We may be getting configuration from one resource and then using it to initialize another. A large application may have a number of different resources that are interdependent and have to be coordinated.</p><h4 id="using&#95;component">Using Component</h4><p>One popular approach to addressing this problem is to use the <a href='https://github.com/stuartsierra/component'>component</a> library. Component creates a graph that describes all the resources and then we pass it around to any functions that rely on them. This library was originally developed to support the <a href='http://thinkrelevance.com/blog/2013/06/04/clojure-workflow-reloaded'>reloaded workflow</a> advocated by Stuart Sierra.</p><p>The advantage of this approach is that it allows us to keep the application code completely stateless and lets us inject the stateful resources at runtime. The two main benefits are that the core application logic remains pure and we can easily provide mock resources to it for testing. If you're interested in learning more about building applications based on component I recommend checking out the <a href='https://github.com/weavejester/duct'>Duct</a> framework by James Reeves that I covered in an earlier <a href='http://yogthos.net/posts/2015-10-01-Compojure-API.html'>post</a>.</p><p>I think that's a fine approach for building applications, but I also think that there are tradeoffs that one has to buy into when using component.</p><p>Component introduces simplicity by providing a formal separation between pure and impure code, but also adds complexity in terms of the structure of the application.</p><p>The application has to keep a global component graph that tracks the relationships between the resources and pass it explicitly to any code that needs to interact with them. My experience is that this introduces boilerplate and indirection making the overall application structure more complex. Component also requires the developer to adopt a specific workflow to take full advantage of it.</p><p>Component can also be rather confusing for beginners and I have avoided using it in Luminus for that reason. However, the problems that component addresses are real and if we're not using component we still need a way to address them. For this reason Luminus uses the <a href='https://github.com/tolitius/mount'>mount</a> library to orchestrate the stateful resources in the application.</p><h4 id="using&#95;mount">Using Mount</h4><p>Unlike component, mount does not require us to structure the application in a specific way or to adopt a particular workflow to use it.</p><p>The library leverages the existing namespace hierarchy to resolve the resource dependencies. This approach obviates the need to keep a separate component graph and pass it all over the application.</p><p>Mount uses the <code>defstate</code> macro to define stateful resources. The macro allows specifying the code to initialize and tear down the resource by associating it with the <code>:start</code> and <code>:stop</code> keys. In case of a connection we would associate the code that initializes the connection in the <code>:start</code> key and the code that tears it down with the <code>:stop</code> key respectively.</p><p>Mount will look for any namespaces that define states with <code>defstate</code> and and compile a set of stateful resources based on that. The resources are started and stopped based on the order of reference of their namespaces.</p><p>Mount system is started by calling <code>mount.core/start</code> and stopped using <code>mount.core/stop</code>. This ensures that the lifecycle of the resources is managed in automated fashion and their relationships are all accounted for.</p><p>Like component, mount <a href='https://github.com/tolitius/mount#the-importance-of-being-reloadable'>supports the reloaded workflow</a> and even provides ways to restart parts of the application. Mount also supports <a href='https://github.com/tolitius/mount#swapping-alternate-implementations'>swapping in alternate implementations</a> for the resources. This provides a simple way to run tests with mock resources without having to restart the REPL.</p><h3 id="structuring&#95;the&#95;application">Structuring the Application</h3><p>While mount provides us with a solution for managing the lifecycle of the components, we still need a way to ensure that our application is easy to reason about. Since mount does not enforce the separation between pure and impure code, we have to structure the application in such a way that side effects aren't mixed into the core application logic.</p><h4 id="encapsulating&#95;resources">Encapsulating Resources</h4><p>The approach I like to take in my applications is to keep the code that interacts with external resources at the edges of the application. The core business logic should be pure and testable, while anything that deals with side effects and external resources should be pushed to a thin layer around it.</p><p>I also find it useful to localize resource management in order to reduce coupling between components. For example, when I'm dealing with a database resource I'll create a namespace to manage it. This namespace will be responsible for handling the connection lifecycle internally and providing the connection to the functions defined in it.</p><p>Such a namespace provides an API for interacting with the resource for the rest of the application. Any functions calling this API do not have to be aware of its internal implementation.</p><p>My experience is that this approach allows compartmentalizing the application into self-contained components that can be reasoned about individually. When I update the internal implementation of a particular component the rest of the application does not need to be aware of the change.</p><p>An example of this would be changing the underlying resource. We may start writing the application by using a database directly, then realize that the functionality can be extracted into a shared service. When the mechanics of communicating with an external resource are internal to the component we can safely update it to use the new type of resource without affecting the rest of the application.</p><h4 id="organizing&#95;the&#95;components">Organizing the Components</h4><p>The workflows in web applications are typically driven by the client requests. Since requests will often require interaction with a resource, such as a database, we will generally have to access that resource from the route handling the request. In order to isolate the stateful code we should have our top level functions deal with managing the side effects.</p><p>Consider a concrete example. Let's say we have a route that facilitates user authentication. The client will supply the username and the password in the request. The route will have to pull the user credentials from the database and compare these to the ones supplied by the client. Then a decision is made whether the user logged in successfully or not and its outcome communicated back to the client.</p><p>In this workflow, the code that deals with the external resources should be localized to the namespace that provides the route and the namespace that handles the database access.</p><p>The route handler function will be responsible for calling the function that fetches the credentials from the database. The code that determines whether the password and username match represents the core business logic. This code should be pure and accept the supplied credentials along with those found in the database explicitly. This structure can be seen in the diagram below.</p><pre><code>            pure code
++----------+
+| business |
+|  logic   |
+|          |
++-----+----+
+      |
+------|---------------------
+      |     stateful code
++-----+----+   +-----------+
+|  route   |   |           |
+| handlers +---+  database |
+|          |   |           |
++----------+   +-----------+
+</code></pre><p>Keeping the business logic pure ensures that we can reason about it and test it without considering the external resources. Meanwhile the code that deals with side effects is pushed to the top making it easy for us to manage it.</p><h3 id="conclusion">Conclusion</h3><p>Clojure makes it easy to structure the application in such a way that the core of the application logic is kept pure. Doing this is a very good practice and will help you keep your applications manageable as they continue to grow. While it's possible to formalize the handling of stateful resources, using libraries such as component, I personally have not found this to be necessary in my applications.</p><p>I hope this post provides a bit of an insight into how Luminus based applications should be structured for long term maintainability.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/luminus.html">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-12-26-AOTGotchas.html">&laquo; Trouble with AOT</a>
+        
+        
+        <a class="right button" href="/posts/2015-11-28-TheSkyIsNotFalling.html">The Sky Is not Falling &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

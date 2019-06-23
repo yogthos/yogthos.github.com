@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Web Development with Clojure 2</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 14, 2015</strong>
+        
+    </div>
+    <h1>Web Development with Clojure 2</h1>
+</div>
+<div>
+    
+    <p>First, I'd like to thank all those who purchased the first edition of the book. I was overwhelmed by the response from the readers, and exhilirated to learn that it helped many start developing their web applications using Clojure. I'm excited to announce that I'm working on the second edition of <a href='https://pragprog.com/book/dswdcloj/web-development-with-clojure'>Web Development with Clojure</a> and that I'm expecting to publish it sometime this summer.</p><h2 id="what&#95;to&#95;expect">What to Expect</h2><p>The main goal of the book is to provide a no-nonsense introduction to web development using Clojure. As such, I chose to cover tools and libraries that I consider to be beginner friendly.</p><p>Clojure web ecosystem has been steadily maturing since the release of the first edition. Last time I illustrated a number of approaches for putting applications together without recommending any one in particular over the others. This time around I'm primarily focusing on building application based on the  <a href='http://www.luminusweb.net/'>Luminus</a> stack. Luminus has recently seen <a href='http://yogthos.net/posts/2015-02-28-Luminus-2.0.html'>a major update</a> and continues to provide a solid foundation for building Clojure web applications according to best practices.</p><p>Clojure community favors using composable libraries over monolithic frameworks. This approach offers a number of advantages by giving the developer full control over the structure of the application the components used in it.</p><p>However, this approach works best for experienced developers who have a good understanding of the ecosystem and the available libraries. Having to develop this experience presents a significant barrier for newcomers. Luminus mitigates this issue by providing a batteries included template coupled with centralized documentation. This makes it a perfect foundation for a book aimed at beginners.</p><p>If you're familiar with the Clojure basics and you're looking to apply it for building web applications then this book is for you. The book aims to provide the reader with the understanding of the core ecosystem and the available tooling.</p><h2 id="what's&#95;new">What's New</h2><p>Those who are familiar with the first edition will find a number of changes and a number of new topics covered this time around.</p><p>At the time of writing of the first edition I felt that ClojureScript was not quite ready for general consumption. While some companies were already using it in production, the tooling around it was often challenging to use. As such, the book only gave it a very brief introduction and focused on traditional server side templating instead.</p><p>ClojureScript has matured greatly in the past year and the tooling is rapidly improving, while libraries such as Om and Reagent provide a clear benefit over using plain JavaScript. This time around ClojureScript is front and center with a primary focus on building single page apps using the Reagent library. I chose Reagent over Om for reasons I've discussed <a href='http://yogthos.net/posts/2014-07-15-Building-Single-Page-Apps-with-Reagent.html'>here</a>. In short, I find that it's much easier to learn and apply effectively. The main project in the book that guides the reader through developing a multi-user picture gallery application is now developed as a single page application using Reagent.</p><p>Another major change is that I no longer recommend using <a href='https://github.com/noir-clojure/lib-noir'>lib-noir</a> for developing new applications. While the library provides a number of helpers for achieving many common tasks found in typical web applications, it also introduces some problems inherent in its design. I've discussed some of these  in my <a href='http://yogthos.net/posts/2015-02-28-Luminus-2.0.html'>last post</a>. Today, there are excellent standalone libraries available for each of the tasks that <code>lib-noir</code> was used for and I recommend using these instead.</p><p>The database chapter has been updated to introduce the excellent <a href='https://github.com/krisajenkins/yesql'>Yesql</a> library and use the syntax of the latest version of <a href='https://github.com/clojure/java.jdbc'>clojure.java.jdbc</a>.</p><p>I’m now covering the use of the <a href='https://github.com/metosin/compojure-api'>compojure-api</a> library along side <a href='http://clojure-liberator.github.io/liberator/'>Liberator</a>. I’ve had an excellent experience using this library and I highly recommend trying it out if you haven’t already. The library uses <a href='https://github.com/Prismatic/schema'>Prismatic/schema</a>  to define the service API and allows automatic generation of interactive <a href='http://swagger.io/'>Swagger</a> documentation such as seen <a href='http://petstore.swagger.io/'>here</a>.</p><p>Finally, the book will provide more information on topics such as database migrations and deployment as part of addressing some of the feedback from the previous edition.</p><p>My hope is that the book will be useful to both new readers as well as those who purchased the first edition.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/luminus.html">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-06-11-Websockets.html">&laquo; Websockets with HTTP Kit</a>
+        
+        
+        <a class="right button" href="/posts/2015-02-28-Luminus-2.0.html">Announcing Luminus 2.0 &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

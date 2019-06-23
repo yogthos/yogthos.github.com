@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Moving Forward by Letting Go</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>October 3, 2017</strong>
+        
+    </div>
+    <h1>Moving Forward by Letting Go</h1>
+</div>
+<div>
+    
+    <p>Lisps are famous for having powerful metaprogramming facilities derived from their homoiconic nature. Core language consists of a small set of built in primitives, and the rest is implemented using macros and functions in the standard library.</p><p>Since these same tools are available to the users, anybody can easily extend the language to add semantics for their problem domain. This is the aspect of macros that's discussed most often.</p><p>While this is certainly the case, Clojure community tends to discourage using macros if they can be avoided. The rationale behind this being that macros introduce additional complexity, and Clojure values simplicity. I generally agree with this sentiment, and I find that I tend to use macros sparingly myself. However, saying that macros shouldn’t be overused is not the same as saying they shouldn’t be used at all.</p><p>One place where macros work well is library APIs. Libraries that express a particular domain can create a DSL in their API that cleanly maps to that domain. <a href='https://github.com/weavejester/compojure'>Compojure</a>, <a href='https://github.com/nathanmarz/specter'>Specter</a>, and <a href='http://www.clara-rules.org/'>Clara Rules</a> are great examples of effective macro use. Such libraries are a powerful demonstration of users extending semantics of the language.</p><p>Since most ideas can be expressed via libraries, it becomes possible to experiment with different approaches to solving problems without modifying the core language. Extending the language through libraries has the advantage of keeping these extensions contained. It also lets them fade away when you no longer use them.</p><p>Clojure has been around for a decade now, and the core language hasn't changed much in that time. Some new features have been added, most notably reducers and transducers, but overall the language has stayed small and focused. In fact, I've even seen concerns that Clojure is stagnating because features aren't being added at the rate of other languages.</p><p>The idea of using libraries to add features is used by the Clojure core team as well. Consider the example of the <a href='https://github.com/clojure/core.async'>core.async</a> library that brings Go channel semantics and the CSP programming model to Clojure.</p><p>Perhaps, in time a better idea will come along, and core.async library will become deprecated. At that point developers would stop using the library and move on to use whatever happens to replace it.</p><p>Meanwhile, existing projects will not be affected as they can continue using the library. The community will move on, and most people won't have to learn about core.async semantics. This cycle may happen many times with many different ideas, without any baggage being accumulate by the language itself.</p><p>Unfortunately, mainstream languages are designed in a way where it's not practical to add new features without updating the language specification to accommodate them. Popular languages such as Java, Python, and JavaScript have accumulated a lot of complexity over the years.</p><p>As usage patterns change, new features are being added, while existing features become deprecated. Removing features is difficult since many projects in the wild end up relying on them, so they're typically left in place.</p><p>Having lots of features in a language can seem like a positive at first glance, but in practice, features often turn into <a href='http://yogthos.net/posts/2013-08-18-Why-I-m-Productive-in-Clojure.html'>a mental burden</a> for the developer. Eventually languages become too large to understand fully, and developers settle on a subset of the features considered to be the current best practice. </p><p>In my opinion, this is the real power of homoiconicity. A language that can be extended in user space can evolve without accumulating baggage. New ideas can be implemented as libraries, and later discarded when better ideas come along. The end result is a small and focused language that doesn't sacrifice flexibility.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2018-01-12-ClojureScriptErrorPropagation.html">&laquo; Capturing ClojureScript Errors on the Server</a>
+        
+        
+        <a class="right button" href="/posts/2017-03-26-ReagentReactView.html">Comparing Reagent to React.js and Vue.js for dynamic tabular data &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

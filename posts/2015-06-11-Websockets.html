@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Websockets with HTTP Kit</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 11, 2015</strong>
+        
+    </div>
+    <h1>Websockets with HTTP Kit</h1>
+</div>
+<div>
+    
+    <p>In this post we'll look at working with websocks using Reagent and HTTP Kit. We'll see how to create a multi-user chat server that allows multiple clients to communicate with one another.</p><p>First thing to mention is that there are a couple of Clojure/Script libraries for working with websockets, such as <a href='https://github.com/ptaoussanis/sente'>Sente</a> and <a href='https://github.com/james-henderson/chord'>Chord</a>. However, what I'd like to illustrate is that using websockets directly from ClojureScript is extremely straight forward. Let's start by creating a new Luminus project that we'll use as the base for our example. We'll create the project using the <code>+http-kit</code> profile:</p><pre><code>lein new luminus multi-client-ws +http-kit +cljs
+</code></pre><p>Once the application is created we'll need to startup the server and Figwheel. To do that, we'll need to run the following commands in separate terminals.</p><pre><code>lein run
+</code></pre><pre><code>lein figwheel
+</code></pre><h3 id="the&#95;server">The Server</h3><p>Let's create a new namespace called <code>multi-client-ws.routes.websockets</code> and add the following references there:</p><pre><code>
+&#40;ns multi-client-ws.routes.websockets
+ &#40;:require &#91;compojure.core :refer &#91;GET defroutes&#93;&#93;
+           &#91;org.httpkit.server
+            :refer &#91;send! with-channel on-close on-receive&#93;&#93;
+           &#91;cognitect.transit :as t&#93;
+           &#91;taoensso.timbre :as timbre&#93;&#41;&#41;
+</code></pre><p>Next, we'll create a Compojure route for our websocket handler:</p><pre><code class="clojure">&#40;defroutes websocket-routes
+ &#40;GET &quot;/ws&quot; request &#40;ws-handler request&#41;&#41;&#41;
+</code></pre><p>Where the <code>ws-handler</code> function will look as follows:</p><pre><code class="clojure">&#40;defn ws-handler &#91;request&#93;
+ &#40;with-channel request channel
+               &#40;connect! channel&#41;
+               &#40;on-close channel &#40;partial disconnect! channel&#41;&#41;
+               &#40;on-receive channel #&#40;notify-clients %&#41;&#41;&#41;&#41;
+</code></pre><p>The function accepts the request and passes it to the <code>org.httpkit.server/with-channel</code> macro provided by the HTTP Kit API. The macro creates accepts the request as its argument and binds the value of the <code>:async-channel</code> key to the second paramets representing the name of the channel. The statement following the channel name will be called once when the channel is created. In our case we'll call the <code>connect!</code> function defined below any time a new client connects:</p><pre><code class="clojure">&#40;defonce channels &#40;atom #{}&#41;&#41;
+
+&#40;defn connect! &#91;channel&#93;
+ &#40;timbre/info &quot;channel open&quot;&#41;
+ &#40;swap! channels conj channel&#41;&#41;
+</code></pre><p>The function will log that a new channel was opened and add the channel to the set of open channels defined above.</p><p>When the client disconnects the <code>on-close</code> function will be called. This function accepts the channel along with a handler. The handler should accept the channel and the disconnect status. Our handler will log that the channel disconnected and remove it from the set of open channels.</p><pre><code class="clojure">&#40;defn disconnect! &#91;channel status&#93;
+ &#40;timbre/info &quot;channel closed:&quot; status&#41;
+ &#40;swap! channels #&#40;remove #{channel} %&#41;&#41;&#41;
+</code></pre><p>Finally, we have the <code>on-receive</code> function that's called any time a client message is received. We'll pass it the <code>notify-clients</code> function as the handler. This function will broadcast the message to all the connected clients.</p><pre><code class="clojure">&#40;defn notify-clients &#91;msg&#93;
+ &#40;doseq &#91;channel @channels&#93;
+     &#40;send! channel msg&#41;&#41;&#41;
+</code></pre><p>That's all we need to do to manage the lifecycle of the websocket connections and to handle client communication.</p><p>Next, We'll need to add the routes in our <code>multi-client-ws.handler</code> namespace:</p><pre><code class="clojure">&#40;def app
+ &#40;-&gt; &#40;routes
+       websocket-routes
+       &#40;wrap-routes home-routes middleware/wrap-csrf&#41;
+       base-routes&#41;
+     middleware/wrap-base&#41;&#41;
+</code></pre><p>We will also have to update our <code>multi-client-ws.middleware/wrap-base</code> middleware wrapper to remove the <code>wrap-formats</code> middleware as it conflicts with handling websocket requests.</p><h3 id="the&#95;client">The Client</h3><p>We'll start by creating a <code>multi-client-ws.websockets</code> in the <code>src-cljs/multi&#95;client&#95;ws</code> folder. The namespace will require the transit library:</p><pre><code class="clojure">&#40;ns multi-client-ws.websockets
+ &#40;:require &#91;cognitect.transit :as t&#93;&#41;&#41;
+</code></pre><p>Next, we'll define an atom to hold our websocket channel and a couple of helpers for reading and writing the JSON encoded transit messages.</p><pre><code class="clojure">&#40;defonce ws-chan &#40;atom nil&#41;&#41;
+&#40;def json-reader &#40;t/reader :json&#41;&#41;
+&#40;def json-writer &#40;t/writer :json&#41;&#41;
+</code></pre><p>We'll now create a function to handle received messages. The function will accept the callback handler and return a function that decodes the transit message and passes it to the handler:</p><pre><code class="clojure">&#40;defn receive-transit-msg!
+ &#91;update-fn&#93;
+ &#40;fn &#91;msg&#93;
+   &#40;update-fn
+     &#40;-&gt;&gt; msg .-data &#40;t/read json-reader&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>We'll also create a function that sends messages to the socket if it's open:</p><pre><code class="clojure">&#40;defn send-transit-msg!
+ &#91;msg&#93;
+ &#40;if @ws-chan
+   &#40;.send @ws-chan &#40;t/write json-writer msg&#41;&#41;
+   &#40;throw &#40;js/Error. &quot;Websocket is not available!&quot;&#41;&#41;&#41;&#41;
+</code></pre><p>Finally, we'll add a function to create a new websocket given the URL and the received message handler:</p><pre><code class="clojure">&#40;defn make-websocket! &#91;url receive-handler&#93;
+ &#40;println &quot;attempting to connect websocket&quot;&#41;
+ &#40;if-let &#91;chan &#40;js/WebSocket. url&#41;&#93;
+   &#40;do
+     &#40;set! &#40;.-onmessage chan&#41; &#40;receive-transit-msg! receive-handler&#41;&#41;
+     &#40;reset! ws-chan chan&#41;
+     &#40;println &quot;Websocket connection established with: &quot; url&#41;&#41;
+   &#40;throw &#40;js/Error. &quot;Websocket connection failed!&quot;&#41;&#41;&#41;&#41;
+</code></pre><h3 id="the&#95;ui">The UI</h3><p>We'll now navigate to the <code>multi-client-ws.core</code> namespace and remove the code that's already there. We'll set the <code>ns</code> definition to the following:</p><pre><code class="clojure">&#40;ns multi-client-ws.core
+ &#40;:require &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;
+           &#91;multi-client-ws.websockets :as ws&#93;&#41;&#41;
+</code></pre><p>Next, we'll create an atom to keep a list of messages and a Reagent component that renders it:</p><pre><code class="clojure">&#40;defonce messages &#40;atom &#91;&#93;&#41;&#41;
+
+&#40;defn message-list &#91;&#93;
+ &#91;:ul
+  &#40;for &#91;&#91;i message&#93; &#40;map-indexed vector @messages&#41;&#93;
+    &#94;{:key i}
+    &#91;:li message&#93;&#41;&#93;&#41;
+</code></pre><p>We'll now create a <code>message-input</code> component that will allow us to type in a message and send it to the server. This component creates a local atom to keep track of the message being typed in and sends the message to the server when the <code>enter</code> key is pressed.</p><pre><code class="clojure">&#40;defn message-input &#91;&#93;
+ &#40;let &#91;value &#40;atom nil&#41;&#93;
+   &#40;fn &#91;&#93;
+     &#91;:input.form-control
+      {:type :text
+       :placeholder &quot;type in a message and press enter&quot;
+       :value @value
+       :on-change #&#40;reset! value &#40;-&gt; % .-target .-value&#41;&#41;
+       :on-key-down
+       #&#40;when &#40;= &#40;.-keyCode %&#41; 13&#41;
+          &#40;ws/send-transit-msg!
+           {:message @value}&#41;
+          &#40;reset! value nil&#41;&#41;}&#93;&#41;&#41;&#41;
+</code></pre><p>We can now create the <code>home-page</code> component that looks as follows:</p><pre><code class="clojure">&#40;defn home-page &#91;&#93;
+ &#91;:div.container
+  &#91;:div.row
+   &#91;:div.col-md-12
+    &#91;:h2 &quot;Welcome to chat&quot;&#93;&#93;&#93;
+  &#91;:div.row
+   &#91;:div.col-sm-6
+    &#91;message-list&#93;&#93;&#93;
+  &#91;:div.row
+   &#91;:div.col-sm-6
+    &#91;message-input&#93;&#93;&#93;&#93;&#41;
+</code></pre><p>We'll also create an <code>update-messages!</code> function that will be used as the handler for the received messages. This function will append the new message and keep a buffer of 10 last received messages.</p><p>All that's left to do is mount the <code>home-page</code> component and create the websocket in the <code>init!</code> function:</p><pre><code class="clojure">&#40;defn mount-components &#91;&#93;
+ &#40;reagent/render-component &#91;#'home-page&#93; &#40;.getElementById js/document &quot;app&quot;&#41;&#41;&#41;
+
+&#40;defn init! &#91;&#93;
+ &#40;ws/make-websocket! &#40;str &quot;ws://&quot; &#40;.-host js/location&#41; &quot;/ws&quot;&#41; update-messages!&#41;
+ &#40;mount-components&#41;&#41;
+</code></pre><p>We should now be able to open multiple browser windows and any messages typed in one window should show up in all the open windows.</p><h3 id="conclusion">Conclusion</h3><p>As you can see, it's very easy to setup basic client-server communication between HTTP Kit and ClojureScript. While you may wish to use one of the libraries mentioned earlier for more sophisticated apps, it's certainly not necessary in many cases. The complete source for the example can be found on <a href='https://github.com/luminus-framework/examples/tree/master/multi-client-ws-http-kit'>GitHub</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/http-kit.html">http-kit</a>
+    
+    <a href="/websockets.html">websockets</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-06-16-Figwheel-nREPL.html">&laquo; ClojureScript REPL with Figwheel</a>
+        
+        
+        <a class="right button" href="/posts/2015-04-14-Web-Development-with-Clojure-2.html">Web Development with Clojure 2 &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

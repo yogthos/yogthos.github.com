@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <title>(iterate think thoughts): Data Focused</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="/css/menu.css" rel="stylesheet" type="text/css" />
+    <link href="/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/css/typography.css" rel="stylesheet" type="text/css" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text">(&nbsp;ITERATE</sapn>
+                <br>
+                <span>&nbsp;&nbsp;THINK</span> 
+                <br>
+                <span>&nbsp;&nbsp;THOUGHTS&nbsp;)</span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+
+    <div id="socialmedia" class="clearfix">
+        <ul>
+            <li><a title="GitHub" href="./" rel="external"><span class="fa fa-github"></span></a></li>
+            <li><a title="Mastodon" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+            <li><a title="Twitter" href="./" rel="external"><span class="fa fa-stack-overflow"></span></a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>July 7, 2015</strong>
+        
+    </div>
+    <h1>Data Focused</h1>
+</div>
+<div>
+    
+    <p>One interesting part I noticed about working with Clojure is that I practically never look for solutions to problems on Google or StackOverflow. I might google to see if a library exists for accomplishing a particular task, but I rarely end up having to google how to do a specific task.</p><p>This got me thinking about why that may be since I used to do that commonly back when I worked with Java. I think the key reason is that Clojure encourages writing code that operates on plain data.</p><h3 id="object&#95;oriented&#95;approach">Object Oriented Approach</h3><p>Object oriented languages, such as Java, encourage encapsulating the data in domain specific abstractions. Rich Hickey discusses this in detail in his excellent <a href='https://www.youtube.com/watch?v=VSdnJDO-xdg'>Clojure, Made Simple</a> talk. The OO approach ultimately leads to creation of frameworks that provide formalized ways to tie all the different domain abstractions together.</p><p>The problem with frameworks is that they impose a particular workflow on the user. However, in most cases there are many valid ways to solve a particular problem. The approach that the framework takes is just one way to do things and not necessarily the best way. If you happen to think about a problem differently from the authors of the framework then using it will not feel intuitive.</p><p>When you encounter a problem then you either have to spend the time to understand the internals of the framework and its design or simply memorize how different tasks are accomplished.</p><p>Understanding the internals of a complex piece of software is an arduous process that can take a long time and it's often time that you do not have. Conversely, having to understand the internals typically indicates that the abstraction you're working with is a leaky one.</p><p>This is where googling comes in. You know what your problem is, you know how you would solve it given the time, but you don't know how the authors of the framework expect you to solve it using their approach.</p><p>Since the choice of the solution completely arbitrary, there's no way for you to logically deduce what it is. In many cases the only realistic option is to hope that someone else ran into a similar problem already and see how they solved it within the context of the framework.</p><h3 id="data&#95;centric&#95;approach">Data Centric Approach</h3><p>Clojure takes the approach of keeping the data and logic separate. Instead of building local abstractions for each domain as we do with objects, all the functions operate on a common set of data structures. When a function is called its output can be used in a new context without any additional ceremony.</p><p>Since all Clojure libraries use the same core data structures, it's trivial to take the output of one library and pass it as input to another. Using the REPL we can quickly see how a particular library behaves and what output it generates.</p><p>This approach allows the user to find the libraries that fit the problem they're solving and then compose them in the way that makes sense in their particular scenario. The same core pattern of composing data transformations can be applied at different resolutions within a project.</p><p>At the lowest level we have functions as our building blocks. We combine these in different ways to transform the data on the small scale.</p><p>Once we have a number of related functions that represent a particular domain we combine them into a namespace, and then we pass the data between the namespaces to move data from one domain to another.</p><p>Libraries are simply collections of namespaces, and we use the same pattern when  transform the data by combining them. A great example of this would be the <a href='https://github.com/ring-clojure/ring-defaults/blob/3dca3756a33892f607c45bc4eb582796e4997dd9/src/ring/middleware/defaults.clj#L90'>ring-defaults</a> library that chains a number libraries to achieve complex transformations of HTTP requests and responses.</p><p>Finally, at the top level we may have multiple projects passing data between each other in form of services. This approach is becoming increasingly popular in the industry as seen with the micro-services movement.</p><p>With Clojure, the focus is always on the data. When solving a problem, all we have to do is figure out how we need to transform the data and then find the appropriate building blocks for our problem.</p><p>Focusing on the data helps keep code simple and reusable without introducing unnecessary indirection into the process. I think this is the key reason why it's possible to work with Clojure without having to constantly memorize new patterns to solve different kinds problems.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-07-11-Luminus-HTTPKit.html">&laquo; Luminus is Moving -&gt; HTTP Kit -&gt; Immutant</a>
+        
+        
+        <a class="right button" href="/posts/2015-06-29-Luminus-Migratus.html">Luminus is Migrating to Migratus &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a> | Free Website Template by <a title="free website templates" href="http://www.downloadwebsitetemplates.co.uk" rel="external">Download Website Templates</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>
