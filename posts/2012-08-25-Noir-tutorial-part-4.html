@@ -125,7 +125,7 @@
     position: relative;
     margin-right: 20px;
 }
-</code></pre><p>Things should look much better now: <center> <img src="//files/menu.png" alt="menu" /> </center></p><h3 id="input&#95;validation">Input Validation</h3><p>Next, let's reexamine our sign up page, previously we didn't bother doing any validation when creating a new user, so let's add some now. Noir provides a simple way to validate input fields via the <a href='http://www.webnoir.org/autodoc/1.2.1/noir.validation-api.html'><code>noir.validation</code></a> namespace. Let's open the <code>users</code> namespace and add it in:<pre><code class="clojure">&#40;ns my-website.views.users
+</code></pre><p>Things should look much better now: <center> <img src="/files/menu.png" alt="menu" /> </center></p><h3 id="input&#95;validation">Input Validation</h3><p>Next, let's reexamine our sign up page, previously we didn't bother doing any validation when creating a new user, so let's add some now. Noir provides a simple way to validate input fields via the <a href='http://www.webnoir.org/autodoc/1.2.1/noir.validation-api.html'><code>noir.validation</code></a> namespace. Let's open the <code>users</code> namespace and add it in:<pre><code class="clojure">&#40;ns my-website.views.users
   &#40;:use &#91;noir.core&#93;
         hiccup.core hiccup.form&#41;
   &#40;:require &#91;my-website.views.common :as common&#93;
@@ -170,7 +170,7 @@
       &#40;catch Exception ex
         &#40;render &quot;/signup&quot; &#40;assoc user :error &#40;.getMessage ex&#41;&#41;&#41;&#41;&#41;
     &#40;render &quot;/signup&quot; user&#41;&#41;&#41;
-</code></pre></p><p>This should give you a basic idea of how to validate input using Noir, and more details about validation can be found on the <a href='http://www.webnoir.org/tutorials/forms'>official site</a>.</p><p>One thing you'll notice that when we navigate to the <code>signup</code> page, we still see the login option as well as the link to sign up: <center> <img src="//files/signup1.png" alt="sign up" /> </center> This is because our layout adds these to every page. We can fix this by splitting <code>layout</code> in the <code>common</code> namespace as follows:<pre><code class="clojure">&#40;defpartial basic-layout &#91;&amp; content&#93;
+</code></pre></p><p>This should give you a basic idea of how to validate input using Noir, and more details about validation can be found on the <a href='http://www.webnoir.org/tutorials/forms'>official site</a>.</p><p>One thing you'll notice that when we navigate to the <code>signup</code> page, we still see the login option as well as the link to sign up: <center> <img src="/files/signup1.png" alt="sign up" /> </center> This is because our layout adds these to every page. We can fix this by splitting <code>layout</code> in the <code>common</code> namespace as follows:<pre><code class="clojure">&#40;defpartial basic-layout &#91;&amp; content&#93;
   &#40;html5
     &#91;:head
      &#91;:title &quot;my-website&quot;&#93;
@@ -202,7 +202,7 @@
     width:120px; 
     float:left;
 }
-</code></pre><p>The sign up page should now look as follows: <center> <img src="//files/signup2.png" alt="sign up" /> </center></p><h3 id="complex&#95;form&#95;items">Complex Form Items</h3><p>Now that we've cleaned up our <code>singup</code> page, we'll turn our attention back to file management. We'll add the ability for the user to filter files by their type. To do that we will first create a function in our <code>db</code> namespace to get all the file types from our database:<pre><code class="clojure">&#40;defn file-types &#91;&#93;
+</code></pre><p>The sign up page should now look as follows: <center> <img src="/files/signup2.png" alt="sign up" /> </center></p><h3 id="complex&#95;form&#95;items">Complex Form Items</h3><p>Now that we've cleaned up our <code>singup</code> page, we'll turn our attention back to file management. We'll add the ability for the user to filter files by their type. To do that we will first create a function in our <code>db</code> namespace to get all the file types from our database:<pre><code class="clojure">&#40;defn file-types &#91;&#93;
   &#40;map :type &#40;db-read &quot;select distinct type from file&quot;&#41;&#41;&#41;
 </code></pre></p><p>Then in our <code>files</code> namespace we will create a new helper called <code>select-files-by-type</code>:<pre><code class="clojure">&#40;defn select-files-by-type &#91;&#93;  
   &#40;let &#91;file-types &#40;db/file-types&#41;&#93; 
@@ -248,7 +248,7 @@
        &#40;apply str &#40;interpose &quot;, &quot; file-types&#41;&#41;&#93;
       &#40;list-files file-types&#41;
       &#40;link-to &quot;/upload&quot; &quot;back&quot;&#41;&#41;&#41;&#41;
-</code></pre></p><p>The "/upload" page should now look as follows: <center> <img src="//files/file-upload1.png" alt="file upload" /> </center> When we select some files and hit "show files" button we should see our new "show-files" page: <center> <img src="//files/show-files.png" alt="file upload" /> </center></p><h3 id="summary">Summary</h3><p>In this section we covered the following topics:</p><ul><li>restricting access to pages</li><li>creating a navigation menu</li><li>input validation</li><li>handling inputs from multi part items such as check boxes</li></ul><p>The complete code for this section is available <a href='https://github.com/yogthos/Noir-tutorial/tree/ee1bd8aaa90b8144015201bf8fc5a99f7d007e57'>here</a>.</p>
+</code></pre></p><p>The "/upload" page should now look as follows: <center> <img src="/files/file-upload1.png" alt="file upload" /> </center> When we select some files and hit "show files" button we should see our new "show-files" page: <center> <img src="/files/show-files.png" alt="file upload" /> </center></p><h3 id="summary">Summary</h3><p>In this section we covered the following topics:</p><ul><li>restricting access to pages</li><li>creating a navigation menu</li><li>input validation</li><li>handling inputs from multi part items such as check boxes</li></ul><p>The complete code for this section is available <a href='https://github.com/yogthos/Noir-tutorial/tree/ee1bd8aaa90b8144015201bf8fc5a99f7d007e57'>here</a>.</p>
 </div>
 
 <div id="post-tags">

@@ -134,7 +134,7 @@
           :header &#91;{:color &#91;0 150 150&#93;} &quot;Name&quot; &quot;Occupation&quot; &quot;Place&quot; &quot;Country&quot;&#93;}&#93;
         &#40;employee-template &#40;read-employees&#41;&#41;&#41;&#93;
  &quot;report.pdf&quot;&#41;
-</code></pre><p>here's the result of running the above code, which looks just as we'd expect:</p><p><img src="//files/report1.png" alt="table report" /></p><p>It only took a few lines to create the report and we can see and manipulate the layout of the report in one place. Of course, the template we used for this report was completely boring, so let's look at another example. Here we'll output the data in a list, and style each element:</p><pre><code class="clojure">&#40;def employee-template-paragraph 
+</code></pre><p>here's the result of running the above code, which looks just as we'd expect:</p><p><img src="/files/report1.png" alt="table report" /></p><p>It only took a few lines to create the report and we can see and manipulate the layout of the report in one place. Of course, the template we used for this report was completely boring, so let's look at another example. Here we'll output the data in a list, and style each element:</p><pre><code class="clojure">&#40;def employee-template-paragraph 
   &#40;template 
     &#91;:paragraph 
      &#91;:heading $name&#93;
@@ -149,7 +149,7 @@
    &#91;:spacer&#93;
    &#40;employee-template-paragraph &#40;read-employees&#41;&#41;&#93;
   &quot;report.pdf&quot;&#41;
-</code></pre><p>here's the new report with the fancy formatting applied to it:</p><p><img src="//files/report2.png" alt="list report" /></p><p>I think that this approach provides a lot of flexibility while keeping things concise and clear. In my experience there are many situations where all you need is a simple well formatted report, and the effort to create that report should be minimal.</p>
+</code></pre><p>here's the new report with the fancy formatting applied to it:</p><p><img src="/files/report2.png" alt="list report" /></p><p>I think that this approach provides a lot of flexibility while keeping things concise and clear. In my experience there are many situations where all you need is a simple well formatted report, and the effort to create that report should be minimal.</p>
 </div>
 
 <br/>

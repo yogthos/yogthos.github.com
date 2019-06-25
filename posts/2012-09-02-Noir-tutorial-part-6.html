@@ -87,7 +87,7 @@ Using CATALINA&#95;HOME:   apache-tomcat-7.0.29
 Using CATALINA&#95;TMPDIR: apache-tomcat-7.0.29/temp
 Using JRE&#95;HOME:        /Library/Java/Home
 Using CLASSPATH:       apache-tomcat-7.0.29/bin/bootstrap.jar:apache-tomcat-7.0.29/bin/tomcat-juli.jar
-</code></pre></p><p>Your Tomcat should now be up and running and you can test it by navigating to <a href='http://localhost:8080'>localhost:8080</a>: <center><img src="//files/tomcat.png" alt="tomcat" /></center> With the application server running, let's prepare our application for deployment. First, we must ensure that the <code>server</code> namespace requires all the namespaces in our views package, and has the <code>gen-class</code> directive specified:<pre><code class="clojure">&#40;ns my-website.server
+</code></pre></p><p>Your Tomcat should now be up and running and you can test it by navigating to <a href='http://localhost:8080'>localhost:8080</a>: <center><img src="/files/tomcat.png" alt="tomcat" /></center> With the application server running, let's prepare our application for deployment. First, we must ensure that the <code>server</code> namespace requires all the namespaces in our views package, and has the <code>gen-class</code> directive specified:<pre><code class="clojure">&#40;ns my-website.server
   &#40;:require &#91;noir.server :as server&#93;
             &#91;my-website.views 
              common
@@ -134,7 +134,7 @@ Created Noir-tutorial/my-website-0.1.0-SNAPSHOT-standalone.war
 </code></pre></p><p>Make sure to replace the <code>../apache-tomcat-7</code> above with the location of your Tomcat server. We can now take a look at our server log and see that the application was deployed successfully:<pre><code class="bash">tail -f logs/catalina.out
 ...
 INFO: Deploying web application archive apache-tomcat-7.0.29/webapps/my-website.war
-</code></pre></p><p>Now let's navigate to <a href='http://localhost:8080/my-website'>localhost:8080/my-website</a> and we should see our application running: <center><img src="//files/website-on-tomcat.png" alt="website" /></center></p><p>One last thing to note is that any Ajax calls in our pages will have to use the servlet context to be resolved correctly. A workaround for this issue is to use <code>noir.request/ring-request</code> to check if a context is present and set it as a hidden field on the page:<pre><code class="clojure">&#40;ns my-website.views.log-stats
+</code></pre></p><p>Now let's navigate to <a href='http://localhost:8080/my-website'>localhost:8080/my-website</a> and we should see our application running: <center><img src="/files/website-on-tomcat.png" alt="website" /></center></p><p>One last thing to note is that any Ajax calls in our pages will have to use the servlet context to be resolved correctly. A workaround for this issue is to use <code>noir.request/ring-request</code> to check if a context is present and set it as a hidden field on the page:<pre><code class="clojure">&#40;ns my-website.views.log-stats
   &#40;:require &#91;my-website.views.common :as common&#93;
             &#91;noir.request :as request&#93;
             &#91;noir.response :as response&#93;&#41;
