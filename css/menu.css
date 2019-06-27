@@ -2,6 +2,7 @@
 
 #menucont ul.menu {
     margin: 0;
+    background: red;
 }
 
 #menucont ul.menu li {
