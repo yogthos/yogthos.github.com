@@ -5,11 +5,6 @@
 @import url("typography.css");
 @import url("menu.css");
 @import url("buttons.css");
-/* ==================================================
-   Google Fonts
-================================================== */
-@import url("//fonts.googleapis.com/css?family=Oxygen:300,400,700");
-@import url("//fonts.googleapis.com/css?family=Montserrat:400,700");
 
 /* ==================================================
    Global Styles
@@ -40,7 +35,7 @@ html {
 }
 
 body {
-    font-family: "Oxygen", Arial, Verdana, Helvetica, sans-serif;
+    font-family: Verdana, Helvetica, Arial, sans-serif;
     font-size: 15px;
     color: #444;
     font-weight: 400;
@@ -138,7 +133,12 @@ img.imgfull {
     color: rgb(61, 61, 61);
     margin: 0 0 20px 0;
 }
-
+#left p#logo a span.paren {
+    color: rgb(111, 220, 220);    
+}
+#left p#logo a span.fn {
+    color: rgb(255, 255, 255);
+}
 #left p#logo a span.fa {
     float: left;
     display: block;
@@ -155,11 +155,11 @@ img.imgfull {
 #left p#logo a span.text {
     float: left;
     width: 100%;
+    color: black;
     font-size: 30px;
     line-height: 30px;
-    font-weight: 700;
-    font-family: "Montserrat";
-    text-transform: uppercase;
+    font-weight: 300;
+    font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace; 
 }
 
 #left #socialmedia ul {
