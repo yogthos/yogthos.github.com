@@ -121,7 +121,7 @@
 &quot;Elapsed time: 0.005 msecs&quot;
 &quot;Elapsed time: 212.646 msecs&quot;
 &quot;Elapsed time: 0.004 msecs&quot;
-</code></pre></p><p>As can be expected the draw function eclipses the move function. So we'll focus on what's happening in our rendering code and see where the CPU time is being spent. Instead of guessing, let's profile the application using <a href='http://visualvm.java.net/download.html'>VisualVM</a>, which should already be bundled with your JVM, and see what's happening.</p><p><center> <img src="/files/profile1.png" alt="initial profiling" /> </center></p><p>We can see that the vast majority of the CPU time is being spent in the <code>color</code> function, and that reflection is the culprit. So, let's see why reflection is happening by setting the <code>&#42;warn-on-reflection&#42;</code> flag to true:<pre><code class="clojure">&#40;set! &#42;warn-on-reflection&#42; true&#41;
+</code></pre></p><p>As can be expected the draw function eclipses the move function. So we'll focus on what's happening in our rendering code and see where the CPU time is being spent. Instead of guessing, let's profile the application using <a href='https://visualvm.github.io/'>VisualVM</a>, which should already be bundled with your JVM, and see what's happening.</p><p><center> <img src="/files/profile1.png" alt="initial profiling" /> </center></p><p>We can see that the vast majority of the CPU time is being spent in the <code>color</code> function, and that reflection is the culprit. So, let's see why reflection is happening by setting the <code>&#42;warn-on-reflection&#42;</code> flag to true:<pre><code class="clojure">&#40;set! &#42;warn-on-reflection&#42; true&#41;
 </code></pre></p><pre><code class="bash">Reflection warning, metaballs.clj:32 - call to java.awt.Color ctor can't be resolved.
 Reflection warning, metaballs.clj:40 - call to setColor can't be resolved.
 Reflection warning, metaballs.clj:40 - call to fillRect can't be resolved.
@@ -189,7 +189,7 @@ Reflection warning, metaballs.clj:66 - reference to field show can't be resolved
 </div>
 
 <hr/>
-<div id="footercont" class="clearfix">Copyright &copy; 2019 Dmitri Sotnikov
+<div id="footercont" class="clearfix">Copyright &copy; 2020 Dmitri Sotnikov
     <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
 
 </div>
