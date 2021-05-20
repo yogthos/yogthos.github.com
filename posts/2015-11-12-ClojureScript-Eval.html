@@ -73,23 +73,25 @@
 </div>
 <div>
     
-    <p>ClojureScript can now <a href='https://swannodette.github.io/2015/07/29/clojurescript-17/'>compile itself without relying on the Google Closure compiler</a>, and it's now possible to evaluate code straight in the browser. In this post we'll look at how that's accomplished by creating a code editor using <a href='https://codemirror.net/'>CodeMirror</a>, <a href='https://highlightjs.org/'>highlight.js</a>, and <a href='https://reagent-project.github.io/'>Reagent</a>. The code entered in the editor will be sent for evaluation and the result displayed to the user.</p><p>Let's start by creating a new Reagent project by running the following command:</p><pre><code>lein new reagent cljs-eval-example
-</code></pre><p>We'll then open <code>project.clj</code>, add the <code>&#91;org.clojure/tools.reader &quot;0.10.0&quot;&#93;</code> under the <code>:dependencies</code>, and start Figwheel by running:</p><pre><code>lein figwheel
-</code></pre><p>Next, let's open the browser at <code>http://localhost:3449</code> and navigate to the <code>cljs-eval-example.core</code> namespace in the <code>src/cljs</code> folder. We'll first need to reference the <code>cljs.tools.reader</code> and the <code>cljs.js</code> namespaces:</p><pre><code class="clojure">&#40;ns cljs-eval-example.core
-  &#40;:require ...
-            &#91;cljs.tools.reader :refer &#91;read-string&#93;&#93;
-            &#91;cljs.js :refer &#91;empty-state eval js-eval&#93;&#93;&#41;&#41;
-</code></pre><p>We can parse the input string using the <code>cljs.tools.reader/read-string</code> function and then evaluate the resulting form by calling <code>cljs.js/eval</code> as follows:</p><pre><code class="clojure">&#40;defn eval-str &#91;s&#93;
-  &#40;eval &#40;empty-state&#41;
-        &#40;read-string s&#41;
-        {:eval       js-eval
-         :source-map true
-         :context    :expr}
-        &#40;fn &#91;result&#93; result&#41;&#41;&#41;
-</code></pre><p>The <code>eval</code> function accepts an initial state, followed by the form to evaluate, a map with the options, and a callback function for handling the result of the evaluation. We'll create an empty initial state and have the callback handler return the result of the evaluation unmodified.</p><p>We can now test that our code works by adding a button to our <code>home-page</code> component:</p><pre><code class="clojure">&#40;defn home-page &#91;&#93;
+    <p>ClojureScript can now <a href='https://swannodette.github.io/2015/07/29/clojurescript-17/'>compile itself without relying on the Google Closure compiler</a>, and it's now possible to evaluate code straight in the browser. In this post we'll look at how that's accomplished by creating a code editor using <a href='https://codemirror.net/'>CodeMirror</a>, <a href='https://highlightjs.org/'>highlight.js</a>, and <a href='https://reagent-project.github.io/'>Reagent</a>. The code entered in the editor will be sent for evaluation and the result displayed to the user.</p><p>Let's start by creating a new Reagent project by running the following command:</p><pre><code>lein new reagent cljs-eval-example +figwheel
+</code></pre><p>Next, we'll navigate to the project folder and start Figwheel by running:</p><pre><code>lein figwheel
+</code></pre><p>Let's open the browser at <code>http://localhost:3449</code> and navigate to the <code>cljs-eval-example.core</code> namespace in the <code>src/cljs</code> folder. We'll first need to reference <code>cljs.js</code> namespace:</p><pre><code class="clojure">&#40;ns cljs-eval-example.core
+  &#40;:require
+   ...
+   &#91;cljs.js :refer &#91;empty-state eval-str js-eval&#93;&#93;&#41;&#41;
+</code></pre><p>We'll create <code>evaluate</code> function that will accept a string and a callback. This function calls <a href='https://cljs.github.io/api/cljs.js/eval-str'>cljs.js/eval-str</a> as follows:</p><pre><code class="clojure">&#40;defn evaluate &#91;s cb&#93;
+  &#40;eval-str
+     &#40;empty-state&#41;
+     s
+     nil
+     {:eval       js-eval    
+      :source-map true
+      :context    :expr}
+     cb&#41;&#41;
+</code></pre><p>The <code>eval-str</code> function accepts an initial state, followed by the string representing the form to evaluate, a name, a map with the options, and a callback function for handling the result of the evaluation. We can create an initial state by calling <code>cljs.js/empty-state</code> function. We can now test that our code works by adding a button to our <code>home-page</code> component:</p><pre><code class="clojure">&#40;defn home-page &#91;&#93;
   &#91;:div
    &#91;:button
-    {:on-click #&#40;eval-str &quot;&#40;println \&quot;hello world!\&quot;&#41;&quot;&#41;}
+    {:on-click #&#40;evaluate &quot;&#40;println \&quot;hello world!\&quot;&#41;&quot; &#40;fn &#91;&#95;&#93;&#41;&#41;}
     &quot;let's compile!&quot;&#93;&#93;&#41;
 </code></pre><p>When we click the button we should see <code>&quot;hello world!&quot;</code> printed in the browser console. Next, let's add a <code>:textarea</code> to allow entering some text and then send it for evaluation.</p><pre><code class="clojure">&#40;defn home-page &#91;&#93;
   &#40;let &#91;input &#40;atom nil&#41;
@@ -100,25 +102,21 @@
         {:value @input
          :on-change #&#40;reset! input &#40;-&gt; % .-target .-value&#41;&#41;}&#93;       
        &#91;:div&gt;button
-        {:on-click #&#40;reset! output &#40;eval-str @input&#41;&#41;}
+        {:on-click #&#40;evaluate @input &#40;fn &#91;result&#93; &#40;reset! output result&#41;&#41;&#41;}
         &quot;let's compile!&quot;&#93;
        &#91;:p @output&#93;&#93;&#41;&#41;&#41;
-</code></pre><p>At this point we can type some code in our input box, click the button to evaluate it, and see the result. So far so good, now let's make the editor look a bit nicer by replacing it with the CodeMirror version.</p><p>We'll open up the <code>cljs-eval-example.handler</code> namespace in the <code>src/clj</code> folder. There, we'll update the <code>include-css</code> and <code>include-js</code> portions of the <code>loading-page</code> to add the respective CSS and Js files for running CodeMirror.</p><pre><code class="clojure">&#40;def loading-page
-  &#40;html
-   &#91;:html
-    &#91;:head
-     &#91;:meta {:charset &quot;utf-8&quot;}&#93;
-     &#91;:meta {:name &quot;viewport&quot;
-             :content &quot;width=device-width, initial-scale=1&quot;}&#93;
-     &#40;include-css
-      &quot;https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css&quot;
-      &#40;if &#40;env :dev&#41; &quot;css/site.css&quot; &quot;css/site.min.css&quot;&#41;&#41;&#93;
-    &#91;:body
-     mount-target
-     &#40;include-js
-      &quot;https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js&quot;
-      &quot;https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/clojure/clojure.min.js&quot;
-      &quot;js/app.js&quot;&#41;&#93;&#93;&#41;&#41;
+</code></pre><p>At this point we can type some code in our input box, click the button to evaluate it, and see the result. So far so good, now let's make the editor look a bit nicer by replacing it with the CodeMirror version.</p><p>We'll open up the <code>cljs-eval-example.handler</code> namespace in the <code>src/clj</code> folder. There, we'll update the <code>include-css</code> and <code>include-js</code> portions of the <code>head</code> to add the respective CSS and Js files for running CodeMirror.</p><pre><code class="clojure">&#40;defn head &#91;&#93;
+  &#91;:head
+   &#91;:meta {:charset &quot;utf-8&quot;}&#93;
+   &#91;:meta {:name &quot;viewport&quot;
+           :content &quot;width=device-width, initial-scale=1&quot;}&#93;
+   &#40;include-css
+    &#40;if &#40;env :dev&#41; &quot;/css/site.css&quot; &quot;/css/site.min.css&quot;&#41;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css&quot;
+    &#40;if &#40;env :dev&#41; &quot;css/site.css&quot; &quot;css/site.min.css&quot;&#41;&#41;
+   &#40;include-js
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js&quot;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/clojure/clojure.min.js&quot;&#41;&#93;&#41;
 </code></pre><p>With that in place we'll need to reload the page for the new assets to become available. Since we're using external JavaScript that modifies the DOM, we'll need to use the <code>reagent.core/create-class</code> function to create the editor component.</p><p>The <code>create-class</code> function accepts a map keyed on the <a href='https://facebook.github.io/react/docs/component-specs.html'>React lifecycle methods</a>. The methods that we wish to implement are <code>:render</code> and <code>:component-did-mount</code>:</p><pre><code class="clojure">&#40;defn editor &#91;input&#93;
   &#40;reagent/create-class
    {:render &#40;fn &#91;&#93; &#91;:textarea 
@@ -140,28 +138,23 @@
        &#91;editor input&#93;
        &#91;:div
         &#91;:button
-         {:on-click #&#40;reset! output &#40;eval-str @input&#41;&#41;}
+         {:on-click #&#40;evaluate @input &#40;fn &#91;{:keys &#91;value&#93;}&#93; &#40;reset! output value&#41;&#41;&#41;}
          &quot;run&quot;&#93;&#93;
-       &#91;:div
-        &#91;:p @output&#93;&#93;&#93;&#41;&#41;&#41;
-</code></pre><p>The editor looks a lot nicer now, but the output doesn't have any highlighting. Let's fix that by running it through highlight.js to generate nicely formatted results.</p><p>Once again, we'll need to add the additional CSS and Js files in the <code>cljs-eval-example.handler</code> namespace:</p><pre><code class="clojure">&#40;def loading-page
-  &#40;html
-   &#91;:html
-    &#91;:head
-     &#91;:meta {:charset &quot;utf-8&quot;}&#93;
-     &#91;:meta {:name &quot;viewport&quot;
-             :content &quot;width=device-width, initial-scale=1&quot;}&#93;
-     &#40;include-css
-      &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css&quot;
-      &quot;//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/default.min.css&quot;
-      &#40;if &#40;env :dev&#41; &quot;css/site.css&quot; &quot;css/site.min.css&quot;&#41;&#41;&#93;
-    &#91;:body
-     mount-target
-     &#40;include-js
-      &quot;//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js&quot;
-      &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js&quot;      
-      &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/clojure/clojure.min.js&quot;
-      &quot;js/app.js&quot;&#41;&#93;&#93;&#41;&#41;
+       &#91;:p @output&#93;&#93;&#41;&#41;&#41;
+</code></pre><p>The editor looks a lot nicer now, but the output doesn't have any highlighting. Let's fix that by running it through highlight.js to generate nicely formatted results.</p><p>Once again, we'll need to add the additional CSS and Js files in the <code>cljs-eval-example.handler</code> namespace:</p><pre><code class="clojure">&#40;defn head &#91;&#93;
+  &#91;:head
+   &#91;:meta {:charset &quot;utf-8&quot;}&#93;
+   &#91;:meta {:name &quot;viewport&quot;
+           :content &quot;width=device-width, initial-scale=1&quot;}&#93;
+   &#40;include-css
+    &#40;if &#40;env :dev&#41; &quot;/css/site.css&quot; &quot;/css/site.min.css&quot;&#41;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css&quot;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/default.min.css&quot;
+    &#40;if &#40;env :dev&#41; &quot;css/site.css&quot; &quot;css/site.min.css&quot;&#41;&#41;
+   &#40;include-js
+    &quot;//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js&quot;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js&quot;
+    &quot;//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/clojure/clojure.min.js&quot;&#41;&#93;&#41;
 </code></pre><p>Back in the <code>cljs-eval-example.core</code> namespace we'll add a reference for <code>&#91;cljs.pprint :refer &#91;pprint&#93;&#93;</code> and write the <code>result-view</code> component that will take care of highlighting the output.</p><pre><code class="clojure">&#40;ns cljs-eval-example.core
   &#40;:require ...
             &#91;cljs.pprint :refer &#91;pprint&#93;&#93;&#41;&#41;
@@ -180,33 +173,35 @@
   &#40;let &#91;input &#40;atom nil&#41;
         output &#40;atom nil&#41;&#93;
     &#40;fn &#91;&#93;
-      &#91;:div       
+      &#91;:div
        &#91;editor input&#93;
        &#91;:div
         &#91;:button
-         {:on-click #&#40;reset! output &#40;eval-str @input&#41;&#41;}
+         {:on-click #&#40;evaluate @input &#40;fn &#91;{:keys &#91;value&#93;}&#93; &#40;reset! output value&#41;&#41;&#41;}
          &quot;run&quot;&#93;&#93;
        &#91;:div
         &#91;result-view output&#93;&#93;&#93;&#41;&#41;&#41;
 </code></pre><p>Now both the editor and the output should look nicely highlighted, and the output will be formatted as a bonus. The entire code listing is as follows:</p><pre><code class="clojure">&#40;ns cljs-eval-example.core
-  &#40;:require &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;
-            &#91;cljs.tools.reader :refer &#91;read-string&#93;&#93;
-            &#91;cljs.js :refer &#91;empty-state eval js-eval&#93;&#93;
-            &#91;cljs.env :refer &#91;&#42;compiler&#42;&#93;&#93;
-            &#91;cljs.pprint :refer &#91;pprint&#93;&#93;&#41;&#41;
+  &#40;:require
+   &#91;reagent.dom :as dom&#93;
+   &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;
+   &#91;cljs.js :refer &#91;empty-state eval-str js-eval&#93;&#93;
+   &#91;cljs.pprint :refer &#91;pprint&#93;&#93;&#41;&#41;
 
-&#40;defn eval-str &#91;s&#93;
-  &#40;eval &#40;empty-state&#41;
-        &#40;read-string s&#41;
-        {:eval       js-eval
-         :source-map true
-         :context    :expr}
-        &#40;fn &#91;result&#93; result&#41;&#41;&#41;
+&#40;defn evaluate &#91;s cb&#93;
+  &#40;eval-str
+     &#40;empty-state&#41;
+     s
+     nil
+     {:eval       js-eval    
+      :source-map true
+      :context    :expr}
+     cb&#41;&#41;
 
 &#40;defn editor-did-mount &#91;input&#93;
   &#40;fn &#91;this&#93;
     &#40;let &#91;cm &#40;.fromTextArea  js/CodeMirror
-                             &#40;reagent/dom-node this&#41;
+                             &#40;dom/dom-node this&#41;
                              #js {:mode &quot;clojure&quot;
                                   :lineNumbers true}&#41;&#93;
       &#40;.on cm &quot;change&quot; #&#40;reset! input &#40;.getValue %&#41;&#41;&#41;&#41;&#41;&#41;
@@ -214,12 +209,12 @@
 &#40;defn editor &#91;input&#93;
   &#40;reagent/create-class
    {:render &#40;fn &#91;&#93; &#91;:textarea
-                            {:default-value &quot;&quot;
-                             :auto-complete &quot;off&quot;}&#93;&#41;
+                    {:default-value &quot;&quot;
+                     :auto-complete &quot;off&quot;}&#93;&#41;
     :component-did-mount &#40;editor-did-mount input&#41;}&#41;&#41;
 
 &#40;defn render-code &#91;this&#93;
-  &#40;-&gt;&gt; this reagent/dom-node &#40;.highlightBlock js/hljs&#41;&#41;&#41;
+  &#40;-&gt;&gt; this dom/dom-node &#40;.highlightBlock js/hljs&#41;&#41;&#41;
 
 &#40;defn result-view &#91;output&#93;
   &#40;reagent/create-class
@@ -236,13 +231,13 @@
        &#91;editor input&#93;
        &#91;:div
         &#91;:button
-         {:on-click #&#40;reset! output &#40;eval-str @input&#41;&#41;}
+         {:on-click #&#40;evaluate @input &#40;fn &#91;{:keys &#91;value&#93;}&#93; &#40;reset! output value&#41;&#41;&#41;}
          &quot;run&quot;&#93;&#93;
        &#91;:div
         &#91;result-view output&#93;&#93;&#93;&#41;&#41;&#41;
 
 &#40;defn mount-root &#91;&#93;
-  &#40;reagent/render &#91;home-page&#93; &#40;.getElementById js/document &quot;app&quot;&#41;&#41;&#41;
+  &#40;dom/render &#91;home-page&#93; &#40;.getElementById js/document &quot;app&quot;&#41;&#41;&#41;
 
 &#40;defn init! &#91;&#93;
   &#40;mount-root&#41;&#41;
