@@ -1,4 +1,147 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><atom:link href="https://yogthos.net/" rel="self" type="application/rss+xml"/><title>(iterate think thoughts)</title><link>https://yogthos.net/</link><description>This blog is awesome</description><lastBuildDate>Sun, 18 Dec 2022 14:01:01 +0000</lastBuildDate><generator>clj-rss</generator><item><guid>https://yogthos.net/posts/2022-11-26-nREPL-system-interaction.html</guid><link>https://yogthos.net/posts/2022-11-26-nREPL-system-interaction.html</link><title>Using nREPL as System Interface</title><description>&lt;p&gt;Clojure REPL is a powerful tool for developing programs interactively. Connecting the editor to the REPL allows us to get instant feedback on the code we're writing and have confidence that it works as intended as we're developing the application. However, the REPL isn't inherently limited to application development. It provides us with an interface to the language, and the language in turn be used as an interface to the host system. Let's take a look at how we can use &lt;a href='https://book.babashka.org/'&gt;Babashka&lt;/a&gt; along with &lt;a href='https://osquery.readthedocs.io/en/stable/introduction/using-osqueryi/'&gt;Osquery&lt;/a&gt; to inspect the state of the host.&lt;/p&gt;&lt;p&gt;Osquery is a handy tool that allows using SQL commands in order to leverage a relational data-model to describe a device. Different aspects of the system are mapped to relational tables using the following &lt;a href='https://www.osquery.io/schema/5.5.1/'&gt;schema&lt;/a&gt;. The tables give us access to files, ports, mounts, and many other aspects of the system. One aspect of Osqeury that's particularly useful to us is that it's able to return results in JSON format that we can parse into EDN and work with as structured data in the REPL.&lt;/p&gt;&lt;p&gt;To see how this works we'll start the nREPL server by running &lt;code&gt;bb --nrepl-server&lt;/code&gt;. The REPL will start on port &lt;code&gt;1667&lt;/code&gt; by default, we can also set a custom port by providing port number as the second argument to &lt;code&gt;bb&lt;/code&gt;. Once the REPL is running we can connect any nREPL compatible editor such as Calva or Emacs.&lt;/p&gt;&lt;p&gt;Let's create a file called &lt;code&gt;osquery.clj&lt;/code&gt; and open it in the editor and add some code to drive Osquery. First thing we'll need to do is to require the namespaces for interacting with the shell and parsing JSON:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;require '&amp;#91;clojure.java.shell :refer &amp;#91;sh&amp;#93;&amp;#93;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><atom:link href="https://yogthos.net/" rel="self" type="application/rss+xml"/><title>(iterate think thoughts)</title><link>https://yogthos.net/</link><description>This blog is awesome</description><lastBuildDate>Sun, 18 Dec 2022 14:04:32 +0000</lastBuildDate><generator>clj-rss</generator><item><guid>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</guid><link>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</link><title>Structuring Clojure Applications</title><description>&lt;p&gt;This post will take a look at a strategy for structuring Clojure applications that I've found useful in my projects.&lt;/p&gt;&lt;p&gt;While the idea of writing applications in a pure functional style is appealing, it's not always clear how to separate side effects from pure compuation in practice. Variations of &lt;a href='https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html'&gt;Clean Architecture&lt;/a&gt; approach are often suggested as a way to accomplish this goal. This style dictates that IO should be handled in the outer layer that wraps pure computation core of the application.&lt;/p&gt;&lt;p&gt;While this notion is appealing, it only works in cases where the totality of the data that will be operated on is known up front. Unfortunately, it's impossible to know ahead of time what data will be needed in most real world applications. In many cases additional data needs to load conditionally based on the type of input and the current state of processing.&lt;/p&gt;&lt;p&gt;What we can do, however, is break up our application into small components that can be reasoned about in isolation. Such components can then be composed together to accomplish tasks of increased complexity. I like to think of this as a Lego model of software development. Each component can be viewed as a Lego block, and we can compose these Lego block in many different ways as we solve different problems.&lt;/p&gt;&lt;p&gt;The problem being solved can be expressed in terms of a workflow represented by a graph where the nodes compute the state, and the edges represent transitios between the states. Each time we enter a node in this graph, we look at the input, decide what additional data we may need, run the computation, and transition to the next state. Each node in the graph is a Lego block that accomplishes a particular task. These nodes are then connected by a layer of code governs the data flow.&lt;/p&gt;&lt;p&gt;One approach to implement the above architecture is to use a map to describe overall state, then pass it through multimethods that each operate on a particular type of state and produce a new one. Each multimethod takes the state map as a parameter, does some operations on it, and then returns a new map that gets passed to the next multimethod. If you're thinking that this sounds a like a state machine then you're very much correct.&lt;/p&gt;&lt;h3 id="implemention"&gt;Implemention&lt;/h3&gt;&lt;p&gt;Let's take a look at a concrete example of what this looks like in practice. Say we have a workflow where one user would like to send an email money transfer to another user using our system. There are a few cases we might want to handle to handle here.&lt;/p&gt;&lt;p&gt;There's the happy path scenario where both users are in the system. In this case we simply withdraw the amount from the payor account and deposit it into the payee account.&lt;/p&gt;&lt;p&gt;Another scenario could be that the payor does not have the sufficient funds to do the transaction. In this case we may want to suspend the transaction until the user adds more funds.&lt;/p&gt;&lt;p&gt;Finally, the user receiving the funds may not be in the system, and they need to be invited before they can accept the transfer.&lt;/p&gt;&lt;p&gt;We can start by defining a few helper functions that represent interactions with external resources.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defn persist &amp;#91;store {:keys &amp;#91;id&amp;#93; :as state}&amp;#93;
+  &amp;#40;swap! store assoc-in &amp;#91;:workflows id&amp;#93; state&amp;#41;&amp;#41;
+
+&amp;#40;defn query &amp;#91;store email&amp;#93;
+  &amp;#40;get-in @store &amp;#91;:users email&amp;#93;&amp;#41;&amp;#41;
+
+&amp;#40;defn load-state &amp;#91;store workflow-id&amp;#93;
+  &amp;#40;get-in @store &amp;#91;:workflows workflow-id&amp;#93;&amp;#41;&amp;#41;
+
+&amp;#40;defn send-invite &amp;#91;email&amp;#93;
+  &amp;#40;println &amp;quot;sending invite to&amp;quot; email&amp;#41;&amp;#41;
+
+&amp;#40;defn notify-user &amp;#91;email message&amp;#93;
+  &amp;#40;println &amp;quot;notifying&amp;quot; email message&amp;#41;&amp;#41;
+
+&amp;#40;defn send-transfer &amp;#91;store from to amount&amp;#93;
+  &amp;#40;println &amp;quot;transfering from&amp;quot; from &amp;quot;to&amp;quot; to amount&amp;#41;
+  &amp;#40;swap! store
+         #&amp;#40;-&amp;gt; %
+             &amp;#40;update-in &amp;#91;:users from :funds&amp;#93; - amount&amp;#41;
+             &amp;#40;update-in &amp;#91;:users to :funds&amp;#93; + amount&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, we'll create a map to represent the initial state of the workfow.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;{:id &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+ :from   {:email &amp;quot;bob@foo.bar&amp;quot;}
+ :to     {:email &amp;quot;alice@bar.baz&amp;quot;}
+ :amount 200
+ :action :transfer}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The map will contain a unique id, some initial data that represents user input, and an &lt;code&gt;:action&lt;/code&gt; key indicating what action should be applied to the current state of the workflow.&lt;/p&gt;&lt;p&gt;Let's define a multimethod that will dispatch the approprate action handler based on the value of the &lt;code&gt;:action&lt;/code&gt; key. The multimethod will accept a map of resources as the first argument. The resources represent any code that deals with IO side effects such as databse connections. The map representing the state of the workflow will be passed in as the second argument.  &lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defmulti handle-action &amp;#40;fn &amp;#91;&amp;#95;resources {:keys &amp;#91;action&amp;#93;}&amp;#93; action&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can now define a handler for the &lt;code&gt;:transfer&lt;/code&gt; operation. This multimethod will hydrate some additional data about the users from the datastore, take the appropriate action, and return a new state with the updated &lt;code&gt;:action&lt;/code&gt; key to indicate the next step in the workflow.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defmethod handle-action :transfer &amp;#91;{:keys &amp;#91;store&amp;#93;} {:keys &amp;#91;from to amount&amp;#93; :as state}&amp;#93;
+   &amp;#40;let &amp;#91;from-info &amp;#40;query store &amp;#40;:email from&amp;#41;&amp;#41;
+         to-info   &amp;#40;query store &amp;#40;:email to&amp;#41;&amp;#41;
+         available-funds &amp;#40;:funds from-info&amp;#41;
+         state     &amp;#40;-&amp;gt; state
+                       &amp;#40;update :from merge from-info&amp;#41;
+                       &amp;#40;update :to merge to-info&amp;#41;&amp;#41;&amp;#93; 
+     &amp;#40;cond 
+       &amp;#40;&amp;gt;= available-funds amount&amp;#41;
+       &amp;#40;do
+         &amp;#40;send-transfer store &amp;#40;:email from&amp;#41; &amp;#40;:email to&amp;#41; amount&amp;#41;
+         &amp;#40;assoc state :action :done&amp;#41;&amp;#41;
+       &amp;#40;&amp;lt; available-funds amount&amp;#41;
+       &amp;#40;assoc state :action :notify-missing-funds&amp;#41;
+       &amp;#40;nil? to-info&amp;#41;
+       &amp;#40;assoc state :action :invite&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Let's add the handlers for &lt;code&gt;:invite&lt;/code&gt; and &lt;code&gt;:notify-missing-funds&lt;/code&gt; actions.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defmethod handle-action :notify-missing-funds &amp;#91;{:keys &amp;#91;store&amp;#93;} {:keys &amp;#91;from&amp;#93; :as state}&amp;#93; 
+  &amp;#40;notify-user &amp;#40;:email from&amp;#41; &amp;quot;missing funds&amp;quot;&amp;#41;
+  &amp;#40;persist store &amp;#40;assoc state :action :transfer&amp;#41;&amp;#41;
+  {:action :await}&amp;#41;
+
+&amp;#40;defmethod handle-action :invite &amp;#91;{:keys &amp;#91;store&amp;#93;} {:keys &amp;#91;to&amp;#93; :as state}&amp;#93;
+  &amp;#40;send-invite to&amp;#41;
+  &amp;#40;persist store &amp;#40;assoc state :action :transfer&amp;#41;&amp;#41;
+  {:action :await}&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Note that &lt;code&gt;:invite&lt;/code&gt; and &lt;code&gt;:notify-missing-funds&lt;/code&gt; actions persist the state and return the &lt;code&gt;:await&lt;/code&gt; action when they complete. We'll use this behavior to indicate that the workflow is blocked on an external action and needs to be suspended.&lt;/p&gt;&lt;p&gt;Finally, we'll add a function that executes the state machine. This function will accept a map containing the resources along with a workflow id. It will load the current state and execute it by dispatching the multimethod defined above.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defn run-workflow
+  &amp;#91;{:keys &amp;#91;store&amp;#93; :as resources} workflow-id&amp;#93;
+  &amp;#40;loop &amp;#91;state &amp;#40;load-state store workflow-id&amp;#41;&amp;#93; 
+    &amp;#40;condp = &amp;#40;-&amp;gt; state :action&amp;#41;
+      :done state
+      :await :workflow-suspended
+      &amp;#40;let &amp;#91;state &amp;#40;handle-action resources state&amp;#41;&amp;#93;
+        &amp;#40;recur state&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;For simplicity's sake let's use an atom as our mock data store.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;def store &amp;#40;atom {:workflows {&amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+                              {:id &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+                               :from   {:email &amp;quot;bob@foo.bar&amp;quot;}
+                               :to     {:email &amp;quot;alice@bar.baz&amp;quot;}
+                               :amount 200
+                               :action :transfer}}
+                  :users {&amp;quot;bob@foo.bar&amp;quot; {:funds 100}
+                          &amp;quot;alice@bar.baz&amp;quot; {:funds 10}}}&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can now try running this workflow in the REPL. If we run it with the initial state, then we should see that the workflow was suspended because there were insufficient funds to transfer.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;=&amp;gt; &amp;#40;run-workflow {:store store} &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;&amp;#41;
+
+notifying bob@foo.bar missing funds
+:workflow-suspended
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The workflow tries to notify the user of the missing funds and returns. Let's add more funds to the account trying to send the transfer.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;=&amp;gt; &amp;#40;swap! store assoc-in &amp;#91;:users &amp;quot;bob@foo.bar&amp;quot; :funds&amp;#93; 300&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The workflow restarts where it left off and completes the transfer successfully.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;=&amp;gt; &amp;#40;run-workflow {:store store} &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;&amp;#41;
+
+transfering from bob@foo.bar to alice@bar.baz 200
+{:id &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;,
+ :from {:email &amp;quot;bob@foo.bar&amp;quot;, :funds 300},
+ :to {:email &amp;quot;alice@bar.baz&amp;quot;, :funds 10},
+ :amount 200,
+ :action :done}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="formalizing&amp;#95;side&amp;#95;effects"&gt;Formalizing Side Effects&lt;/h3&gt;&lt;p&gt;We can make one futher improvement over the implementation above by formalizing resource providers using protocols. Doing so will make it clear what the external dependecies are and facilitate mocking. Let's create &lt;code&gt;Notify&lt;/code&gt; and &lt;code&gt;DataStore&lt;/code&gt; protocols that look as follows.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defprotocol Notify
+  &amp;#40;send-invite &amp;#91;email&amp;#93;&amp;#41;
+  &amp;#40;notify-user &amp;#91;email message&amp;#93;&amp;#41;&amp;#41;
+
+&amp;#40;defprotocol DataStore
+  &amp;#40;persist &amp;#91;&amp;#95; state&amp;#93;&amp;#41;
+  &amp;#40;query &amp;#91;&amp;#95; email&amp;#93;&amp;#41;
+  &amp;#40;add-funds &amp;#91;&amp;#95; email amount&amp;#93;&amp;#41;
+  &amp;#40;load-state &amp;#91;&amp;#95; workflow-id&amp;#93;&amp;#41;
+  &amp;#40;send-transfer &amp;#91;&amp;#95; from to amount&amp;#93;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, let's add a couple of records that implement these protocols.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defrecord MockNotify &amp;#91;&amp;#93;
+  Notify
+  &amp;#40;send-invite &amp;#91;&amp;#95; email&amp;#93;
+              &amp;#40;println &amp;quot;sending invite to&amp;quot; email&amp;#41;&amp;#41;
+  &amp;#40;notify-user &amp;#91;&amp;#95; email message&amp;#93;
+              &amp;#40;println &amp;quot;notifying&amp;quot; email message&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defrecord AtomDataStore &amp;#91;store&amp;#93;
+  DataStore
+  &amp;#40;persist &amp;#91;&amp;#95; {:keys &amp;#91;id&amp;#93; :as state}&amp;#93;
+    &amp;#40;swap! store assoc-in &amp;#91;:workflows id&amp;#93; state&amp;#41;&amp;#41;
+  &amp;#40;query &amp;#91;&amp;#95;  email&amp;#93;
+    &amp;#40;get-in @store &amp;#91;:users email&amp;#93;&amp;#41;&amp;#41;
+  &amp;#40;add-funds &amp;#91;&amp;#95; email amount&amp;#93;
+    &amp;#40;swap! store assoc-in &amp;#91;:users &amp;quot;bob@foo.bar&amp;quot; :funds&amp;#93; 300&amp;#41;&amp;#41;
+  &amp;#40;load-state &amp;#91;&amp;#95; workflow-id&amp;#93;
+    &amp;#40;println &amp;quot;hi&amp;quot;&amp;#41;
+    &amp;#40;get-in @store &amp;#91;:workflows workflow-id&amp;#93;&amp;#41;&amp;#41;
+  &amp;#40;send-transfer &amp;#91;&amp;#95; from to amount&amp;#93;
+    &amp;#40;println &amp;quot;transfering from&amp;quot; from &amp;quot;to&amp;quot; to amount&amp;#41;
+    &amp;#40;swap! store
+           #&amp;#40;-&amp;gt; %
+                &amp;#40;update-in &amp;#91;:users from :funds&amp;#93; - amount&amp;#41;
+                &amp;#40;update-in &amp;#91;:users to :funds&amp;#93; + amount&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We'll also need to modify our multimethods to use &lt;code&gt;Notify&lt;/code&gt; protocol instead of simply calling the functions we defined earlier.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defmethod handle-action :notify-missing-funds &amp;#91;{:keys &amp;#91;store notify&amp;#93;} {:keys &amp;#91;from&amp;#93; :as state}&amp;#93;
+  &amp;#40;notify-user notify &amp;#40;:email from&amp;#41; &amp;quot;missing funds&amp;quot;&amp;#41;
+  &amp;#40;persist store &amp;#40;assoc state :action :transfer&amp;#41;&amp;#41;
+  {:action :await}&amp;#41;
+
+&amp;#40;defmethod handle-action :invite &amp;#91;{:keys &amp;#91;store notify&amp;#93;} {:keys &amp;#91;to&amp;#93; :as state}&amp;#93;
+  &amp;#40;send-invite notify to&amp;#41;
+  &amp;#40;persist store &amp;#40;assoc state :action :transfer&amp;#41;&amp;#41;
+  {:action :await}&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Finally, we'll instantiate the records and passing them to our &lt;code&gt;run-workflow&lt;/code&gt; function.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;def store &amp;#40;-&amp;gt;AtomDataStore &amp;#40;atom {:workflows {&amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+                                                {:id &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+                                                :from   {:email &amp;quot;bob@foo.bar&amp;quot;}
+                                                :to     {:email &amp;quot;alice@bar.baz&amp;quot;}
+                                                :amount 200
+                                                :action :transfer}}
+                                    :users {&amp;quot;bob@foo.bar&amp;quot; {:funds 100}
+                                            &amp;quot;alice@bar.baz&amp;quot; {:funds 10}}}&amp;#41;&amp;#41;&amp;#41;
+&amp;#40;def notify &amp;#40;-&amp;gt;MockNotify&amp;#41;&amp;#41;
+
+&amp;#40;run-workflow {:store store
+               :notify notify} 
+              &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;&amp;#41;
+
+&amp;#40;add-funds store &amp;quot;bob@foo.bar&amp;quot; 100&amp;#41;
+
+&amp;#40;run-workflow {:store store
+               :notify notify} 
+              &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="discussion"&gt;Discussion&lt;/h3&gt;&lt;p&gt;There are several aspects of the above approach that I've found to be particularly useful when building applications.&lt;/p&gt;&lt;p&gt;Each multimethod can be treated as a small program that can be reasoned about and tested independently. These multimethods can easily be structured using Clean Architecture style keepng IO at the edges.&lt;/p&gt;&lt;p&gt;Passing resources in as an explicit parameter allows decoupling IO from computation. This design lends itself well to testing since resources, such as the data store, are passed in explicitly. We can pass in a map of mock resources when running tests without any changes to the rest of the code. In fact, we can start developing against mock resources and ensure that the workflow logic works as intended before having to worry about connecting to databases or other systems.&lt;/p&gt;&lt;p&gt;Using a map to track the state of the execution makes it easy to inspect it. We can log this map to see what operation we're doing, what the data looks like, and so on. The state can also be easily serialized, allowing us to suspend and resume computation as needed. This is particularly useful in cases when the workflow needs to be suspended pending some external action as we saw earlier.&lt;/p&gt;&lt;p&gt;This design also plays well with Integrant which can be used to manage the system map containing stateful resources.&lt;/p&gt;&lt;p&gt;Most importantly, this type of architecture creates reusable components without implicit coupling. Each multimethod can be used indepenently of the others, and composed into different workflows. This gives us composable Lego blocks that we can use to build larger structures.&lt;/p&gt;</description><pubDate>Sun, 18 Dec 2022 00:00:00 +0000</pubDate></item><item><guid>https://yogthos.net/posts/2022-11-26-nREPL-system-interaction.html</guid><link>https://yogthos.net/posts/2022-11-26-nREPL-system-interaction.html</link><title>Using nREPL as System Interface</title><description>&lt;p&gt;Clojure REPL is a powerful tool for developing programs interactively. Connecting the editor to the REPL allows us to get instant feedback on the code we're writing and have confidence that it works as intended as we're developing the application. However, the REPL isn't inherently limited to application development. It provides us with an interface to the language, and the language in turn be used as an interface to the host system. Let's take a look at how we can use &lt;a href='https://book.babashka.org/'&gt;Babashka&lt;/a&gt; along with &lt;a href='https://osquery.readthedocs.io/en/stable/introduction/using-osqueryi/'&gt;Osquery&lt;/a&gt; to inspect the state of the host.&lt;/p&gt;&lt;p&gt;Osquery is a handy tool that allows using SQL commands in order to leverage a relational data-model to describe a device. Different aspects of the system are mapped to relational tables using the following &lt;a href='https://www.osquery.io/schema/5.5.1/'&gt;schema&lt;/a&gt;. The tables give us access to files, ports, mounts, and many other aspects of the system. One aspect of Osqeury that's particularly useful to us is that it's able to return results in JSON format that we can parse into EDN and work with as structured data in the REPL.&lt;/p&gt;&lt;p&gt;To see how this works we'll start the nREPL server by running &lt;code&gt;bb --nrepl-server&lt;/code&gt;. The REPL will start on port &lt;code&gt;1667&lt;/code&gt; by default, we can also set a custom port by providing port number as the second argument to &lt;code&gt;bb&lt;/code&gt;. Once the REPL is running we can connect any nREPL compatible editor such as Calva or Emacs.&lt;/p&gt;&lt;p&gt;Let's create a file called &lt;code&gt;osquery.clj&lt;/code&gt; and open it in the editor and add some code to drive Osquery. First thing we'll need to do is to require the namespaces for interacting with the shell and parsing JSON:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;require '&amp;#91;clojure.java.shell :refer &amp;#91;sh&amp;#93;&amp;#93;
          '&amp;#91;cheshire.core :as json&amp;#93;&amp;#41;
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, we'll define the &lt;code&gt;osquery&lt;/code&gt; function that will take a SQL query as text, execute &lt;code&gt;osqueryi&lt;/code&gt; command and return its result as EDN:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defn osquery &amp;#91;query&amp;#93;
   &amp;#40;let &amp;#91;{:keys &amp;#91;exit out err&amp;#93;} &amp;#40;sh &amp;quot;osqueryi&amp;quot; &amp;quot;--json&amp;quot; query&amp;#41;&amp;#93;
