@@ -168,9 +168,9 @@ transfering from bob@foo.bar to alice@bar.baz 200
 </code></pre><p>Next, let's add a couple of records that implement these protocols.</p><pre><code class="clojure">&#40;defrecord MockNotify &#91;&#93;
   Notify
   &#40;send-invite &#91;&#95; email&#93;
-              &#40;println &quot;sending invite to&quot; email&#41;&#41;
+    &#40;println &quot;sending invite to&quot; email&#41;&#41;
   &#40;notify-user &#91;&#95; email message&#93;
-              &#40;println &quot;notifying&quot; email message&#41;&#41;&#41;
+    &#40;println &quot;notifying&quot; email message&#41;&#41;&#41;
 
 &#40;defrecord AtomDataStore &#91;store&#93;
   DataStore
