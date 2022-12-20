@@ -108,15 +108,15 @@
          state     &#40;-&gt; state
                        &#40;update :from merge from-info&#41;
                        &#40;update :to merge to-info&#41;&#41;&#93; 
-     &#40;cond 
+     &#40;cond
+       &#40;nil? to-info&#41;
+       &#40;assoc state :action :invite&#41; 
        &#40;&gt;= available-funds amount&#41;
        &#40;do
          &#40;send-transfer store &#40;:email from&#41; &#40;:email to&#41; amount&#41;
          &#40;assoc state :action :done&#41;&#41;
        &#40;&lt; available-funds amount&#41;
-       &#40;assoc state :action :notify-missing-funds&#41;
-       &#40;nil? to-info&#41;
-       &#40;assoc state :action :invite&#41;&#41;&#41;&#41;
+       &#40;assoc state :action :notify-missing-funds&#41;&#41;&#41;&#41;
 </code></pre><p>Let's add the handlers for <code>:invite</code> and <code>:notify-missing-funds</code> actions.</p><pre><code class="clojure">&#40;defmethod handle-action :notify-missing-funds &#91;{:keys &#91;store&#93;} {:keys &#91;from&#93; :as state}&#93; 
   &#40;notify-user &#40;:email from&#41; &quot;missing funds&quot;&#41;
   &#40;persist store &#40;assoc state :action :transfer&#41;&#41;
