@@ -1,4 +1,167 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><atom:link href="https://yogthos.net/" rel="self" type="application/rss+xml"/><title>(iterate think thoughts)</title><link>https://yogthos.net/</link><description>This blog is awesome</description><lastBuildDate>Sat, 01 Apr 2023 19:33:41 +0000</lastBuildDate><generator>clj-rss</generator><item><guid>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</guid><link>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</link><title>Structuring Clojure Applications</title><description>&lt;p&gt;This post will take a look at a strategy for structuring Clojure applications that I've found useful in my projects.&lt;/p&gt;&lt;p&gt;While the idea of writing applications in a pure functional style is appealing, it's not always clear how to separate side effects from pure compuation in practice. Variations of &lt;a href='https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html'&gt;Clean Architecture&lt;/a&gt; approach are often suggested as a way to accomplish this goal. This style dictates that IO should be handled in the outer layer that wraps pure computation core of the application.&lt;/p&gt;&lt;p&gt;While this notion is appealing, it only works in cases where the totality of the data that will be operated on is known up front. Unfortunately, it's impossible to know ahead of time what data will be needed in most real world applications. In many cases additional data needs to load conditionally based on the type of input and the current state of processing.&lt;/p&gt;&lt;p&gt;What we can do, however, is break up our application into small components that can be reasoned about in isolation. Such components can then be composed together to accomplish tasks of increased complexity. I like to think of this as a Lego model of software development. Each component can be viewed as a Lego block, and we can compose these Lego block in many different ways as we solve different problems.&lt;/p&gt;&lt;p&gt;The problem being solved can be expressed in terms of a workflow represented by a graph where the nodes compute the state, and the edges represent transitions between the states. Each time we enter a node in this graph, we look at the input, decide what additional data we may need, run the computation, and transition to the next state. Each node in the graph is a Lego block that accomplishes a particular task. These nodes are then connected by a layer of code governs the data flow.&lt;/p&gt;&lt;p&gt;One approach to implement the above architecture is to use a map to describe overall state, then pass it through multimethods that each operate on a particular type of state and produce a new one. Each multimethod takes the state map as a parameter, does some operations on it, and then returns a new map that gets passed to the next multimethod. If you're thinking that this sounds a like a state machine then you're very much correct.&lt;/p&gt;&lt;h3 id="implemention"&gt;Implemention&lt;/h3&gt;&lt;p&gt;Let's take a look at a concrete example of what this looks like in practice. Say we have a workflow where one user would like to send an email money transfer to another user using our system. There are a few cases we might want to handle here.&lt;/p&gt;&lt;p&gt;There's the happy path scenario where both users are in the system. In this case we simply withdraw the amount from the payor account and deposit it into the payee account.&lt;/p&gt;&lt;p&gt;Another scenario could be that the payor does not have the sufficient funds to do the transaction. In this case we may want to suspend the transaction until the user adds more funds.&lt;/p&gt;&lt;p&gt;Finally, the user receiving the funds may not be in the system, and they need to be invited before they can accept the transfer.&lt;/p&gt;&lt;p&gt;We can start by defining a few helper functions that represent interactions with external resources.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;def store &amp;#40;atom {:workflows {&amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><atom:link href="https://yogthos.net/" rel="self" type="application/rss+xml"/><title>(iterate think thoughts)</title><link>https://yogthos.net/</link><description>This blog is awesome</description><lastBuildDate>Fri, 12 May 2023 13:29:26 +0000</lastBuildDate><generator>clj-rss</generator><item><guid>https://yogthos.net/posts/2023-05-12-nbb-resume.html</guid><link>https://yogthos.net/posts/2023-05-12-nbb-resume.html</link><title>Making A Resume with Babashka</title><description>&lt;p&gt;I recently had to update my resume and decided that I might as well have some fun with it while I do it. One thing that I've always found frustrating using an editor like OpenOffice is that it conflates the tasks of formatting and editing content. I don't want to have to worry about look and feel when I'm thinking about the content of the resume, and vice versa.&lt;/p&gt;&lt;p&gt;The obvious solution is to create a template for how the resume should look, and then populate it with the relevant data. Of course, there are already off the shelf tools such as &lt;a href='https://jsonresume.org/'&gt;JSON Resume&lt;/a&gt; that do this, but what fun is there in using an existing tool when you can build one that does exactly what you want. Let's take a look at what's involved in making a similar tool with Clojure and &lt;a href='https://github.com/babashka/nbb'&gt;nbb&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;I decided to create a Hiccup template that would represent the layout of the HTML document and then to put the contents of the resume in a separate EDN file. Then all I'd need to do would be to walk over the template, inject the data, and render HTML which could then be converted to a PDF document.&lt;/p&gt;&lt;h3 id="specification"&gt;Specification&lt;/h3&gt;&lt;p&gt;Generally, I find it's helpful to start by defining what the API will look like first, and then figure out what the best way to implement it is. This way there is less of a chance that implementation details will bleed into the API. In this scenario the API will be the format of the EDN file and the Hiccup template.&lt;/p&gt;&lt;p&gt;The EDN is just a data structure that's used to organize the data in the resume. I based mine on the &lt;a href='https://jsonresume.org/schema/'&gt;schema&lt;/a&gt; that JSON Resume uses. The schema contains sections such as &lt;code&gt;:basics&lt;/code&gt;, &lt;code&gt;:work&lt;/code&gt;, &lt;code&gt;:education&lt;/code&gt;, and so on. For example, the &lt;code&gt;:basics&lt;/code&gt; section might look as follows:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;{:basics {:name &amp;quot;John Doe&amp;quot;
+          :label &amp;quot;Programmer&amp;quot;
+          :image &amp;quot;profile.jpg&amp;quot;
+          :email &amp;quot;john@gmail.com&amp;quot;          
+          :summary &amp;quot;A summary of John Doe…&amp;quot;}}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This data then needs to be fed into the Hiccup template that might look like this:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#91;:html
+ &amp;#91;:body
+  &amp;#91;:header#header
+   &amp;#91;:div.container
+    &amp;#91;:div.row 
+     &amp;#91;:div.col-sm-9.col-sm-push-3
+      &amp;#91;:h1 :data/basics.name&amp;#93;
+      &amp;#91;:h2 :data/basics.label&amp;#93;&amp;#93;&amp;#93;&amp;#93;&amp;#93;
+  &amp;#91;:page/image {:src   :data/basics.image
+                :width &amp;quot;60px&amp;quot;}&amp;#93;
+  &amp;#91;:div &amp;#91;:strong &amp;quot;Email&amp;quot;&amp;#93; &amp;#91;:td &amp;#91;:span.email :data/basics.email&amp;#93;&amp;#93;&amp;#93;
+  &amp;#91;:section#about.row
+   &amp;#91;:aside.col-sm-3
+    &amp;#91;:h3 &amp;quot;About&amp;quot;&amp;#93;&amp;#93;
+   &amp;#91;:div.col-sm-9
+    &amp;#91;:p :data/basics.summary&amp;#93;&amp;#93;&amp;#93;&amp;#93;&amp;#93;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I decided to use namespaced keys to specify the dynamic elements in the template. This provides a clean way to differentiate them from the static Hiccup tags and hint at the type of key. For example, keys namespaced with &lt;code&gt;data&lt;/code&gt; indicate that they're paths that should be looked up within the EDN document. The &lt;code&gt;:data/basics.name&lt;/code&gt; keyword translates into &lt;code&gt;&amp;#40;get-in data &amp;#91;:basics :name&amp;#93;&amp;#41;&lt;/code&gt; when the template is parsed.&lt;/p&gt;&lt;p&gt;Another example is using &lt;code&gt;page&lt;/code&gt; namespace to indicate a tag that needs to be processed in a special way. Rhe &lt;code&gt;:page/image&lt;/code&gt; tag above will create an &lt;code&gt;:img&lt;/code&gt; tag with the image at the path specified using &lt;code&gt;:data/basics.image&lt;/code&gt; injected as a base 64 string. This trick provides a flexible way to specify dynamic behaviors in the template.&lt;/p&gt;&lt;p&gt;Finally, I wanted to handle evaluation of forms in order to handle things like iteration within the template. In the snippet below, &lt;code&gt;for&lt;/code&gt; macro is called on the data found under the &lt;code&gt;projects&lt;/code&gt; key in order to create a list of projects:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#91;:section#projects.row
+    &amp;#91;:aside.col-sm-3
+     &amp;#91;:h3 &amp;quot;Projects&amp;quot;&amp;#93;&amp;#93;
+    &amp;#91;:div.col-sm-9
+     &amp;#91;:div.row
+      &amp;#40;for &amp;#91;{:keys &amp;#91;name summary url&amp;#93;} :data/projects&amp;#93;
+        &amp;#91;:div.col-sm-12
+         &amp;#91;:h4.strike-through
+          &amp;#91;:span name&amp;#93;&amp;#93;
+         &amp;#91;:div summary&amp;#93;
+         &amp;#91;:div
+          &amp;#91;:a {:href url} url&amp;#93;&amp;#93;&amp;#93;&amp;#41;&amp;#93;&amp;#93;&amp;#93;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Examples above cover all the functionality I expect to need for making a nice looking resume. Let's take a look at what's involved in putting it all together.&lt;/p&gt;&lt;h3 id="implementation"&gt;Implementation&lt;/h3&gt;&lt;p&gt;Conveniently, &lt;code&gt;nbb&lt;/code&gt; provides support for starting up nREPL by running &lt;code&gt;nbb nrepl-server :port 1337&lt;/code&gt;. This facilitates interactive development that Clojure developers know and love. First thing I decided to do after getting the REPL fired up was to make a little Hiccup parser borrowing the relevant bits from the original implementation:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defn normalize-body &amp;#91;body&amp;#93;
+  &amp;#40;if &amp;#40;coll? body&amp;#41; &amp;#40;apply str &amp;#40;doall body&amp;#41;&amp;#41; &amp;#40;str body&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn as-str  
+  &amp;#91;&amp;amp; xs&amp;#93;
+  &amp;#40;apply str &amp;#40;map normalize-body xs&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn escape-html  
+  &amp;#91;text&amp;#93;
+  &amp;#40;-&amp;gt; &amp;#40;as-str text&amp;#41;
+      &amp;#40;string/replace #&amp;quot;&amp;amp;&amp;quot; &amp;quot;&amp;amp;amp;&amp;quot;&amp;#41;
+      &amp;#40;string/replace #&amp;quot;&amp;lt;&amp;quot; &amp;quot;&amp;amp;lt;&amp;quot;&amp;#41;
+      &amp;#40;string/replace #&amp;quot;&amp;gt;&amp;quot; &amp;quot;&amp;amp;gt;&amp;quot;&amp;#41;
+      &amp;#40;string/replace #&amp;quot;'&amp;quot; &amp;quot;&amp;amp;apos;&amp;quot;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn xml-attribute &amp;#91;id value&amp;#93;
+  &amp;#40;str &amp;quot; &amp;quot; &amp;#40;as-str &amp;#40;name id&amp;#41;&amp;#41; &amp;quot;=\&amp;quot;&amp;quot; &amp;#40;escape-html value&amp;#41; &amp;quot;\&amp;quot;&amp;quot;&amp;#41;&amp;#41;
+
+&amp;#40;defn render-attribute &amp;#91;&amp;#91;name value&amp;#93;&amp;#93;
+  &amp;#40;cond
+    &amp;#40;true? value&amp;#41; &amp;#40;xml-attribute name name&amp;#41;
+    &amp;#40;not value&amp;#41; &amp;quot;&amp;quot;
+    :else &amp;#40;xml-attribute name value&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn render-attr-map &amp;#91;attrs&amp;#93;
+  &amp;#40;apply str &amp;#40;sort &amp;#40;map render-attribute attrs&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn merge-attributes &amp;#91;{:keys &amp;#91;id class&amp;#93;} map-attrs&amp;#93;
+  &amp;#40;-&amp;gt;&amp;gt; map-attrs
+       &amp;#40;merge &amp;#40;when id {:id id}&amp;#41;&amp;#41;
+       &amp;#40;merge-with #&amp;#40;if %1 &amp;#40;str %1 &amp;quot; &amp;quot; %2&amp;#41; %2&amp;#41; &amp;#40;when class {:class class}&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn normalize-element &amp;#91;&amp;#91;tag &amp;amp; content&amp;#93;&amp;#93;
+  &amp;#40;let &amp;#91;re-tag    #&amp;quot;&amp;#40;&amp;#91;&amp;#94;\s\.#&amp;#93;+&amp;#41;&amp;#40;?:#&amp;#40;&amp;#91;&amp;#94;\s\.#&amp;#93;+&amp;#41;&amp;#41;?&amp;#40;?:\.&amp;#40;&amp;#91;&amp;#94;\s#&amp;#93;+&amp;#41;&amp;#41;?&amp;quot;
+        &amp;#91;&amp;#95; tag id class&amp;#93; &amp;#40;re-matches re-tag &amp;#40;as-str &amp;#40;name tag&amp;#41;&amp;#41;&amp;#41;
+        tag-attrs {:id    id
+                   :class &amp;#40;when class &amp;#40;string/replace class #&amp;quot;\.&amp;quot; &amp;quot; &amp;quot;&amp;#41;&amp;#41;}
+        map-attrs &amp;#40;first content&amp;#41;&amp;#93;
+    &amp;#40;if &amp;#40;map? map-attrs&amp;#41;
+      &amp;#91;tag &amp;#40;merge-attributes tag-attrs map-attrs&amp;#41; &amp;#40;next content&amp;#41;&amp;#93;
+      &amp;#91;tag tag-attrs content&amp;#93;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn render-element &amp;#91;&amp;#91;tag attrs &amp;amp; content&amp;#93;&amp;#93;
+  &amp;#40;str &amp;quot;&amp;lt;&amp;quot; &amp;#40;name tag&amp;#41; &amp;#40;render-attr-map attrs&amp;#41; &amp;quot;&amp;gt;&amp;quot; &amp;#40;as-str &amp;#40;flatten content&amp;#41;&amp;#41; &amp;quot;&amp;lt;/&amp;quot; &amp;#40;name tag&amp;#41; &amp;quot;&amp;gt;&amp;quot;&amp;#41;&amp;#41;
+
+&amp;#40;defn render-hiccup &amp;#91;hiccup&amp;#93;
+  &amp;#40;postwalk
+   &amp;#40;fn &amp;#91;node&amp;#93;
+     &amp;#40;if &amp;#40;and &amp;#40;not &amp;#40;map-entry? node&amp;#41;&amp;#41; &amp;#40;vector? node&amp;#41;&amp;#41;
+       &amp;#40;-&amp;gt; node normalize-element render-element&amp;#41;
+       node&amp;#41;&amp;#41;
+   hiccup&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, I wrote a template parser that would walk the Hiccup template and inject relevant data into it:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;def path-sep &amp;#40;.-sep path&amp;#41;&amp;#41;
+
+&amp;#40;defn image? &amp;#91;node&amp;#93;
+  &amp;#40;and &amp;#40;vector? node&amp;#41; &amp;#40;= :page/image &amp;#40;first node&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn css? &amp;#91;node&amp;#93;
+  &amp;#40;and &amp;#40;vector? node&amp;#41; &amp;#40;= :page/css &amp;#40;first node&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn data-node? &amp;#91;node&amp;#93;
+  &amp;#40;and &amp;#40;keyword? node&amp;#41; &amp;#40;= &amp;quot;data&amp;quot; &amp;#40;namespace node&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn eval-forms &amp;#91;template&amp;#93;
+  &amp;#40;prewalk
+   &amp;#40;fn &amp;#91;node&amp;#93;
+     &amp;#40;if &amp;#40;list? node&amp;#41;
+       &amp;#40;eval node&amp;#41;
+       node&amp;#41;&amp;#41;
+   template&amp;#41;&amp;#41;
+
+&amp;#40;defn slurp &amp;#91;filename &amp;amp; {:keys &amp;#91;encoding&amp;#93;}&amp;#93;
+  &amp;#40;.toString
+   &amp;#40;if encoding
+     &amp;#40;fs/readFileSync filename encoding&amp;#41;
+     &amp;#40;fs/readFileSync filename&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn spit &amp;#91;filename data &amp;amp; {:keys &amp;#91;encoding mode flag&amp;#93;
+                             :or   {encoding &amp;quot;utf8&amp;quot;
+                                    mode     &amp;quot;0o666&amp;quot;
+                                    flag     &amp;quot;w&amp;quot;}}&amp;#93;
+  &amp;#40;let &amp;#91;data &amp;#40;if &amp;#40;string? data&amp;#41; data &amp;#40;str data&amp;#41;&amp;#41;&amp;#93;
+    &amp;#40;fs/writeFileSync filename data encoding mode flag&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn inject-css &amp;#91;theme ref&amp;#93;
+  &amp;#91;:style
+   {:type &amp;quot;text/css&amp;quot;}
+   &amp;#40;slurp &amp;#40;str theme path-sep ref&amp;#41;&amp;#41;&amp;#93;&amp;#41;
+
+&amp;#40;defn image-&amp;gt;b64 &amp;#91;file-path {:keys &amp;#91;theme&amp;#93;}&amp;#93;
+  &amp;#40;when file-path
+    &amp;#40;let &amp;#91;format    &amp;#40;last &amp;#40;string/split file-path #&amp;quot;\.&amp;quot;&amp;#41;&amp;#41;&amp;#93;
+      &amp;#40;str
+       &amp;quot;data:image/&amp;quot; format &amp;quot;;base64, &amp;quot;
+       &amp;#40;-&amp;gt; &amp;#40;path/resolve &amp;#40;str theme path-sep file-path&amp;#41;&amp;#41;
+           &amp;#40;fs/readFileSync&amp;#41;
+           &amp;#40;.toString &amp;quot;base64&amp;quot;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn inject-image &amp;#91;&amp;#91;&amp;#95; path&amp;#93; opts&amp;#93;
+  &amp;#91;:img {:src &amp;#40;image-&amp;gt;b64 path opts&amp;#41;}&amp;#93;&amp;#41;
+
+&amp;#40;defn parse-path &amp;#91;path&amp;#93;
+  &amp;#40;mapv keyword &amp;#40;string/split path #&amp;quot;\.&amp;quot;&amp;#41;&amp;#41;&amp;#41;
+
+&amp;#40;defn parse-template &amp;#91;{:keys &amp;#91;theme template data&amp;#93; :as opts}&amp;#93;
+  &amp;#40;eval-forms
+   &amp;#40;postwalk
+    &amp;#40;fn &amp;#91;node&amp;#93;
+      &amp;#40;cond
+        &amp;#40;css? node&amp;#41;
+        &amp;#40;map &amp;#40;partial inject-css theme&amp;#41; &amp;#40;rest node&amp;#41;&amp;#41;
+        &amp;#40;image? node&amp;#41;
+        &amp;#40;inject-image node opts&amp;#41;
+        &amp;#40;data-node? node&amp;#41;
+        &amp;#40;get-in data &amp;#40;parse-path &amp;#40;name node&amp;#41;&amp;#41;&amp;#41;
+        :else node&amp;#41;&amp;#41;
+    template&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As you can see, &lt;code&gt;postwalk&lt;/code&gt; is used to navigate the template. Each node is inspected and then handled using the appropriate function based on its type. After all the data is injected in the template, the result is passed to &lt;code&gt;eval-forms&lt;/code&gt; to evaluate any code such as the &lt;code&gt;for&lt;/code&gt; macro we saw above.&lt;/p&gt;&lt;p&gt;With these pieces above in place, I can now generate a nice looking HTML page with the resume content. The last interesting bit is to convert the resulting HTML into a PDF document. The easiest way I found was to use puppeteer in headless mode to render the page and write it out as a PDF:&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;defn write-pdf &amp;#91;{:keys &amp;#91;browser pending target pdf-opts&amp;#93;} html&amp;#93;
+  &amp;#40;-&amp;gt; browser
+      &amp;#40;.then #&amp;#40;.newPage %&amp;#41;&amp;#41;
+      &amp;#40;.then
+       &amp;#40;fn &amp;#91;page &amp;#95;&amp;#93; 
+         &amp;#40;-&amp;gt; &amp;#40;.setContent page html&amp;#41;
+             &amp;#40;.then #&amp;#40;.emulateMediaType page &amp;quot;screen&amp;quot;&amp;#41;&amp;#41;
+             &amp;#40;.then &amp;#40;fn &amp;#91;&amp;#95; &amp;#95;&amp;#93;
+                      &amp;#40;-&amp;gt; &amp;#40;.pdf page &amp;#40;clj-&amp;gt;js &amp;#40;merge {:path target} pdf-opts&amp;#41;&amp;#41;&amp;#41;
+                          &amp;#40;.then
+                           &amp;#40;fn &amp;#91;&amp;#95;&amp;#93; &amp;#40;reset! pending false&amp;#41;&amp;#41;&amp;#41;
+                          &amp;#40;.catch #&amp;#40;js/console.error &amp;#40;.-message %&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+             &amp;#40;.catch #&amp;#40;js/console.error &amp;#40;.-message %&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The entire code for this ended up weighing in at around 200 lines, and I'm pretty happy with the result. Being able to solve these kinds of tasks in a few lines of code is what makes Clojure such a productive language for me. Incidentally, &lt;a href='https://github.com/yogthos/resume/blob/build/resume.pdf'&gt;here's&lt;/a&gt; a link to my resume, and I am currently open to collaboration or employment opportunities.&lt;/p&gt;&lt;p&gt;The entire project is available &lt;a href='https://github.com/yogthos/resume'&gt;here&lt;/a&gt; for reference.&lt;/p&gt;</description><pubDate>Fri, 12 May 2023 00:00:00 +0000</pubDate></item><item><guid>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</guid><link>https://yogthos.net/posts/2022-12-18-StructuringClojureApplications.html</link><title>Structuring Clojure Applications</title><description>&lt;p&gt;This post will take a look at a strategy for structuring Clojure applications that I've found useful in my projects.&lt;/p&gt;&lt;p&gt;While the idea of writing applications in a pure functional style is appealing, it's not always clear how to separate side effects from pure compuation in practice. Variations of &lt;a href='https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html'&gt;Clean Architecture&lt;/a&gt; approach are often suggested as a way to accomplish this goal. This style dictates that IO should be handled in the outer layer that wraps pure computation core of the application.&lt;/p&gt;&lt;p&gt;While this notion is appealing, it only works in cases where the totality of the data that will be operated on is known up front. Unfortunately, it's impossible to know ahead of time what data will be needed in most real world applications. In many cases additional data needs to load conditionally based on the type of input and the current state of processing.&lt;/p&gt;&lt;p&gt;What we can do, however, is break up our application into small components that can be reasoned about in isolation. Such components can then be composed together to accomplish tasks of increased complexity. I like to think of this as a Lego model of software development. Each component can be viewed as a Lego block, and we can compose these Lego block in many different ways as we solve different problems.&lt;/p&gt;&lt;p&gt;The problem being solved can be expressed in terms of a workflow represented by a graph where the nodes compute the state, and the edges represent transitions between the states. Each time we enter a node in this graph, we look at the input, decide what additional data we may need, run the computation, and transition to the next state. Each node in the graph is a Lego block that accomplishes a particular task. These nodes are then connected by a layer of code governs the data flow.&lt;/p&gt;&lt;p&gt;One approach to implement the above architecture is to use a map to describe overall state, then pass it through multimethods that each operate on a particular type of state and produce a new one. Each multimethod takes the state map as a parameter, does some operations on it, and then returns a new map that gets passed to the next multimethod. If you're thinking that this sounds a like a state machine then you're very much correct.&lt;/p&gt;&lt;h3 id="implemention"&gt;Implemention&lt;/h3&gt;&lt;p&gt;Let's take a look at a concrete example of what this looks like in practice. Say we have a workflow where one user would like to send an email money transfer to another user using our system. There are a few cases we might want to handle here.&lt;/p&gt;&lt;p&gt;There's the happy path scenario where both users are in the system. In this case we simply withdraw the amount from the payor account and deposit it into the payee account.&lt;/p&gt;&lt;p&gt;Another scenario could be that the payor does not have the sufficient funds to do the transaction. In this case we may want to suspend the transaction until the user adds more funds.&lt;/p&gt;&lt;p&gt;Finally, the user receiving the funds may not be in the system, and they need to be invited before they can accept the transfer.&lt;/p&gt;&lt;p&gt;We can start by defining a few helper functions that represent interactions with external resources.&lt;/p&gt;&lt;pre&gt;&lt;code class="clojure"&gt;&amp;#40;def store &amp;#40;atom {:workflows {&amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
                               {:id &amp;quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&amp;quot;
                                :from   {:email &amp;quot;bob@foo.bar&amp;quot;}
                                :to     {:email &amp;quot;alice@bar.baz&amp;quot;}
