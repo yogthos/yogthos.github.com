@@ -31,11 +31,16 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
-      - name: Setup Leiningen      
-        uses: oxr463/setup-leiningen@0.0.1
+          java-version: '21'          
+      - name: Setup Leiningen
+        uses: DeLaGuardo/setup-clojure@12.5
         with:
-          exec: lein run      
+          lein: 2.9.1
+      - name: Build site
+        run: lein run
+      #  uses: oxr463/setup-leiningen@0.0.1
+      #  with:
+      #    exec: lein run      
       - name: Deploy
         uses: s0/git-publish-subdir-action@develop
         env:
