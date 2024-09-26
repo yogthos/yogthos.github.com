@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Advantages of Data Oriented Programming</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 8, 2020</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2020-04-08-advantages-of-data-oriented-programming.html">Advantages of Data Oriented Programming</a></h1>
+</div>
+<div>
+    
+    <p>One of the biggest advantages I've found working with Clojure is its data oriented nature. Ultimately, all that code is doing is transform data. A program starts with one piece of data as the input and produces another as its output. Mainstream languages attempt to abstract over that using object oriented semantics. While practical value of such abstraction is not entirely clear, there are some tangible problems associated with this approach. Let's take a look at some drawbacks to structuring programs using OO style.</p><p>Traditionally, an object can be thought of as a type of a state machine that contains some data fields representing its internal state and provides some methods for manipulating it. An object represents the smallest compositional unit in OO, and a program is structured as a graphs of such objects that interact with one another by manipulating each others state.</p><p>The first problem we have is that each object is an ad hoc DSL. When a developer designs an object they define its API in form of methods and come up with the behaviors the object will have. This makes each object unique, and knowing how one object behaves tells you nothing regarding how the next object might behave. Rich Hickey illustrates this point in detail in his <a href='https://www.youtube.com/watch?v=aSEQfqNYNAc'>Clojure, Made Simple</a> talk. The more objects you define the more behaviors you have to keep in your head. Thus, cognitive overhead grows proportionally with the size of the program.</p><p>Any mutable objects present in the program require the developer to know the state of the objects in order to know how the program will behave. A program that is structured as a graph of interdependent state machines quickly becomes impossible to reason about. The problem stems from objects being implicitly connected via references to each other resulting in shared mutable state. This leads to lack or referential transparency and makes it impossible to do local reasoning about the code. In order to tell what a piece of code is doing you also have to track down all the code that shares references with the code you're reading.</p><p>This is one reason why sophisticated debugging tools are needed to work with code effectively in object oriented languages. The only way to tell what's happening in a large program is to run it in a debugger, try to put it in a particular state and then inspect it. Unfortunately, this approach is just a heuristic since there may be many different paths that get you to a particular state, and it's impossible to guarantee that you've covered them all.</p><p>Another notable problem with objects is that there is no standard way for serializing them creating additional pain at program boundaries. For example, we can't just take an object graph on from a web server and send it to the client. We must write custom serializers for every object adding complexity and boilerplate to our programs. A related problem occurs when composing libraries that define their own classes leading to prevalence of wrapper and adapter patterns.</p><p>All these problems disappear in a data oriented language like Clojure. Modern FP style embraces the fact that programs can be viewed as data transformation pipelines where input data is passed through a series of pure functions to transform it into desired output. Such functions can be reasoned about in isolation without having to consider the rest of the program. Plain data doesn't have any hidden behaviors or state that you have to worry about. Immutable data is both transparent and inert while objects are opaque and stateful.</p><p>As a concrete example, Pedestal HTTP server <a href='https://www.youtube.com/watch?v=0if71HOyVjY'>has around 18,000 lines of code, and 96% of it is pure functions</a>. All the IO and side effects are encapsulated in the remaining 4% of the code. This has been a common scenario for the vast majority of Clojure programs I've worked on.</p><p>Cognitive overhead associated with reasoning about code is localized as opposed to being directly influenced by the size of the application as often happens with OO. Each function can be thought of as an small individual program, and we simply pipe these programs together to solve bigger problems. Incidentally, this is the exact same approach as advocated by Ken Thompson in <a href='https://en.wikipedia.org/wiki/Unix_philosophy'>Unix philosophy</a>.</p><p>Data can also be passed across program boundaries since it's directly serializable. A Clojure web server can send its output directly to the client, and client code can operate on this data without any additional ceremony. I've discussed some of the practical benefits that stem from having standard serialization semantics in <a href='https://www.youtube.com/watch?v=IekPZpfbdaI'>this</a> presentation.</p><p>Another advantage of separating data from logic is code reuse. A pure function that transforms one piece of data into another can be used in any context. A common set of functions from the standard library can be used to manipulate data regardless where it comes from. Once you learn a few common patterns for transforming data, you can apply these patterns everywhere.</p><p>I strongly suspect that data driven APIs are a major reason why Clojure libraries tend to be so stable. When a library is simply transforming data then it's possible to get to a state where it's truly done. Once the API consisting of all the supported transformations has been defined and tested, then the API is complete. The only times the library has to be revisited is when use cases missed by tests are discovered or new features are added. This tends to happen early on during library lifecycle, and hence mature libraries need little attention from their maintainers.</p><p>Of course, this is not to say that large software cannot be written effectively using OO languages. Clearly plenty of great software has been produced using these techniques. However, the fact that complex applications can be written in a particular fashion is hardly interesting of itself. Given enough dedication and ingenuity it's possible to write complex software in any language. It's more useful to consider how different approaches impact development style in different languages.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/oo.html">oo</a>
+    
+    <a href="/fp.html">fp</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2022-01-08-IntroducingKit.html">&laquo; Introducing Kit Framework</a>
+        
+        
+        <a class="right button" href="/posts/2019-01-19-LuminusOnDokku.html">Running Luminus on Dokku &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

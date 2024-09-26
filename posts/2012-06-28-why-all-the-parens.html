@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): why all the parens</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 28, 2012</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2012-06-28-why-all-the-parens.html">why all the parens</a></h1>
+</div>
+<div>
+    
+    <p>A common complaint you hear from people about Lisp is that there are too many parens. Let's compare what's involved in writing a Java method to writing a Clojure function:<pre><code class="java">    public static void foo&#40;String bar, Integer baz&#41; {
+        System.out.println&#40;bar + &quot;, &quot; + baz&#41;;
+    }
+</code></pre></p><pre><code class="clojure">    &#40;defn foo &#91;bar baz&#93; 
+      &#40;println bar &quot;, &quot; baz&#41;&#41;
+</code></pre><p>The number of parens is exactly the same, but there's clearly more noise in the Java version. In my opinion the noise adds up and it distracts from the intent of the code. The more code you have the harder it is to tell what it's doing and conversely the harder it is to spot bugs in it. I'll illustrate this with a concrete example. </p><p>The problem is to display a formatted address given the fields representing it. Commonly an address has a street, a city, a postal code, and a country. We'll have to examine each of these pieces, remove the null and empty ones and insert some separator between them.</p><p>So given something like</p><pre><code>street: 1 Main street
+city: Toronto
+posal: A1B 2C3
+country: Canada</code></pre><p>we'd like to output</p><pre><code>1 Main street, Toronto, A1B 2C3, Canada</code></pre><p>we should obviously handle empty fields and not have <em>,,</em> if the field isn't there, and we should make sure we handle nulls in case the whole address is null or some fields in the address are null.</p><p>Let's first examine how we would write this in Java:<pre><code class="java">    public static String concat&#40;String... strings&#41; {
+        if &#40;null == strings&#41; return null;
+        StringBuffer sb = new StringBuffer&#40;&#41;;
+        for &#40;String s : strings&#41; {
+            if &#40;null == s || s.equals&#40;&quot;&quot;&#41;&#41; continue;
+            sb.append&#40;s&#41;;
+            sb.append&#40;','&#41;;
+        }
+        String s =  sb.toString&#40;&#41;;
+        return s.substring&#40;0, s.lastIndexOf&#40;','&#41;&#41;;
+    }
+</code></pre></p><ul><li>lines of code : 11</li><li>parens: 26</li><li>curly braces: 4</li><li>semicolons: 7</li><li>colons: 1</li><li>dots: 6</li></ul><p>Now let's compare this to Clojure:<pre><code class="clojure">    &#40;defn concat-fields &#91;&amp; fields&#93;
+      &#40;apply str &#40;interpose &quot;,&quot; &#40;remove empty? fields&#41;&#41;&#41;&#41;
+</code></pre></p><ul><li>lines of code : 2</li><li>parens: 8</li><li>brackets: 2</li></ul><p>The Clojure version has significantly less code, and a lot less noise. In addition, we didn't have to do any explicit null checks in our code, and we were able to write the complete solution simply by composing together functions from the standard library!</p><p>One very important difference between the Java version and the Clojure version is that the Java version talks about <strong>how</strong> something is being done, while the Clojure version talks about <strong>what</strong> is being done. In other words, we have to step through the Java version in our heads to understand what the code is doing. </p><p>In the Clojure version this step is not present because the code says what it's doing, and all the implementation details have been abstracted from us. This is code reuse at work, where we can write simple functions that do one thing well and chain them together to achieve complex functionality. </p><p>This bears a lot of resemblance with the Unix philosophy: "<a href='http://en.wikipedia.org/wiki/Unix_philosophy'>Write programs that do one thing and do it well. Write programs to work together. Write programs to handle text streams, because that is a universal interface.</a>" Except in our case we're dealing with functions instead of programs and common data structures as a universal interface in the language.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-07-04-Temporally-oblivious.html">&laquo; Temporally oblivious</a>
+        
+        
+        <a class="right button" href="/posts/2012-06-23-popularity-contests.html">popularity contests &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

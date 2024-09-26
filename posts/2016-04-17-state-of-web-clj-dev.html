@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): The State of Clojure Web Development</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 17, 2016</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2016-04-17-state-of-web-clj-dev.html">The State of Clojure Web Development</a></h1>
+</div>
+<div>
+    
+    <p>The Kickstarter for the <a href='https://www.kickstarter.com/projects/1346708779/arachne-rapid-web-development-for-clojure'>Arachne</a> framework was just announced. I think this is very exciting, and I sincerely hope that it will be successful. There is plenty of room for frameworks in the Clojure web application domain. However, I also think that the pitch in the video severely misrepresents the current state of Clojure web development.</p><h3 id="is&#95;it&#95;hard&#95;to&#95;make&#95;an&#95;app?">Is it hard to make an app?</h3><p>Luke says that the motivation for the project is that there is no simple way to put a Clojure web app together. You want to make a website quickly, but unfortunately Clojure is not well suited for this task because the lead time is just too long.</p><p>Luke goes as far as to say that starting a new Clojure web application with all the parts together, that's actually deployable is a one to three months process.</p><p>Simplifying this process is precisely the <a href='https://www.youtube.com/watch?v=JKoaG4kSyxs&t=14m53s'>motivation</a> behind <a href='http://www.luminusweb.net/'>Luminus</a>. In fact, Luminus, and other frameworks such as <a href='https://hoplon.io/'>Hoplon</a>, have been filling this exact niche for years now. While I’m not as familiar with Hoplon, I will focus on contrasting the stated goals behind Arachne and the goals for Luminus.</p><p>First thing I’d like to address is the claim that it takes a long time to create a web application following best practices. Creating a new Luminus app is as easy as running <code>lein new luminus myapp</code> in the terminal. Perhaps what Luke meant was that creating an application using his preferred stack and defaults takes a long time.</p><p>Luminus is based on over a decade of experience working in the enterprise environment and building real world applications. It's built on top of mature libraries that are known to work well together. These are wrapped up in a template that follows the best practices, and makes it easy to create a working application that's ready for deployment out of the box.</p><p>Some of the things Luke lists are:</p><ul><li>Overall structure</li><li>Resource lifecycle management</li><li>Routing</li><li>Content negotiation</li><li>HTML rendering</li><li>Authentication & authorization</li><li>Validation</li><li>Logging</li><li>Testing</li></ul><p>All of these are supported out of the box in Luminus.</p><h3 id="what&#95;about&#95;beginners?">What about beginners?</h3><p>Another problem Luke identifies is that there needs to be a tool for beginners, or people new to the Clojure language. Once again, this is precisely the target demographic for Luminus.</p><p>I've literally spent years working with existing libraries, <a href='https://github.com/yogthos/Selmer'>creating my own</a> when necessary, <a href='http://www.luminusweb.net/docs'>writing documentation</a>, and putting things together for that express purpose. I've even written <a href='https://pragprog.com/book/dswdcloj2/web-development-with-clojure-second-edition'>a couple of books</a> on this topic now.</p><p>Arachne aims to experiment with creating an easy to start with solution that will scale. Luminus is designed to scale, and it’s currently being used in production in the enterprise. It's not experimental in any way, it's an actual proven solution that exists today.</p><p>Luminus allows you to start fast and deploy out of the box, but it is also designed to be built on as you go. Like Arachne aims to do, Luminus already embraces modular design. It's built on top of battle tested libraries such as Ring and Compojure, but it doesn't lock you into doing things a particular way.</p><p>Luminus makes it trivial to swap things like the underlying HTTP server, templating engine, the database you're using, and so on. The core template provides a minimal skeleton app. This template can then be extended using hints to provide additional functionality.</p><h3 id="but&#95;is&#95;it&#95;modular?">But is it modular?</h3><p>Arachne has an ambitious goal to provide a way to specify the application using a data driven approach. The idea being that this makes it easier to swap different components in the existing project.</p><p>I’ve considered similar approaches for Luminus, but ultimately decided against that. First, I think that Ring middleware already provides an extremely powerful mechanism for injecting functionality in the request handling pipeline. This is where most of the changes will happen in your project. You might decide to swap out or change things like session handling middleware as your project evolves.</p><p>However, my experience is that in most cases it’s not possible to simply swap a component such as the database for a different one without having to change some code in the application.</p><p>For example, if I switch the templating engine, then I have to update my HTML templates. When I switch a database from SQL to Datomic, I have to rewrite the queries and the business logic. That’s where the most of effort will end up being spent. </p><p>That said, the code that deals with any particular component in Luminus is minimal by design. So, the vast majority of the code you’d have to change would be the code that you’ve written yourself.</p><p>The one place I found it to be possible to provide swappable components is the underlying HTTP server. Luminus provides wrapper libraries for all the popular servers, and it’s possible to swap them out by simply changing the dependency in the project.</p><p>I think it would be possible to build things like authentication and authorization modules that are swappable. However, a generic solution is necessarily more complex than a focused one. A component that can be used in many different situations will always be more complex than one that solves a specific problem.</p><p>For this reason, I firmly believe that such design decisions should be left up to the user. The libraries should provide focused functionality, while the user decides how to put them together in a way that makes sense for their project.</p><h3 id="conclusion">Conclusion</h3><p>At the end of the day, Luminus isn’t based just on my experience, but also that of the contributors and the users over the years. Arachne will be informed by Luke’s experience and that necessarily means that it will provide a new and interesting way to put together Clojure web applications.</p><p>Overall, I think it will be great to see a new web framework for Clojure. There is plenty of room for alternatives to Luminus, and Arachne could explore many areas that aren't the focus for Luminus at the moment. Therefore, I wholeheartedly urge you to support the Kickstarter so that we can have more choices for Clojure web development.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/luminus.html">luminus</a>
+    
+    <a href="/arachne.html">arachne</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2016-04-28-Luminus-Workflow.html">&laquo; Luminus Workflow</a>
+        
+        
+        <a class="right button" href="/posts/2016-02-22-LuminusEmbracingHugSQL.html">Luminus embraces HugSQL &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

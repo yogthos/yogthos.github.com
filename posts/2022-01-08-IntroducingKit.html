@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Introducing Kit Framework</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>January 8, 2022</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2022-01-08-IntroducingKit.html">Introducing Kit Framework</a></h1>
+</div>
+<div>
+    
+    <p><a href='https://kit-clj.github.io/'>Kit</a> is a Clojure web framework building on experience from Luminus while embracing latest tools and best practices that emerged over the years. Kit shares the same goals as Luminus while aiming to address its deficiencies. Before we dive into Kit, let's take a moment to establish some background. Kit was created as a collaboration between <a href='https://nikperic.com/'>Nik</a>, <a href='http://www.danboykis.com/'>Dan</a>, and myself. The project leverages our collective experience developing web applications using Clojure. Nik provides his own rationale for the project <a href='https://nikperic.com/2022/01/08/why-kit.html'>here</a>.</p><h2 id="background">Background</h2><p>My original motivation behind Luminus was to provide a frictionless beginner experience for Clojure web development. Clojure community favors structuring applications by leveraging composable libraries. This approach affords gives the developer full control over the structure of their project making it easy for experienced Clojure users to build lean applications that contain only the necessary components.</p><p>Unfortunately, having to know what libraries and tools to use and how to put them together effectively creates a significant barrier for Clojure beginners. This is one of the major problems addressed by frameworks where such decisions are made by the maintainers of the framework.</p><p>Frameworks allow users to focus on the business logic of their application while aiming to handle all the cross-cutting concerns. Downside of this approach is that the framework has to accommodate for many different types of projects. Users of the framework end up inheriting the complexity of the entire framework regardless of the actual needs of their project.</p><p>Luminus provides a middle ground between these approaches using project templates. The template makes all the decisions regarding the libraries that are used and the structure of the project. Using such a template allows users to create a skeleton project that works out of the box. However, the user is free to modify the code in the project any way they see fit without being locked into the decisions made by the maintainers of the framework.</p><p>Just like a traditional framework, Luminus provides a curated stack of libraries that are known to be maintained and to work well together. This stack is coupled with a documentation site that illustrates how to accomplish common tasks such as HTML templating, routing, and database access.</p><p>One major deficiency of Luminus is that it's based around Leiningen templates. Any template features that the user wants to use in their project have to be known at project creation time. For example, if you created a barebones project and then later decided that you wanted to add ClojureScript support, then all the wiring would have to be done manually.</p><p>Another problem with baking all the features directly into the template is the resulting maintenance overhead. Any features supported by Luminus have to be maintained in the official repository. As the number of supported features grows so does the maintenance burden.</p><p>With all that in mind, let's take a look at what Kit does differently and what improvements it introduces over Luminus.</p><h2 id="kit&#95;stack">Kit Stack</h2><p>Kit stack is similar to Luminus with a few notable changes. Let's see what they are and explore the rationale behind them.</p><p>Kit uses <a href='https://github.com/weavejester/integrant'>Integrant</a> to manage stateful components in the project. While <a href='https://github.com/tolitius/mount'>Mount</a> is a great library for managing stateful components, it doesn't lend itself well towards creating modules since the component is described as code within the project. On the other hand, Integrant uses an EDN configuration file for managing state making it easy to package component configuration in the modules. Integrant also follows data oriented approach favored by Clojure community where the entire system of components and their relationships is described as a map. This makes it easy to see what all the resources and their relationships in the project are at a glance.</p><p>Another major change is that tools.deps along with tools.build are used for managing project lifecycle in favor of Leiningen. While Leiningen is a fine tool, it's clear that the community is moving towards using official tooling and Kit embraces this decision. Using official tools also means that there is one less tool to install, making for a smoother beginner experience.</p><p>Aside from these changes, the stack and project structure will be familiar to existing Luminus users. Ring is used as the HTTP server abstraction, Reitit being used for routing, Selmer for HTML templating, Migratus for migrations, and HugSQL for managing SQL queries.</p><p>With that out of the way, let's take look at the most exciting aspect of the framework which is its module system.</p><h2 id="kit&#95;modules">Kit Modules</h2><p>Kit modules are templates that can be applied to an existing project using <a href='https://github.com/kit-clj/kit/tree/master/libs/kit-generator'>kit-generator</a> library. Modules are managed using git repositories, and official modules can be found <a href='https://github.com/kit-clj/modules'>here</a>. Let's take a brief look at what a module repository looks like.</p><p>A module repository must contain a <code>modules.edn</code> file describing the modules that are provided. For example, here are the official modules provided by Kit:</p><pre><code class="clojure">{:name &quot;kit-modules&quot;
+ :modules
+ {:kit/html
+  {:path &quot;html&quot;
+   :doc &quot;adds support for HTML templating using Selmer&quot;}
+  :kit/sqlite
+  {:path &quot;sqlite&quot;
+   :doc &quot;adds support for SQLite embedded database&quot;}
+  :kit/cljs
+  {:path &quot;cljs&quot;
+   :doc &quot;adds support for cljs using shadow-cljs&quot;}}}
+</code></pre><p>As we can see above, the official repository contains three modules. Let's take a look at the <a href='https://github.com/kit-clj/modules/tree/master/html'><code>:kit/html</code></a> module to see how it works. This module contains a <code>config.edn</code> file and a folder called <code>assets</code>. Let's take a look at the configuration for the module:</p><pre><code class="clojure">{:default
+ {:require-restart? true
+  :actions
+  {:assets           &#91;&#91;&quot;assets/home.html&quot;    &quot;resources/html/home.html&quot;&#93;
+                      &#91;&quot;assets/error.html&quot;    &quot;resources/html/error.html&quot;&#93;
+                      &#91;&quot;assets/css/screen.css&quot;    &quot;resources/public/css/screen.css&quot;&#93;
+                      &#91;&quot;assets/img/kit.png&quot; &quot;resources/public/img/kit.png&quot;&#93;
+                      &#91;&quot;assets/src/pages.clj&quot;    &quot;src/clj/&lt;&lt;sanitized&gt;&gt;/web/routes/pages.clj&quot;&#93;
+                      &#91;&quot;assets/src/layout.clj&quot;   &quot;src/clj/&lt;&lt;sanitized&gt;&gt;/web/pages/layout.clj&quot;&#93;&#93;
+   :injections       &#91;{:type   :edn
+                       :path   &quot;resources/system.edn&quot;
+                       :target &#91;&#93;
+                       :action :merge
+                       :value  {:reitit.routes/pages
+                          {:base-path &quot;&quot;
+                             :env       #ig/ref :system/env}}}
+                      {:type   :edn
+                       :path   &quot;deps.edn&quot;
+                       :target &#91;:deps&#93;
+                       :action :merge
+                       :value  {selmer/selmer {:mvn/version &quot;1.12.49&quot;}
+                                luminus/ring-ttl-session {:mvn/version &quot;0.3.3&quot;}}}
+                      {:type   :clj
+                       :path   &quot;src/clj/&lt;&lt;sanitized&gt;&gt;/core.clj&quot;
+                       :action :append-requires
+                       :value  &#91;&quot;&#91;&lt;&lt;ns-name&gt;&gt;.web.routes.pages&#93;&quot;&#93;}&#93;}}}
+</code></pre><p>We can see that the module has a <code>:default</code> profile. Kit module profiles allow providing variations of a module with different configurations. For example, a database module could have different profiles for different types of databases. In case of HTML, we only need a single profile.</p><p>The<code>:require-restart?</code> key specifies that the runtime needs to be restarted for changes to take effect. This is necessary for modules that add Maven dependencies necessitating JVM restarts to be loaded.</p><p>Next, the module specifies the actions that will be performed. The first action called <code>:assets</code> specifies new assets that will be added to the project. These are template files that will be read from the <code>assets</code> folder and injected in the project. Assets are akin to traditional Leiningen templates.</p><p>The other configuration action is called <code>:injections</code> and specifies code that will be injected into existing files within the project. In order to provide support for rendering HTML templates, the module must update Integrant system configuration by adding a reference for new routes to <code>system.edn</code>, add new dependencies to <code>deps.edn</code>, and finally require the namespace that contains the routes for the pages in the core namespace of the project.</p><h1 id="trying&#95;things&#95;out">Trying Things Out</h1><p>Let's create a new Kit project and see how this all works in practice. Kit uses <a href='https://github.com/seancorfield/clj-new'>clj-new</a> templates for instantiating the project, make sure you have it <a href='https://kit-clj.github.io/docs/guestbook.html#installing_a_build_tool'>installed locally</a> to follow along. Let's create a project called <code>guestbook</code> by running the following command:</p><pre><code>clojure -X:new :template io.github.kit-clj :name kit/guestbook
+</code></pre><p>Once the project is created, you can start the REPL by running <code>clj -M:dev -M:repl</code>, alternatively if you have <code>make</code> installed just run <code>make repl</code> instead. Once the REPL starts, you can run <code>&#40;go&#41;</code> to start the HTTP server.</p><p>Default project provides a minimal configuration with a health status API located at <code>http://localhost:3000/api/health</code>. Let's see how we can add support for rendering HTML pages using Selmer by installing the official HTML module.</p><h2 id="adding&#95;modules">Adding Modules</h2><p>Kit projects use a configuration file called <code>kit.edn</code> that specifies some metadata about the project and allows the user to reference module repositories. Default configuration will look something like the following:</p><pre><code class="clojure">{:full-name &quot;kit/guestbook&quot;
+ :ns-name   &quot;kit.guestbook&quot;
+ :sanitized &quot;kit/guestbook&quot;
+ :name      &quot;guestbook&quot;
+ :modules   {:root         &quot;modules&quot;
+             :repositories &#91;{:url  &quot;git@github.com:kit-clj/modules.git&quot;
+                             :tag  &quot;master&quot;
+                             :name &quot;kit-modules&quot;}&#93;}}
+</code></pre><h2 id="repl&#95;driven&#95;workflow">REPL driven workflow</h2><p>Kit embraces the REPL and the generator library is aliased in the <code>user</code> namespace as <code>kit</code>. Let's see how we can us it to install HTML module in the project. First, we'd need to sync our module repositories. This is done by running the following command in the REPL:</p><pre><code class="clojure">user=&gt; &#40;kit/sync-modules&#41;
+2021-11-30 11:42:41,010 &#91;main&#93; DEBUG org.eclipse.jgit.util.FS - readpipe &#91;git, --version&#93;,/usr/local/bin
+2021-11-30 11:42:41,030 &#91;main&#93; DEBUG org.eclipse.jgit.util.FS - readpipe may return 'git version 2.33.1'
+2021-11-30 11:42:41,030 &#91;main&#93; DEBUG org.eclipse.jgit.util.FS - remaining output:
+...
+2021-11-30 11:42:41,769 &#91;main&#93; DEBUG o.e.jgit.transport.PacketLineOut - git&gt; 0000
+2021-11-30 11:42:41,769 &#91;main&#93; DEBUG o.e.jgit.transport.PacketLineOut - git&gt; done
+
+2021-11-30 11:42:41,835 &#91;main&#93; DEBUG o.e.jgit.transport.PacketLineIn - git&lt; NAK
+nil
+user=&gt;
+</code></pre><p>Once the modules are synchronized, we can list the available modules by running <code>kit/list-modules</code>:</p><pre><code class="clojure">user=&gt; &#40;kit/list-modules&#41;
+:kit/html - adds support for HTML templating using Selmer
+:kit/sqlite - adds support for SQLite embedded database
+:kit/cljs - adds support for cljs using shadow-cljs
+nil
+user=&gt;
+</code></pre><p>We can see that the three modules specified in the official modules repository are now available for use. Let's install the HTML module by running <code>kit/install-module</code> function and passing it the keyword specifying the module name:</p><pre><code class="clojure">user=&gt; &#40;kit/install-module :kit/html&#41;
+updating file: resources/system.edn
+updating file: deps.edn
+updating file: src/clj/kit/guestbook/core.clj
+applying
+ action: :append-requires
+ value: &#91;&quot;&#91;kit.guestbook.web.routes.pages&#93;&quot;&#93;
+:kit/html installed successfully!
+restart required!
+nil
+user=&gt;
+</code></pre><p>Let's restart the REPL and run <code>&#40;go&#41;</code> command again to start the application. We should now be able to navigate to <code>http://localhost:3000</code> and see the default HTML page provided by the module.</p><p>Generator aims to be idempotent, and will err on the side of safety in case of conflicts. For example, if we attempt to install <code>:kit/html</code> module a second time then we'll see he following output:</p><pre><code class="clojure">user=&gt; &#40;kit/install-module :kit/html&#41;
+:kit/html requires following modules: nil
+module :kit/html is already installed!
+nil
+user=&gt;
+</code></pre><p>Generator lets us know that the module already exists and there is nothing to be done.</p><h2 id="conclusion">Conclusion</h2><p>I hope this post convinced you that Kit approach is an improvement over Luminus for both users and developers. With Kit, you no longer have to know what features you're going to be using up front. New functionality can now be added gradually as you discover the need for it. You're no longer restricted to using official modules either. Anyone can make a repository with their own modules that template common functionality that they need and use these along side or even in place of the official modules. For example, if you wanted to use Hiccup instead of Selmer, then you could trivially add support for that yourself based on the example above.</p><p>Kit was created by Dmitri Sotnikov, Nikola Peric, and Dan Boykis. We hope that this project will make it easier for Clojure developers to make web applications going forward. Get in touch with us on Clojurians slack at #kit-clj, we're excited to hear community feedback, ideas and suggestions for the project.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/web.html">web</a>
+    
+    <a href="/kit.html">kit</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2022-11-26-nREPL-system-interaction.html">&laquo; Using nREPL as System Interface</a>
+        
+        
+        <a class="right button" href="/posts/2020-04-08-advantages-of-data-oriented-programming.html">Advantages of Data Oriented Programming &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

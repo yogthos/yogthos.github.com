@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Creating Leiningen Templates</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>December 16, 2012</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2012-12-16-Creating-Leiningen-Templates.html">Creating Leiningen Templates</a></h1>
+</div>
+<div>
+    
+    <p>If you've used Leiningen before, you've already seen templates in action. When you create a project using <code>lein new myproject</code>, you end up with a project folder with a namespace called myproject and a core.clj inside it. </p><p>The templates are really useful if you need to setup some common boilerplate for your project. In the last post I referenced a template for Compojure, which creates a new batteries included project.</p><p>Leiningen uses the <a href='https://github.com/Raynes/lein-newnew'>lein-newnew</a> plugin for this task. All you have to do to create a new template is to run <code>lein new template &lt;template name&gt;</code>. In my case I created a template called <code>compojure-app</code>:</p><pre><code class="bash">lein new template compojure-app
+</code></pre><p>As all Leiningen projects, it will contain the <code>project.clj</code>, which will contain the description for our project:</p><pre><code class="clojure">&#40;defproject compojure-app/lein-template &quot;0.2.7&quot;
+  :description &quot;Compojure project template for Leiningen&quot;
+  :url &quot;https://github.com/yogthos/compojure-template&quot;
+  :eval-in-leiningen true
+  :license {:name &quot;Eclipse Public License&quot;
+            :url &quot;http://www.eclipse.org/legal/epl-v10.html&quot;}
+  :dependencies &#91;&#91;leinjacker &quot;0.2.0&quot;&#93;&#93;&#41;
+</code></pre><p>It looks like a regular project file, except for the <code>eval-in-leiningen</code> key which <del>causes Leiningen to launch a subprocess</del> prevents Leiningen from launching a separate process for the given project during the build time.</p><p>The actual template resides under</p><pre><code>src/compojure-template/leiningen/new/compojure&#95;app.clj
+</code></pre><p>It looks as follows:</p><pre><code class="clojure">&#40;ns leiningen.new.compojure-app
+  &#40;:use &#91;leiningen.new.templates :only &#91;renderer sanitize year -&gt;files&#93;&#93;
+        &#91;leinjacker.utils :only &#91;lein-generation&#93;&#93;&#41;&#41;
+
+&#40;def project-file
+  &#40;if &#40;= &#40;lein-generation&#41; 2&#41;
+    &quot;project&#95;lein2.clj&quot;
+    &quot;project&#95;lein1.clj&quot;&#41;&#41;
+
+&#40;defn compojure-app
+  &quot;Create a new Compojure project&quot;
+  &#91;name&#93;
+  &#40;let &#91;data {:name name
+              :sanitized &#40;sanitize name&#41;
+              :year &#40;year&#41;}
+        render #&#40;&#40;renderer &quot;compojure&#95;app&quot;&#41; % data&#41;&#93;
+    &#40;println &quot;Generating a lovely new Compojure project named&quot; &#40;str name &quot;...&quot;&#41;&#41;
+    &#40;-&gt;files data
+             &#91;&quot;.gitignore&quot;  &#40;render &quot;gitignore&quot;&#41;&#93;
+             &#91;&quot;project.clj&quot; &#40;render project-file&#41;&#93;
+             &#91;&quot;README.md&quot;   &#40;render &quot;README.md&quot;&#41;&#93;
+             &#91;&quot;src/{{sanitized}}/handler.clj&quot;      &#40;render &quot;handler.clj&quot;&#41;&#93;
+             &#91;&quot;src/{{sanitized}}/server.clj&quot;       &#40;render &quot;server.clj&quot;&#41;&#93;
+             &#91;&quot;src/{{sanitized}}/common.clj&quot; &#40;render &quot;common.clj&quot;&#41;&#93;
+             &#91;&quot;resources/public/css/screen.css&quot; &#40;render &quot;screen.css&quot;&#41;&#93;
+             &quot;resources/public/js&quot;
+             &quot;resources/public/img&quot;
+             &quot;src/{{sanitized}}/models&quot;
+             &#91;&quot;test/{{sanitized}}/test/handler.clj&quot; &#40;render &quot;handler&#95;test.clj&quot;&#41;&#93;&#41;&#41;&#41;
+</code></pre><p>The <code>compojure-app</code> function is where all the fun happens, and it's what gets called when we run <code>lein new compojure-app myapp</code> to create an application using this template.</p><p>The function is mostly self explanatory. It uses the <code>render</code> function from <code>leiningen.new.templates</code> to take the template files and put them at the specified path. The <code>{{sanitized}}</code> tag ensures that the generated names for the package folders are valid.</p><p>Our template files live under </p><pre><code>src/compojure-template/leiningen/new/compojure&#95;app
+</code></pre><p>and they don't need to have the same folder structure as the resulting project. As you can see above, we specify the resulting path explicitly in our template.</p><p>The template files look exactly like any regular Clojure source file, except for the <code>{{name}}</code> anchor. This will be replaced with the name of the application we specified when creating the project. Here's the <code>common.clj</code> template as an example:</p><pre><code class="clojure">&#40;ns {{name}}.common
+  &#40;:use &#91;hiccup.page :only &#91;html5 include-css&#93;&#93;&#41;&#41;
+       
+&#40;defn layout &#91;&amp; body&#93;
+  &#40;html5 
+    &#91;:head
+     &#91;:title &quot;Welcome to {{name}}&quot;&#93;
+     &#40;include-css &quot;/css/screen.css&quot;&#41;&#93;
+    &#40;into &#91;:body&#93; body&#41;&#41;&#41;
+</code></pre><p>Every occurrence of <code>{{name}}</code> will be replaced with myapp instead and we'll have our namespace and greeting customized.</p><p>Once you've created your template, you'll need to install it using <code>lein install</code> and then add it as a plugin to your profile under <code>&#126;/.lein/profiles.clj</code> using the following format:</p><pre><code class="clojure">{:user
+  {:plugins &#91;&#91;compojure-app/lein-template &quot;0.2.7&quot;&#93;&#93;}}
+</code></pre><p>That's it, you can now use your new template and never have to write boilerplate for this kind of project again.</p><p>If you wish to make your template available to others you can publish it to <a href='https://clojars.org/'>Clojars</a> by running <code>lein deploy clojars</code> from the console.</p><p>Any template published on Clojars can be used directly without needing to add it to your plugins in the <code>profiles.clj</code> as shown above.</p><p>The complete source for the template discussed in this post is available <a href='https://github.com/yogthos/compojure-template'>here</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-12-24-Luminus-a-web-framework-for-Clojure.html">&laquo; Luminus: a web framework for Clojure</a>
+        
+        
+        <a class="right button" href="/posts/2012-12-15-Moving-to-Compojure.html">Moving to Compojure &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

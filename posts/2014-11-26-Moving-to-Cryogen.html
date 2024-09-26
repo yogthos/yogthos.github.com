@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Moving to Cryogen</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>November 26, 2014</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2014-11-26-Moving-to-Cryogen.html">Moving to Cryogen</a></h1>
+</div>
+<div>
+    
+    <p>The blog has officially been moved over to <a href='https://github.com/lacarmen/cryogen'>Cryogen</a>. While, all the content has been migrated over, the links for the posts have changed and the original comments are no longer available since I'm now using Disqus.</p><p><a href='https://github.com/yogthos/yuggoth'>Yuggoth</a> was a fun experment and it held up to most traffic storms over the years, but at the end of the day it's hard to beat the simplicity of a static site.</p><p>Porting the content from my old blog turned out to be a simple affair. I used Postgres to store all the blog content in Yuggoth. The database contains tables for the posts, the comments, the tags, and the files. All I had to do was extract the data and write it back out using the Cryogen format. First, I extracted the binary data for the files as seen below.</p><pre><code class="clojure">&#40;defn write-file &#91;{:keys &#91;data name&#93;}&#93;
+   &#40;with-open &#91;w &#40;clojure.java.io/output-stream
+                   &#40;str &quot;resources/templates/files/&quot; name&#41;&#41;&#93;
+     &#40;.write w data&#41;&#41;&#41;
+
+&#40;defn extract-files &#91;&#93;
+  &#40;doseq &#91;file &#40;sql/query db &#91;&quot;select &#42; from file&quot;&#93;&#41;&#93;
+    &#40;write-file file&#41;&#41;&#41;
+
+</code></pre><p>The posts table contains the content, while the tags are stored in a separate table. The tags can be aggregated by post using the handy <code>array&#95;agg</code> function. This function will produce a <code>Jdbc4Array</code> as the result, and its contents can then be extracted to a vector.</p><pre><code class="clojure">&#40;defn extract-tags &#91;post&#93;
+  &#40;update-in post &#91;:tags&#93; #&#40;vec &#40;.getArray %&#41;&#41;&#41;&#41;
+
+&#40;defn get-posts &#91;&#93;
+  &#40;map extract-tags
+       &#40;sql/query db
+         &#91;&quot;select array&#95;agg&#40;t.tag&#41; as tags,
+                  b.id, b.time, b.title, b.content from blog b, tag&#95;map t
+           where t.blogid = b.id
+           group by b.id, b.time, b.title, b.content&quot;&#93;&#41;&#41;&#41;
+
+</code></pre><p>Now, all that's left to do is to generate the post metadata and the file name. Since each post contains a publication date and a title, these can be used to produce a filename in the format expected by Cryogen.</p><pre><code class="clojure">&#40;defn format-post-date &#91;date&#93;
+  &#40;let &#91;fmt &#40;java.text.SimpleDateFormat. &quot;dd-MM-yyyy&quot;&#41;&#93;
+    &#40;.format fmt date&#41;&#41;&#41;
+
+&#40;defn format-post-filename &#91;time title&#93;
+  &#40;str
+    &#40;-&gt;&gt; &#40;re-seq #&quot;&#91;a-zA-Z0-9&#93;+&quot; title&#41;
+         &#40;clojure.string/join &quot;-&quot;&#41;
+         &#40;str &quot;resources/templates/md/posts/&quot; &#40;format-post-date time&#41; &quot;-&quot;&#41;&#41;
+   &quot;.md&quot;&#41;&#41;
+</code></pre><p>With that in place we can simply run through all the posts and extract them into appropriate files.</p><pre><code class="clojure">&#40;defn write-post &#91;{:keys &#91;id time tags content title&#93;}&#93;
+  &#40;with-open &#91;wrt &#40;clojure.java.io/writer &#40;format-post-filename time title&#41;&#41;&#93;
+    &#40;.write wrt
+            &#40;with-out-str
+              &#40;clojure.pprint/pprint
+                {:title title
+                 :layout :post
+                 :tags &#40;vec &#40;.split tags &quot; &quot;&#41;&#41;}&#41;&#41;&#41;
+    &#40;.write wrt &quot;\n&quot;&#41;
+    &#40;.write wrt content&#41;&#41;&#41;
+
+&#40;defn extract-posts &#91;&#93;
+  &#40;doseq &#91;post &#40;get-posts&#41;&#93;
+    &#40;write-post post&#41;&#41;&#41;
+
+</code></pre><p>And that's all there is to it. Moral of the story is that we should always keep the data separate from its representation as you never know when you will need it down the road.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/cryogen.html">cryogen</a>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2014-12-1-State-of-Reagent.html">&laquo; The State of Reagent</a>
+        
+        
+        <a class="right button" href="/posts/2014-11-13-Cryogen-static-site-generation-made-easy.html">Cryogen: static site generation made easy &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

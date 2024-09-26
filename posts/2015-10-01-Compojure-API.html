@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Building services with Duct and compojure-api</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>October 1, 2015</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2015-10-01-Compojure-API.html">Building services with Duct and compojure-api</a></h1>
+</div>
+<div>
+    
+    <p>In this post we'll look at writing a RESTful service using <a href='https://github.com/weavejester/duct'>Duct</a> and <a href='https://github.com/metosin/compojure-api'>compojure-api</a>. Our service will use a SQLite database and illustrate how to do operations such as adding, remove, and authenticating users.</p><h3 id="prerequisites">Prerequisites</h3><ul><li><a href='http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html'>JDK</a></li><li><a href='http://leiningen.org/'>Leiningen</a></li></ul><h3 id="creating&#95;the&#95;project">Creating the Project</h3><p>Duct is a minimal web framework with emphasis on using <a href='https://github.com/stuartsierra/component'>component</a> to manage stateful resources such as database connections. We can create a new Duct application by running the following command:</p><pre><code>lein new duct swagger-service +example
+</code></pre><p>This will generate a fresh application and add an example route component to it. Once the application is created we'll have to run the <code>setup</code> task to generate local assets in the root folder of the application:</p><pre><code>cd swagger-service
+lein setup
+</code></pre><p>We can now test that our application works as follows:</p><pre><code>lein run
+</code></pre><p>If everything went well then we should be able to navigate to <code>localhost:3000</code> and see <code>Hello World</code> displayed on the page. We're now ready to start working on creating our service.</p><h4 id="adding&#95;dependencies">Adding Dependencies</h4><p>We'll start by adding some dependencies in <code>project.clj</code> that we'll need in order to create our service:</p><pre><code class="clojure">:dependencies
+&#91;...
+ &#91;crypto-password &quot;0.1.3&quot;&#93;
+ &#91;metosin/compojure-api &quot;0.23.1&quot;&#93;
+ &#91;org.xerial/sqlite-jdbc &quot;3.8.11.1&quot;&#93;
+ &#91;yesql &quot;0.5.0&quot;&#93;
+ &#91;migratus &quot;0.8.4&quot;&#93;&#93;
+</code></pre><p>We'll use <code>crypto-password</code> to handle password hashing when we create user accounts and checking passwords during authentication. The <code>compojure-api</code> library will be used to generate the service endpoints. The <code>sqlite-jdbc</code> driver will be used as our data store, we'll access it using <code>yesql</code>, and we'll generate the database using <code>migratus</code>.</p><h4 id="configuring&#95;migrations">Configuring Migrations</h4><p>Let's add the <code>migratus</code> plugin along with its configuration to our project:</p><pre><code class="clojure">:plugins &#91;&#91;lein-environ &quot;1.0.1&quot;&#93;
+          &#91;lein-gen &quot;0.2.2&quot;&#93;
+          &#91;migratus-lein &quot;0.1.7&quot;&#93;&#93;
+
+:migratus {:store :database             
+           :db {:classname &quot;org.sqlite.JDBC&quot;
+                :connection-uri &quot;jdbc:sqlite:service-store.db&quot;}}          
+</code></pre><p>We can now run the following commands to generate the migration files for the <code>users</code> table:</p><pre><code>mkdir resources/migrations
+lein migratus create users
+</code></pre><p>This will produce files for <code>up</code> and <code>down</code> migrations such as:</p><pre><code class="sql">20151001145313-users.down.sql
+20151001145313-users.up.sql
+</code></pre><p>The <code>up</code> migrations file will create the table:</p><pre><code class="sql">CREATE TABLE users
+&#40;id VARCHAR&#40;20&#41; PRIMARY KEY,
+ first&#95;name VARCHAR&#40;30&#41;,
+ last&#95;name VARCHAR&#40;30&#41;,
+ email VARCHAR&#40;30&#41;,
+ admin BOOLEAN,
+ last&#95;login TIME,
+ is&#95;active BOOLEAN,
+ pass VARCHAR&#40;100&#41;&#41;;
+</code></pre><p>Conversely, the <code>down</code> migrations file will delete it:</p><pre><code class="sql">DROP TABLE users;
+</code></pre><p>We can now run the following command to create the database:</p><pre><code>lein migratus migrate
+</code></pre><h4 id="adding&#95;database&#95;queries">Adding Database Queries</h4><p>With the database created, we'll need to add some queries to access the database. We'll create a new file called <code>resources/sql/queries.sql</code> and put the following SQL queries in it:</p><pre><code class="sql">-- name: create-user!
+-- creates a new user record
+INSERT INTO users
+&#40;id, first&#95;name, last&#95;name, email, pass&#41;
+VALUES &#40;:id, :first&#95;name, :last&#95;name, :email, :pass&#41;
+
+-- name: get-user
+-- retrieve a user given the id.
+SELECT &#42; FROM users
+WHERE id = :id
+
+-- name: get-users
+-- retrieve a user given the id.
+SELECT id, first&#95;name, last&#95;name, email FROM users
+
+-- name: delete-user!
+-- delete a user given the id
+DELETE FROM users
+WHERE id = :id
+</code></pre><h3 id="creating&#95;the&#95;database&#95;component">Creating the Database Component</h3><p>Now, let's create a component that will be used to access it. We'll create a new namespace called <code>swagger-service.component.db</code> then put the following code there:</p><pre><code class="clojure">&#40;ns swagger-service.component.db
+  &#40;:require &#91;yesql.core :refer &#91;defqueries&#93;&#93;
+            &#91;com.stuartsierra.component :as component&#93;
+            &#91;crypto.password.bcrypt :as password&#93;
+            &#91;environ.core :refer &#91;env&#93;&#93;&#41;&#41;
+
+&#40;defqueries &quot;sql/queries.sql&quot;&#41;
+
+&#40;defn create-user-account! &#91;user db&#93;
+  &#40;create-user! &#40;update user :pass password/encrypt&#41; db&#41;&#41;
+
+&#40;defn authenticate &#91;user db&#93;
+  &#40;boolean
+   &#40;when-let &#91;db-user &#40;-&gt; user &#40;get-user db&#41; first&#41;&#93;
+     &#40;password/check &#40;:pass user&#41; &#40;:pass db-user&#41;&#41;&#41;&#41;&#41;
+
+&#40;defrecord DbComponent &#91;connection&#93;
+  component/Lifecycle
+  &#40;start &#91;component&#93;
+         &#40;assoc component :connection connection&#41;&#41;
+  &#40;stop &#91;component&#93;
+        &#40;dissoc component :connection&#41;&#41;&#41;
+
+&#40;defn db-component &#91;connection&#93;
+  &#40;-&gt;DbComponent connection&#41;&#41;
+</code></pre><p>The namespace will define query functions by calling the <code>defqueries</code> macro and giving it the path to the <code>queries.sql</code> file we just created.</p><p>Then we'll add a couple of helper functions to create a user account with a hashed password and to check whether the user and the password match the stored credentials.</p><p>Next, we define the <code>DbComponent</code> record that will manage the lifecycle of the database. The <code>start</code> function in the component will associate the given connection settings with the <code>:connection</code> key in the component, and the <code>stop</code> function will remove the connection.</p><p>The connection is specified in the <code>swagger-service.config</code> namespace and points to the <code>connection-uri</code> key that is expected to be found in the environment.</p><pre><code class="clojure">&#40;def environ
+  {:http {:port &#40;some-&gt; env :port Integer.&#41;}
+   :db   {:connection-uri &#40;:connection-uri env&#41;}}&#41;
+</code></pre><p>We'll add the actual connection information under the <code>:env</code> key in <code>profiles.clj</code>:</p><pre><code class="clojure">;; Local profile overrides
+
+{:profiles/dev  {:env {:connection-uri &quot;jdbc:sqlite:service-store.db&quot;}}
+ :profiles/test {}}
+</code></pre><p>Finally, we have a helper function to instantiate the component called <code>db-component</code>.</p><h4 id="adding&#95;a&#95;new&#95;component&#95;to&#95;the&#95;system">Adding a New Component to the System</h4><p>With the component created we can now add it to the system found in the <code>swagger-service.system</code> namespace:</p><pre><code class="clojure">&#40;ns swagger-service.system
+ &#40;:require ...
+           &#91;swagger-service.component.db :refer &#91;db-component&#93;&#93;&#41;&#41;
+
+...
+           
+&#40;defn new-system &#91;config&#93;
+ &#40;let &#91;config &#40;meta-merge base-config config&#41;&#93;
+   &#40;-&gt; &#40;component/system-map
+        :db      &#40;db-component &#40;:db config&#41;&#41;
+        :app     &#40;handler-component &#40;:app config&#41;&#41;
+        :http    &#40;jetty-server &#40;:http config&#41;&#41;
+        :example &#40;endpoint-component example-endpoint&#41;&#41;
+       &#40;component/system-using
+        {:http &#91;:app&#93;
+         :app  &#91;:example&#93;
+         :example &#91;&#93;          
+         :db &#91;&#93;}&#41;&#41;&#41;&#41;            
+</code></pre><h3 id="creating&#95;an&#95;http&#95;endpoint&#95;component">Creating an HTTP Endpoint Component</h3><p>The final step is to add the service endpoint that will provide the RESTful interface to the database. We'll create a new namespace called <code>swagger-service.endpoint.service</code>. The namespace will use the <code>compojure-api</code> library to define the service operations. The library requires us to declare the types of request parameters and responses for each endpoint using the <a href='https://github.com/Prismatic/schema'>schema</a> library.</p><p>Let's start by creating the namespace declaration with the following references:</p><pre><code class="clojure">&#40;ns swagger-service.endpoint.service
+ &#40;:require &#91;clojure.java.io :as io&#93;
+           &#91;ring.util.http-response :refer :all&#93;
+           &#91;compojure.api.sweet :refer :all&#93;
+           &#91;schema.core :as s&#93;
+           &#91;swagger-service.component.db :as db&#93;&#41;&#41;
+</code></pre><p>Then we'll create the schema for the User type that matches the user table in our database:</p><pre><code class="clojure">&#40;s/defschema User
+ {:id String
+  &#40;s/optional-key :first&#95;name&#41; String
+  &#40;s/optional-key :last&#95;name&#41; String
+  &#40;s/optional-key :email&#41; String
+  &#40;s/optional-key :pass&#41; String}&#41;
+</code></pre><p>Finally, let's create the <code>service-endpoint</code> component that will define the service routes. The component accepts the <code>config</code> as its parameter. The config will contain the <code>:db</code> key that we added to our system earlier with the database connection.</p><p>The routes are created by calling the <code>api</code> macro from <code>compojure-api</code>:</p><pre><code class="clojure">&#40;defn service-endpoint &#91;config&#93;
+ &#40;api
+   &#40;ring.swagger.ui/swagger-ui
+    &quot;/swagger-ui&quot;&#41;
+   &#40;swagger-docs
+    {:info {:title &quot;User API&quot;}}&#41;
+   &#40;context&#42; &quot;/api&quot; &#91;&#93;
+             :tags &#91;&quot;users&quot;&#93;
+
+             &#40;GET&#42; &quot;/users&quot; &#91;&#93;
+                   :return  &#91;User&#93;
+                   :summary &quot;returns the list of users&quot;
+                   &#40;ok &#40;db/get-users {} &#40;:db config&#41;&#41;&#41;&#41;
+             
+             &#40;GET&#42; &quot;/user/:id&quot;  &#91;&#93;
+                   :return      User
+                   :path-params &#91;id :- String&#93;
+                   :summary     &quot;returns the user with a given id&quot;
+                   &#40;ok &#40;db/get-users {:id id} &#40;:db config&#41;&#41;&#41;&#41;
+
+             &#40;POST&#42; &quot;/authenticate&quot; &#91;&#93;
+                    :return         Boolean
+                    :body-params    &#91;user :- User&#93;
+                    :summary        &quot;authenticates the user using the id and pass.&quot;
+                    &#40;ok &#40;db/authenticate user &#40;:db config&#41;&#41;&#41;&#41;
+             
+             &#40;POST&#42; &quot;/user&quot;      &#91;&#93;
+                    :return      Long
+                    :body-params &#91;user :- User&#93;
+                    :summary     &quot;creates a new user record.&quot;
+                    &#40;ok &#40;db/create-user-account! user &#40;:db config&#41;&#41;&#41;&#41;
+             
+             &#40;DELETE&#42; &quot;/user&quot;    &#91;&#93;
+                    :return      Long
+                    :body-params &#91;id :- String&#93;
+                    :summary     &quot;deletes the user record with the given id.&quot;
+                    &#40;ok &#40;db/delete-user! {:id id} &#40;:db config&#41;&#41;&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>Notice that we call <code>ring.swagger.ui/swagger-ui</code> and <code>swagger-docs</code> at the beginning of the definition of <code>api</code>. This will automatically produce the API documentation for the service operations defined within it. Once our service is hooked up, we'll be able to navigate to <code>localhost:3000/swagger-ui</code> and see an interactive page for testing the API endpoints.</p><p>As you may have noticed, <code>compojure-api</code> mimics Compojure route definitions with the difference that the route method name has a <code>&#42;</code> after it. The route definition also has some additional keys associated with it.</p><ul><li>the <code>:return</code> key specifies the return type for the service operation</li><li>the <code>:summary</code> key provides the documentation about the purpose of the operation</li><li>the parameters are specified using different keys depending on the parameter type, such as <code>:path-params</code> and <code>:body-params</code>.</li></ul><p>Finally, each route will return a response type with the result of calling the handler associated with it.</p><p>If we look at the <code>&quot;/users&quot;</code> route we see that it calls the <code>get-users</code> function from the database and passes it the value of the <code>:db</code> key from the config. This will be used to resolve the database connection at runtime.</p><h3 id="adding&#95;the&#95;endpoint&#95;to&#95;the&#95;system">Adding the Endpoint to the System</h3><p>With the route added we can now navigate back to the <code>swagger-service.system</code> namespace and add the component there:</p><pre><code class="clojure">&#40;ns swagger-service.system
+ &#40;:require ...
+           &#91;swagger-service.component.db :refer &#91;db-component&#93;&#93;
+           &#91;swagger-service.endpoint.service :refer &#91;service-endpoint&#93;&#93;&#41;&#41;
+           
+...
+
+&#40;defn new-system &#91;config&#93;
+ &#40;let &#91;config &#40;meta-merge base-config config&#41;&#93;
+   &#40;-&gt; &#40;component/system-map
+        :db      &#40;db-component &#40;:db config&#41;&#41;
+        :app     &#40;handler-component &#40;:app config&#41;&#41;
+        :http    &#40;jetty-server &#40;:http config&#41;&#41;
+        :example &#40;endpoint-component example-endpoint&#41;
+        :service &#40;endpoint-component service-endpoint&#41;&#41;
+       &#40;component/system-using
+        {:http &#91;:app&#93;
+         :app  &#91;:example :service&#93;
+         :service &#91;:db&#93;
+         :example &#91;&#93;          
+         :db &#91;&#93;}&#41;&#41;&#41;&#41;            
+</code></pre><p>The service component is initialized using the <code>endpoint-component</code> Duct helper. Next, the component relationships have to be described explicitly. We can see that the <code>:service</code> component depends on the <code>:db</code> component, and the <code>:app</code> in turn depends on both the <code>:example</code> and the <code>:service</code>.</p><p>We can now restart our app and navigate to <code>localhost:3000/swagger-ui</code> to see the service test page. Using this page we can test all the service operations that we defined such as creating new users, authenticating, and listing users.</p><p>The full source for this tutorial is available on <a href='https://github.com/yogthos/swagger-service'>GitHub</a>.</p><h3 id="conclusion">Conclusion</h3><p>As you can see, <code>compojure-api</code> allows us to easily define RESTful services with type assertions, documentation, and a helpful test page. I've found this approach to be extremely effective when creating service APIs as it documents what each endpoint is doing and makes it easy to collaborate with consumers of the service. Meanwhile, Duct provides an excellent base for building services using the component pattern.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/duct.html">duct</a>
+    
+    <a href="/compojure-api.html">compojure-api</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-10-08-Using-JConsole.html">&laquo; Troubleshooting With JConsole</a>
+        
+        
+        <a class="right button" href="/posts/2015-07-11-Luminus-HTTPKit.html">Luminus is Moving -&gt; HTTP Kit -&gt; Immutant &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

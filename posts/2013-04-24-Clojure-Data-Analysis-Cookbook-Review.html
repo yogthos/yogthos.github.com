@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Clojure Data Analysis Cookbook Review</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 24, 2013</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2013-04-24-Clojure-Data-Analysis-Cookbook-Review.html">Clojure Data Analysis Cookbook Review</a></h1>
+</div>
+<div>
+    
+    <p>I was recently asked to review the <a href='http://www.packtpub.com/clojure-data-analysis-cookbook/book'>Clojure Data Analysis Cookbook</a>. Data analysis happens to one of the major niches where Clojure has been gaining popularity. However, the documentation on the subject is far from focused. </p><p>The book provides a collection of recipes for accomplishing common tasks associated with analyzing different types of data sets. It starts out by showing how to read data from a variety of sources such as JSON, CSV, and JDBC. The next chapter provides a number of examples of how to sanitize the collected data and sample large data sets. After covering loading and sanitizing the data, the book discusses a number of different strategies for processing it.</p><p>Some of the highlights include using the Clojure STM, parallel processing of the data, including useful tricks for partitioning, using <a href='http://clojure.com/blog/2012/05/08/reducers-a-library-and-model-for-collection-processing.html'>reducers</a>, and distributed processing with Hadoop and Casalog.</p><p>I found the sections on handling large amounts of data particularly interesting. Often times, it's easy to come up with a solution that works for a small data set, but doesn't scale to handle large amounts of data. One of the techniques the book discusses is the use of lazy sequences. Another example is using heuristics to decide how to partition large data sets data sets effectively.</p><p>The book closes with a chapter dealing with the presentation the processed data. First, it covers using Incanter charts and then shows how to display the results in the browser with ClojureScript and <a href='http://nvd3.org/'>NVD3</a>.</p><p>For the most part, the book is very much example oriented. The examples are accompanied by explantation of how they all fit together. If you're like me and like to get hands on experience then I think you'll like the style of the book.</p><p>The examples are short in size and easy to understand. I found that the best way to work through the book was by following along with a REPL.</p><p>The book also introduces the reader to a number of libraries. Some, such as <a href='http://incanter.org/'>Incanter</a> are well known, while others like <a href='https://github.com/protoflex/parse-ez'>parse-ez</a> less so. In my experience, the documentation for many Clojure libraries is often lacking. The recipes in the book serve as a good reference for how to make the most of the tools available.</p><p>I would say one missed opportunity in the book is that the examples don't seem to build on each other. You'll see many examples of doing specific tasks, but they will tend to be self contained and don't build up to anything more substantial. </p><p>I suspect this was done in order to keep content accessible so that the reader can look at any section without having to have read the others. Conversely, don't expect to see examples of how to structure your projects and build applications end to end.</p><p>Overall, I would say this book is aimed at somebody who is already comfortable using Clojure and would like to learn some of the more advanced techinques for working with data processing and analysis. If you're thinking of using Clojure for analyzing your data sets this book will likely save you a lot of time and serve as a handy reference down the road.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-05-22-Packaging-a-Clojure-ClojureScript-jar.html">&laquo; Packaging a Clojure+ClojureScript jar</a>
+        
+        
+        <a class="right button" href="/posts/2013-04-09-Introducing-cljs-ajax.html">Introducing cljs-ajax &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

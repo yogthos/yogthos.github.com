@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Structuring Clojure Applications</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>December 18, 2022</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2022-12-18-StructuringClojureApplications.html">Structuring Clojure Applications</a></h1>
+</div>
+<div>
+    
+    <p>This post will take a look at a strategy for structuring Clojure applications that I've found useful in my projects.</p><p>While the idea of writing applications in a pure functional style is appealing, it's not always clear how to separate side effects from pure compuation in practice. Variations of <a href='https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html'>Clean Architecture</a> approach are often suggested as a way to accomplish this goal. This style dictates that IO should be handled in the outer layer that wraps pure computation core of the application.</p><p>While this notion is appealing, it only works in cases where the totality of the data that will be operated on is known up front. Unfortunately, it's impossible to know ahead of time what data will be needed in most real world applications. In many cases additional data needs to load conditionally based on the type of input and the current state of processing.</p><p>What we can do, however, is break up our application into small components that can be reasoned about in isolation. Such components can then be composed together to accomplish tasks of increased complexity. I like to think of this as a Lego model of software development. Each component can be viewed as a Lego block, and we can compose these Lego block in many different ways as we solve different problems.</p><p>The problem being solved can be expressed in terms of a workflow represented by a graph where the nodes compute the state, and the edges represent transitions between the states. Each time we enter a node in this graph, we look at the input, decide what additional data we may need, run the computation, and transition to the next state. Each node in the graph is a Lego block that accomplishes a particular task. These nodes are then connected by a layer of code governs the data flow.</p><p>One approach to implement the above architecture is to use a map to describe overall state, then pass it through multimethods that each operate on a particular type of state and produce a new one. Each multimethod takes the state map as a parameter, does some operations on it, and then returns a new map that gets passed to the next multimethod. If you're thinking that this sounds a like a state machine then you're very much correct.</p><h3 id="implemention">Implemention</h3><p>Let's take a look at a concrete example of what this looks like in practice. Say we have a workflow where one user would like to send an email money transfer to another user using our system. There are a few cases we might want to handle here.</p><p>There's the happy path scenario where both users are in the system. In this case we simply withdraw the amount from the payor account and deposit it into the payee account.</p><p>Another scenario could be that the payor does not have the sufficient funds to do the transaction. In this case we may want to suspend the transaction until the user adds more funds.</p><p>Finally, the user receiving the funds may not be in the system, and they need to be invited before they can accept the transfer.</p><p>We can start by defining a few helper functions that represent interactions with external resources.</p><pre><code class="clojure">&#40;def store &#40;atom {:workflows {&quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                              {:id &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                               :from   {:email &quot;bob@foo.bar&quot;}
+                               :to     {:email &quot;alice@bar.baz&quot;}
+                               :amount 200
+                               :action :transfer}}
+                  :users {&quot;bob@foo.bar&quot; {:funds 100}
+                          &quot;alice@bar.baz&quot; {:funds 10}}}&#41;&#41;
+
+&#40;defn persist &#91;store {:keys &#91;id&#93; :as state}&#93;
+  &#40;swap! store assoc-in &#91;:workflows id&#93; state&#41;&#41;
+
+&#40;defn query &#91;store email&#93;
+  &#40;get-in @store &#91;:users email&#93;&#41;&#41;
+
+&#40;defn load-state &#91;store workflow-id&#93;
+  &#40;get-in @store &#91;:workflows workflow-id&#93;&#41;&#41;
+
+&#40;defn send-invite &#91;email&#93;
+  &#40;println &quot;sending invite to&quot; email&#41;&#41;
+
+&#40;defn notify-user &#91;email message&#93;
+  &#40;println &quot;notifying&quot; email message&#41;&#41;
+
+&#40;defn send-transfer &#91;store from to amount&#93;
+  &#40;println &quot;transfering from&quot; from &quot;to&quot; to amount&#41;
+  &#40;swap! store
+         #&#40;-&gt; %
+             &#40;update-in &#91;:users from :funds&#93; - amount&#41;
+             &#40;update-in &#91;:users to :funds&#93; + amount&#41;&#41;&#41;&#41;
+</code></pre><p>Next, we'll create a map to represent the initial state of the workfow.</p><pre><code class="clojure">{:id &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+ :from   {:email &quot;bob@foo.bar&quot;}
+ :to     {:email &quot;alice@bar.baz&quot;}
+ :amount 200
+ :action :transfer}
+</code></pre><p>The map will contain a unique id, some initial data that represents user input, and an <code>:action</code> key indicating what action should be applied to the current state of the workflow.</p><p>Let's define a multimethod that will dispatch the approprate action handler based on the value of the <code>:action</code> key. The multimethod will accept a map of resources as the first argument. The resources represent any code that deals with IO side effects such as database connections. The map representing the state of the workflow will be passed in as the second argument.  </p><pre><code class="clojure">&#40;defmulti handle-action &#40;fn &#91;&#95;resources {:keys &#91;action&#93;}&#93; action&#41;&#41;
+</code></pre><p>We can now define a handler for the <code>:transfer</code> operation. This multimethod will hydrate some additional data about the users from the datastore, take the appropriate action, and return a new state with the updated <code>:action</code> key to indicate the next step in the workflow.</p><pre><code class="clojure">&#40;defmethod handle-action :transfer &#91;{:keys &#91;store&#93;} {:keys &#91;from to amount&#93; :as state}&#93;
+   &#40;let &#91;from-info &#40;query store &#40;:email from&#41;&#41;
+         to-info   &#40;query store &#40;:email to&#41;&#41;
+         available-funds &#40;:funds from-info&#41;
+         state     &#40;-&gt; state
+                       &#40;update :from merge from-info&#41;
+                       &#40;update :to merge to-info&#41;&#41;&#93; 
+     &#40;cond
+       &#40;nil? to-info&#41;
+       &#40;assoc state :action :invite&#41; 
+       &#40;&gt;= available-funds amount&#41;
+       &#40;do
+         &#40;send-transfer store &#40;:email from&#41; &#40;:email to&#41; amount&#41;
+         &#40;assoc state :action :done&#41;&#41;
+       &#40;&lt; available-funds amount&#41;
+       &#40;assoc state :action :notify-missing-funds&#41;&#41;&#41;&#41;
+</code></pre><p>Let's add the handlers for <code>:invite</code> and <code>:notify-missing-funds</code> actions.</p><pre><code class="clojure">&#40;defmethod handle-action :notify-missing-funds &#91;{:keys &#91;store&#93;} {:keys &#91;from&#93; :as state}&#93; 
+  &#40;notify-user &#40;:email from&#41; &quot;missing funds&quot;&#41;
+  &#40;persist store &#40;assoc state :action :transfer&#41;&#41;
+  {:action :await}&#41;
+
+&#40;defmethod handle-action :invite &#91;{:keys &#91;store&#93;} {:keys &#91;to&#93; :as state}&#93;
+  &#40;send-invite to&#41;
+  &#40;persist store &#40;assoc state :action :transfer&#41;&#41;
+  {:action :await}&#41;
+</code></pre><p>Note that <code>:invite</code> and <code>:notify-missing-funds</code> actions persist the state and return the <code>:await</code> action when they complete. We'll use this behavior to indicate that the workflow is blocked on an external action and needs to be suspended.</p><p>Finally, we'll add a function that executes the state machine. This function will accept a map containing the resources along with a workflow id. It will load the current state and execute it by dispatching the multimethod defined above.</p><pre><code class="clojure">&#40;defn run-workflow
+  &#91;{:keys &#91;store&#93; :as resources} workflow-id&#93;
+  &#40;loop &#91;state &#40;load-state store workflow-id&#41;&#93; 
+    &#40;condp = &#40;-&gt; state :action&#41;
+      :done state
+      :await :workflow-suspended
+      &#40;let &#91;state &#40;handle-action resources state&#41;&#93;
+        &#40;recur state&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>For simplicity's sake let's use an atom as our mock data store.</p><pre><code class="clojure">&#40;def store &#40;atom {:workflows {&quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                              {:id &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                               :from   {:email &quot;bob@foo.bar&quot;}
+                               :to     {:email &quot;alice@bar.baz&quot;}
+                               :amount 200
+                               :action :transfer}}
+                  :users {&quot;bob@foo.bar&quot; {:funds 100}
+                          &quot;alice@bar.baz&quot; {:funds 10}}}&#41;&#41;
+</code></pre><p>We can now try running this workflow in the REPL. If we run it with the initial state, then we should see that the workflow was suspended because there were insufficient funds to transfer.</p><pre><code class="clojure">=&gt; &#40;run-workflow {:store store} &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;&#41;
+
+notifying bob@foo.bar missing funds
+:workflow-suspended
+</code></pre><p>The workflow tries to notify the user of the missing funds and returns. Let's add more funds to the account trying to send the transfer.</p><pre><code class="clojure">=&gt; &#40;swap! store assoc-in &#91;:users &quot;bob@foo.bar&quot; :funds&#93; 300&#41;
+</code></pre><p>The workflow restarts where it left off and completes the transfer successfully.</p><pre><code class="clojure">=&gt; &#40;run-workflow {:store store} &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;&#41;
+
+transfering from bob@foo.bar to alice@bar.baz 200
+{:id &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;,
+ :from {:email &quot;bob@foo.bar&quot;, :funds 300},
+ :to {:email &quot;alice@bar.baz&quot;, :funds 10},
+ :amount 200,
+ :action :done}
+</code></pre><h3 id="formalizing&#95;side&#95;effects">Formalizing Side Effects</h3><p>We can make one futher improvement over the implementation above by formalizing resource providers using protocols. Doing so will make it clear what the external dependecies are and facilitate mocking. Let's create <code>Notify</code> and <code>DataStore</code> protocols that look as follows.</p><pre><code class="clojure">&#40;defprotocol Notify
+  &#40;send-invite &#91;email&#93;&#41;
+  &#40;notify-user &#91;email message&#93;&#41;&#41;
+
+&#40;defprotocol DataStore
+  &#40;persist &#91;&#95; state&#93;&#41;
+  &#40;query &#91;&#95; email&#93;&#41;
+  &#40;add-funds &#91;&#95; email amount&#93;&#41;
+  &#40;load-state &#91;&#95; workflow-id&#93;&#41;
+  &#40;send-transfer &#91;&#95; from to amount&#93;&#41;&#41;
+</code></pre><p>Next, let's add a couple of records that implement these protocols.</p><pre><code class="clojure">&#40;defrecord MockNotify &#91;&#93;
+  Notify
+  &#40;send-invite &#91;&#95; email&#93;
+    &#40;println &quot;sending invite to&quot; email&#41;&#41;
+  &#40;notify-user &#91;&#95; email message&#93;
+    &#40;println &quot;notifying&quot; email message&#41;&#41;&#41;
+
+&#40;defrecord AtomDataStore &#91;store&#93;
+  DataStore
+  &#40;persist &#91;&#95; {:keys &#91;id&#93; :as state}&#93;
+    &#40;swap! store assoc-in &#91;:workflows id&#93; state&#41;&#41;
+  &#40;query &#91;&#95;  email&#93;
+    &#40;get-in @store &#91;:users email&#93;&#41;&#41;
+  &#40;add-funds &#91;&#95; email amount&#93;
+    &#40;swap! store assoc-in &#91;:users &quot;bob@foo.bar&quot; :funds&#93; 300&#41;&#41;
+  &#40;load-state &#91;&#95; workflow-id&#93;
+    &#40;println &quot;hi&quot;&#41;
+    &#40;get-in @store &#91;:workflows workflow-id&#93;&#41;&#41;
+  &#40;send-transfer &#91;&#95; from to amount&#93;
+    &#40;println &quot;transfering from&quot; from &quot;to&quot; to amount&#41;
+    &#40;swap! store
+           #&#40;-&gt; %
+                &#40;update-in &#91;:users from :funds&#93; - amount&#41;
+                &#40;update-in &#91;:users to :funds&#93; + amount&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>We'll also need to modify our multimethods to use <code>Notify</code> protocol instead of simply calling the functions we defined earlier.</p><pre><code class="clojure">&#40;defmethod handle-action :notify-missing-funds &#91;{:keys &#91;store notify&#93;} {:keys &#91;from&#93; :as state}&#93;
+  &#40;notify-user notify &#40;:email from&#41; &quot;missing funds&quot;&#41;
+  &#40;persist store &#40;assoc state :action :transfer&#41;&#41;
+  {:action :await}&#41;
+
+&#40;defmethod handle-action :invite &#91;{:keys &#91;store notify&#93;} {:keys &#91;to&#93; :as state}&#93;
+  &#40;send-invite notify to&#41;
+  &#40;persist store &#40;assoc state :action :transfer&#41;&#41;
+  {:action :await}&#41;
+</code></pre><p>Finally, we'll instantiate the records and passing them to our <code>run-workflow</code> function.</p><pre><code class="clojure">&#40;def store &#40;-&gt;AtomDataStore &#40;atom {:workflows {&quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                                                {:id &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;
+                                                :from   {:email &quot;bob@foo.bar&quot;}
+                                                :to     {:email &quot;alice@bar.baz&quot;}
+                                                :amount 200
+                                                :action :transfer}}
+                                    :users {&quot;bob@foo.bar&quot; {:funds 100}
+                                            &quot;alice@bar.baz&quot; {:funds 10}}}&#41;&#41;&#41;
+&#40;def notify &#40;-&gt;MockNotify&#41;&#41;
+
+&#40;run-workflow {:store store
+               :notify notify} 
+              &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;&#41;
+
+&#40;add-funds store &quot;bob@foo.bar&quot; 100&#41;
+
+&#40;run-workflow {:store store
+               :notify notify} 
+              &quot;33a19b1f-c7d1-45d8-9864-0ea17e01a26d&quot;&#41;
+</code></pre><h3 id="discussion">Discussion</h3><p>There are several aspects of the above approach that I've found to be particularly useful when building applications.</p><p>Each multimethod can be treated as a small program that can be reasoned about and tested independently. These multimethods can easily be structured using Clean Architecture style keepng IO at the edges.</p><p>Passing resources in as an explicit parameter allows decoupling IO from computation. This design lends itself well to testing since resources, such as the data store, are passed in explicitly. We can pass in a map of mock resources when running tests without any changes to the rest of the code. In fact, we can start developing against mock resources and ensure that the workflow logic works as intended before having to worry about connecting to databases or other systems.</p><p>Using a map to track the state of the execution makes it easy to inspect it. We can log this map to see what operation we're doing, what the data looks like, and so on. The state can also be easily serialized, allowing us to suspend and resume computation as needed. This is particularly useful in cases when the workflow needs to be suspended pending some external action as we saw earlier.</p><p>This design also plays well with Integrant which can be used to manage the system map containing stateful resources.</p><p>Most importantly, this type of architecture creates reusable components without implicit coupling. Each multimethod can be used indepenently of the others, and composed into different workflows. This gives us composable Lego blocks that we can use to build larger structures.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/architecture.html">architecture</a>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2023-05-12-nbb-resume.html">&laquo; Making a Resume with Node.js Babashka (nbb)</a>
+        
+        
+        <a class="right button" href="/posts/2022-11-26-nREPL-system-interaction.html">Using nREPL as System Interface &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

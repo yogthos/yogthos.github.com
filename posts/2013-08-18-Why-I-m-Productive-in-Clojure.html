@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Why I&#39;m Productive in Clojure</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 18, 2013</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2013-08-18-Why-I-m-Productive-in-Clojure.html">Why I&#39;m Productive in Clojure</a></h1>
+</div>
+<div>
+    
+    <p>I find that I often get excited about learning a new language, but after I use it for a while it will inevitably lose its lustre. Eventually it becomes just another language in my tool box. </p><p>One exception to this rule is Clojure. I still enjoy using the language as much as I did when I first learned it. The reason for this is that it strikes the right balance between power and simplicity.</p><h3 id="the&#95;balance&#95;of&#95;power">The Balance of Power</h3><p>Some languages are simple but they're also verbose. You've probably heard people say that verbosity really doesn't matter. These people will go to great length to point out that all languages are Turing complete and that in certain languages you simply have to write a bit more code.</p><p>I think that's missing the point however. The question is not whether something can be expressed in principle. It's how well the language maps to the problem being solved. One language will let you think in terms of your problem domain, while another will force you to translate the problem to its constructs.</p><p>The latter is often tedious and rarely enjoyable. You end up writing a lot of boilerplate code and constantly repeating yourself. I hope you'll agree that there is a certain amount of irony involved in having to write repetitive code.</p><p>Other languages aren't verbose and they provide many different tools for solving problems. Unfortunately, working in such languages is often akin to trying to decide on a particular set of screwdrivers at a hardware megastore.</p><p>You end up comparing this brand against that, checking the number of bits that comes with each set, seeing which one's on sale today, and soon you forget why you wanted a screwdriver in the first place. </p><p>The more features there are the more things you have to keep in your head to work with the language effectively. With many languages I find myself constantly expending mental overhead thinking about all the different features and how they interact with one another.</p><p>What matters to me in a language is whether I can use it without thinking about it. When the language is lacking in expressiveness I'm acutely aware that I'm writing code that I shouldn't be. On the other hand when the language has too many features I often feel overwhelmed or I get distracted playing with them.</p><p>To make an analogy with math, it's nicer to have a general formula that you can derive others from than having to memorize a whole bunch of formulas for specific problems.</p><p>This is where Clojure comes in. With it I can always easily derive a solution to a particular problem from a small set of general patterns. The number of things I have to keep in my head is not overbearing.</p><p>All you need to become productive is to learn a few simple concepts and a bit of syntax. However, the number of ways that these concepts can be combined to solve all manner of problems appears to be inexhaustible. I've been writing Clojure for years and I discover new ways to combine the things I already know every single day.</p><p>Macros are a good example of this. The fact that you can transform the language using itself allows tackling a wide range of problems that would otherwise require a range of specific tools and language features.</p><h3 id="interactive&#95;development">Interactive Development</h3><p>When I'm solving a problem in Clojure I inevitably want to write an elegant solution that expresses the gist of it cleanly and clearly. This is largely due to the fact that the development process is interactive. </p><p>When I work with the REPL I can fumble around looking for a solution and make sense of it through experimentation. Once I've internalized the problem I can quickly write a clean solution using my newly gained understanding.</p><p>The REPL also helps keep me engaged in trying to find the solution. Being able to try things and get immediate feedback is enjoyable. Even when your code doesn't do what you want you can see the progression and that is often enough of a motivator to keep going.</p><p>Another important feature of the REPL is that it encourages refactoring. I'm much more likely to refactor code when I can easily test it without disrupting my workflow.</p><h3 id="finishing&#95;things">Finishing Things</h3><p>Interactivity alone isn't enough however. All the feedback in the world wouldn't make one bit of difference if you couldn't actually solve your problem in a reasonable amount of time.</p><p>I find that I have a sharp falloff curve when it comes to staying engaged in a project. You've probably noticed this phenomenon yourself. When you start a project you're excited and you enjoy seeing it take shape.</p><p>However, after working on a project for some amount of time the excitement wanes. Eventually, you might even dread having to touch the code again. I find that it's critical to get the core functionality working before I hit this stage.</p><p>Once the project solves a particular problem that I have I'll start using it. At this point I get to reap the benefits of having spent the effort on it. This also lets me identify the functionality that I'm missing through usage. There is a lot more incentive to add features to a project that you're actually using.</p><p>Most recently I found this to be the case working on <a href='https://github.com/yogthos/Selmer'>Selmer</a>. I was able to implement the base parser in just a couple of days, while <a href='https://github.com/cesarbp'>cesarbp</a> implemented the logic for the filters.</p><p>It took a couple of more days to get the template inheritance logic working. All of a sudden we had a usable library in under a week of effort. I'm already actively using it for actual work and new features are added piecemeal as the need comes up.</p><p>Here's the GitHub <a href='https://github.com/yogthos/Selmer/graphs/code-frequency'>activity</a> graph for Selmer:</p><p><a href='https://github.com/yogthos/Selmer/graphs/code-frequency'><img src="http://yogthos.net/files/selmercommits.png" alt="Selmer activity" /></a></p><p>As you can see there's a big initial spike with a very sharp falloff. A similar patten can be seen in my other projects such as <a href='https://github.com/yogthos/clj-pdf'>clj-pdf</a> and with <a href='https://github.com/yogthos/luminus'>Luminus</a>:</p><p><a href='https://github.com/yogthos/clj-pdf/graphs/code-frequency'><img src="http://yogthos.net/files/clj-pdfcommits.png" alt="clj-pdf activity" /></a></p><p><a href='https://github.com/yogthos/luminus/graphs/code-frequency'><img src="http://yogthos.net/files/luminuscommits.png" alt="Luminus activity" /></a></p><p>As the project matures bugs are inevitably found or new features are added, these correspond the occasional spikes in the activity. However, if the initial phase of the project can't be completed in a timely fashion then nothing else can happen.</p><p>In my experience, if you can't get something interesting working in a few days the likelihood of actually finishing the project starts rapidly approaching zero.</p><p>With Clojure you can get things done fast, fast enough that you get something working while the initial spark of excitement is still present. I would hazard to guess that this is the reason why Clojure has so many great libraries despite being a young language.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-08-28-Web-Development-With-Clojure-Beta.html">&laquo; Web Development With Clojure Beta</a>
+        
+        
+        <a class="right button" href="/posts/2013-07-30-Introducing-Selmer.html">Introducing Selmer &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

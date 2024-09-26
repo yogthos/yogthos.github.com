@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Introducing cljs-ajax</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 9, 2013</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2013-04-09-Introducing-cljs-ajax.html">Introducing cljs-ajax</a></h1>
+</div>
+<div>
+    
+    <p>I recently started working on a project using ClojureScript and it's turning out to be a really good experience so far. I've been using <a href='https://github.com/levand/domina'>Domina</a> and <a href='https://github.com/Prismatic/dommy'>Dommy</a> for DOM manipulation and templating. Both libraries are very easy to use and provide all  the functionality needed for common operations.</p><p>Surprisingly, I didn't find any up to date libraries for handling Ajax. The only one I could find is <a href='https://github.com/ibdknox/fetch'>fetch</a>. Unfortunately, it depends on Noir which is no longer maintained.</p><p>I ended up writing a wrapper for <code>goog.net.XhrIo</code> called <a href='https://github.com/yogthos/cljs-ajax'>cljs-ajax</a>. It provides an API similar to <a href='https://github.com/dakrone/clj-http'>clj-http</a> and handles all the nitty gritty details for you.</p><p>Currently, the API provides <code>ajax-request</code>, <code>GET</code>, and <code>PUT</code> functions. The <code>ajax-request</code> function accepts the following parameters:</p><ul><li><code>uri</code> - the URI for the request</li><li><code>method</code> - a string representing the HTTP request type, eg: "PUT", "DELETE", etc.</li><li><code>format</code> - a keyword indicating the response format, can be either <code>:json</code> or <code>:edn</code>, defaults to <code>:edn</code></li><li><code>handler</code> - success handler, a function that accepts the response as a single argument</li><li><code>error-handler</code> - error handler, a function that accepts a map representing the error with keys <code>:status</code> and <code>:status-text</code></li><li><code>params</code> - a map of params to be sent to the server</li></ul><p>The <code>GET</code> and <code>POST</code> are helper functions that accept a URI followed by a map of options containing any of the following keys:</p><ul><li><code>:handler</code> - the handler function for successful operation should accept a single parameter which is the deserialized response</li><li><code>:error-handler</code> - the handler function for errors, should accept a map with keys <code>:status</code> and <code>:status-text</code></li><li><code>:format</code> - the format for the response <code>:edn</code> or <code>:json</code> defaults to <code>:edn</code></li><li><code>:params</code> - a map of parameters that will be sent with the request</li></ul><p>Here's some example usage:</p><pre><code class="clojure">&#40;ns foo
+ &#40;:require &#91;ajax.core :refer &#91;GET POST&#93;&#93;&#41;&#41;
+
+&#40;defn handler &#91;response&#93;
+ &#40;.log js/console &#40;str response&#41;&#41;&#41;
+
+&#40;defn error-handler &#91;{:keys &#91;status status-text&#93;}&#93;
+ &#40;.log js/console 
+  &#40;str &quot;something bad happened: &quot; status &quot; &quot; status-text&#41;&#41;&#41;
+
+&#40;GET &quot;/hello&quot;&#41;
+
+&#40;GET &quot;/hello&quot; {:handler handler
+               :error-handler error-handler}&#41;
+
+&#40;POST &quot;/hello&quot;&#41;
+
+&#40;POST &quot;/send-message&quot; 
+      {:params {:message &quot;Hello World&quot;
+                :user    &quot;Bob&quot;}
+      :handler handler
+      :error-handler error-handler}&#41;
+
+&#40;POST &quot;/send-message&quot; 
+      {:params {:message &quot;Hello World&quot;
+                :user    &quot;Bob&quot;}
+      :handler handler
+      :format :json
+      :error-handler error-handler}&#41;
+</code></pre><p>The latest version of Luminus comes packaged with a ClojureScript example when the <code>+cljs</code> option is selected. Let's create a new project called <code>ajax-example</code> and take a look at how it works:</p><pre><code>lein new luminus ajax-example +cljs
+</code></pre><p>The <code>project.clj</code> will contain the dependencies for Domina, Dommy, and cljs-ajax as well as a <code>cljsbuild</code> configuration. The current version of cljsbuild references an old version of ClojureScript, so the latest version is also explicitly included as a dependency.</p><p>In order to use the ClojureScript from our page we'll first need to compile it. This is done by running <code>lein cljsbuild once</code>. The resulting artifact will be placed under <code>resources/public/js/site.js</code> as specified in the cljsbuild section of the project.</p><p>You'll notice that the build takes a while to run. Luckily, if we run it using <code>lein cljsbuild auto</code> it will run much faster and any time we make changes to any of the ClojureScript namespaces they will trigger an incremental build.</p><p>Working with the auto build running is nearly as seamless as working with plain old JavaScript. You make a change in the source, save, and reload the page. The compilation step tends to take under a second, so the intermediate delay is barely noticeable.</p><p>Our project has a source directory called <code>src-cljs</code> where ClojureScript namespaces live. It contains a file called <code>main.cljs</code>. This example illustrates using GET and POST calls to interact with the server as well as rendering DOM elements. Let's take a look inside it:</p><pre><code class="clojure">&#40;ns cljs-test.main
+ &#40;:require &#91;ajax.core :refer &#91;GET POST&#93;&#93;
+           &#91;domina :refer &#91;value by-id destroy-children! append!&#93;&#93;
+           &#91;domina.events :refer &#91;listen!&#93;&#93;
+           &#91;dommy.template :as template&#93;&#41;&#41;
+
+&#40;defn render-message &#91;{:keys &#91;message user&#93;}&#93;
+ &#91;:li &#91;:p {:id user} message &quot; - &quot; user&#93;&#93;&#41;
+
+&#40;defn render-messages &#91;messages&#93;
+ &#40;let &#91;messages-div &#40;by-id &quot;messages&quot;&#41;&#93;
+   &#40;destroy-children! messages-div&#41;
+   &#40;-&gt;&gt; messages
+        &#40;map render-message&#41;
+        &#40;into &#91;:ul&#93;&#41;
+        template/node
+        &#40;append! messages-div&#41;&#41;&#41;&#41;
+
+&#40;defn add-message &#91;&#95;&#93;
+ &#40;POST &quot;/add-message&quot;
+       {:params {:message &#40;value &#40;by-id &quot;message&quot;&#41;&#41;
+                 :user    &#40;value &#40;by-id &quot;user&quot;&#41;&#41;}
+        :handler render-messages}&#41;&#41;
+
+&#40;defn &#94;:export init &#91;&#93;
+ &#40;GET &quot;/messages&quot; {:handler render-messages}&#41;
+ &#40;listen! &#40;by-id &quot;send&quot;&#41;
+          :click add-message&#41;&#41;
+</code></pre><p>Here, we have a couple of functions to render the messages we receive from the server. The <code>render-message</code> function accepts a map with the keys message and user and creates a list item. The <code>render-messages</code> will create a list from the messages and render it using <code>template/node</code> function. The rendered messages will be appended to the div with the id <code>messages</code> using the <code>append!</code> function.</p><p>Next, we have a function to add a a new message. It grabs the values from elements selected by their ids and sends them as params named message and user. The server responds with a list of current messages. So we use <code>render-messages</code> as the response handler.</p><p>In our <code>init</code> function, we send a GET request to grab the current messages, then we bind the <code>add-message</code> function to the button with the id <code>send</code>.</p><p>On the server side we have a <code>ajax-example.routes.cljsexample</code> namespace. It provides the routes to render the page and handle the <code>/messages</code> and <code>/add-message</code> operations.</p><pre><code class="clojure">&#40;ns ajax-example.routes.cljsexample
+ &#40;:require &#91;compojure.core :refer :all&#93;
+           &#91;noir.response :as response&#93;
+           &#91;ajax-example.views.layout :as layout&#93;&#41;&#41;
+
+&#40;def messages
+ &#40;atom
+   &#91;{:message &quot;Hello world&quot;
+     :user    &quot;Foo&quot;}
+    {:message &quot;Ajax is fun&quot;
+     :user    &quot;Bar&quot;}&#93;&#41;&#41;
+
+&#40;defroutes cljs-routes
+ &#40;GET &quot;/cljsexample&quot; &#91;&#93; &#40;layout/render &quot;cljsexample.html&quot;&#41;&#41;
+ &#40;GET &quot;/messages&quot; &#91;&#93; &#40;response/edn @messages&#41;&#41;
+ &#40;POST &quot;/add-message&quot; &#91;message user&#93;
+       &#40;response/edn
+         &#40;swap! messages conj {:message message :user user}&#41;&#41;&#41;&#41;
+</code></pre><p>As you can see, the routes simply return EDN responses to the client. Finally, we have the template for the actual example page, that looks as follows:</p><pre><code class="xml">{% extends &quot;cljs&#95;test/views/templates/base.html&quot; %}
+
+
+{% block content %}
+
+&lt;br/&gt;
+&lt;div id=&quot;messages&quot;&gt;&lt;/div&gt;
+&lt;textarea id=&quot;message&quot;&gt;&lt;/textarea&gt;
+&lt;br/&gt;
+&lt;input type=&quot;text&quot; id=&quot;user&quot;&gt;&lt;/input&gt;
+&lt;br/&gt;
+&lt;button id=&quot;send&quot;&gt;add message&lt;/button&gt;
+
+&lt;!--  scripts --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;js/site.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+	cljs&#95;test.main.init&#40;&#41;;
+&lt;/script&gt;
+
+{% endblock %}
+</code></pre><p>The page references the <code>site.js</code> script that will be output by the compiler and calls the <code>init</code> function that we saw above.</p><p>Overall, I feel that ClojureScript is rapidly becoming a viable alternative to using JavaScript on the client. There are still some rough edges, but most things work out of the box and you get many of the same benefits associated with using Clojure on the server.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/clojurescript.html">clojurescript</a>
+    
+    <a href="/luminus.html">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-04-24-Clojure-Data-Analysis-Cookbook-Review.html">&laquo; Clojure Data Analysis Cookbook Review</a>
+        
+        
+        <a class="right button" href="/posts/2013-03-23-a-book-is-coming.html">a book is coming &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

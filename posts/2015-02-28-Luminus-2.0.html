@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Announcing Luminus 2.0</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>February 28, 2015</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2015-02-28-Luminus-2.0.html">Announcing Luminus 2.0</a></h1>
+</div>
+<div>
+    
+    <p>I'm excited to announce the release of Luminus 2.0. This release is a major update and introduces a number of changes to the framework. These changes reflect the evolution of the Clojure web stack and best practices over the past year.</p><p>The biggest change is that Luminus is no longer using <a href='https://github.com/noir-clojure/lib-noir'>lib-noir</a>, nor will I be actively developing the library going forward. I intend to continue maintaining it and to provide bug fixes, but I will not be working on additional features. If anybody is interested in taking it over then please leave a comment on GitHub in that regard.</p><p>I believe that lib-noir has served an important role providing many useful features such as input validation, access rules, session handling and so on. However, today there are great standalone libraries available for accomplishing each of these tasks. I believe that using simple and focused libraries leads to better overall user experience. The libraries that Luminus currently defaults to are as follows:</p><ul><li>access rules - <a href='https://github.com/funcool/buddy'>Buddy</a></li><li>cache  - <a href='https://github.com/clojure/core.cache'>core.cache</a></li><li>crypto - <a href='https://github.com/funcool/buddy'>Buddy</a></li><li>database - <a href='https://github.com/krisajenkins/yesql'>Yesql</a></li><li>sessions/cookies - <a href='https://github.com/ring-clojure/ring/wiki/Sessions'>Ring</a></li><li>validation - <a href='https://github.com/leonardoborges/bouncer'>Bouncer</a></li></ul><p>Session management is the biggest change from the user perspective. While lib-noir uses a request bound session that can be manipulated anywhere within the scope of the request, Ring requires sessions to be associated with the response explicitly by the handler.</p><p>While lib-noir approach is unquestionably convenient it introduces a subtle problem. Since the session is bound to a thread-local variable it's possible to run into race conditions with the in-memory session store. I feel that the Ring approach results in simpler design that’s more explicit about what it’s doing.</p><p>The new middleware stack is now based on  <a href='https://github.com/ring-clojure/ring-defaults'>ring-defaults</a> instead of the <code>app-handler</code> from lib-noir as Noir specific middleware is no longer required.</p><p>The move from Korma to Yesql is another major change. While Korma provides a nice DLS for working with SQL, I feel that the sheer simplicity of Yesql is preferable in the long run.</p><p>Meanwhile, Buddy is an exciting set of libraries for handling authorization, authentication, and access rules. It has an intuitive API and excellent documentation.</p><p>Bouncer is an excellent validation library that works with both Clojure and ClojureScript allowing for shared validation logic between the server and the client.</p><p>Some other changes include the <code>+cljs</code> profile updates for <a href='https://github.com/bhauman/lein-figwheel'>Figwheel</a> support and the deprecation of the <code>+site</code> profile. It's been replaced with the <code>+auth</code> profile  that sets up Buddy middleware for session based authentication instead.</p><p>As always, the framework primarily strives to remove the boilerplate from typical web projects and provide reasonable defaults. If you don’t agree with any of the library choices that it makes it’s trivial to swap them out with your own. The base profile is intentionally kept minimal to provide an unopinionated default.</p><p>The <a href='https://github.com/yogthos/luminus-template'>template project</a> for Luminus has been completely rewritten as well. The new template cleanly separates different profiles making it much easier to maintain and add new features.</p><p>Finally, all the documentation has been updated to reflect the changes with the original made available on <a href='https://github.com/yogthos/luminus/tree/master/resources/docs-1.x'>GitHub</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/luminus.html">luminus</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2015-04-14-Web-Development-with-Clojure-2.html">&laquo; Web Development with Clojure 2</a>
+        
+        
+        <a class="right button" href="/posts/2015-01-15-A-Plugin-System-in-Clojure.html">A simple plugin system in Clojure &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

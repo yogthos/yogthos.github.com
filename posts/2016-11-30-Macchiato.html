@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Macchiato: ClojureScript Arrives on the Server</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>November 30, 2016</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2016-11-30-Macchiato.html">Macchiato: ClojureScript Arrives on the Server</a></h1>
+</div>
+<div>
+    
+     <p> I recently started the <a href='https://github.com/macchiato-framework'>Macchiato</a> project to provide a platform for building ClojureScript based apps on top Node.js.   </p><p>First, let's look at some of the reasons for running ClojureScript on the server. The JVM is an excellent platform, it's mature, performant, and has a large ecosystem around it. This makes it a solid choice for a wide range of applications.</p><p>However, there are situations where the JVM might not be a good fit. It's a complex piece of technology that requires experience to use effectively. It has a fairly large footprint even from small applications. The startup times can be problematic, especially when it comes to loading Clojure runtime.</p><p>Meanwhile, Node.js also happens to be a popular platform with a large ecosystem around it. It requires far less resources for certain types of applications, has very fast startup times, and its ecosystem is familiar to many JavaScript developers.</p><p>Another appeal for Node based servers comes from building full stack ClojureScript single-page applications, since using Node on the server facilitates server-side rendering for any React based libraries.</p><p>While there are a few existing experiments using ClojureScript on Node, such as <a href='https://github.com/whamtet/dogfort'>Dog Fort</a>, none of these appear to be actively maintained. Since ClojureScript and its ecosystem have evolved in the meantime, I wanted to create a fresh stack using the latest tools and best practices.</p><h3 id="overview">Overview</h3><p>My goal for Macchiato is to provide a stack modeled on Ring based around the existing Node ecosystem, and a development environment similar to what's available for Clojure on the JVM.</p><h4 id="the&#95;stack">The Stack</h4><p>I think it makes sense to embrace the Node ecosystem and leverage the existing modules whenever possible. For example, Ring style cookies map directly to the <a href='https://www.npmjs.com/package/cookies'>cookies</a> NPM module. Conversely, there are a number of excellent ClojureScript libraries available as well, such as <a href='https://github.com/ptaoussanis/timbre'>Timbre</a>,  <a href='https://github.com/juxt/bidi/'>Bidi</a>, and <a href='https://github.com/tolitius/mount'>Mount</a>.</p><p>I used a Ring inspired model where I created <a href='https://github.com/macchiato-framework/macchiato-core/blob/master/src/macchiato/http.cljs'>wrappers around Node HTTP request and response objects</a>. This allowed adapting parts of Ring, such as its session store implementation, with minimal changes.</p><p>The <code>ClientRequest</code> object is translated to a Clojure map, and the response map is written to the <code>ServerResponse</code> object. The request handler is implemented as follows:</p><pre><code class="clojure">&#40;defprotocol IHTTPResponseWriter
+  &#40;-write-response &#91;data res&#93; &quot;Write data to a http.ServerResponse&quot;&#41;&#41;
+
+&#40;defn response &#91;req res opts&#93;
+  &#40;fn &#91;{:keys &#91;cookies headers body status&#93;}&#93;
+    &#40;cookies/set-cookies cookies req res &#40;:cookies opts&#41;&#41;
+    &#40;.writeHead res status &#40;clj-&gt;js headers&#41;&#41;
+    &#40;when &#40;-write-response body res&#41;
+      &#40;.end res&#41;&#41;&#41;&#41;
+
+&#40;defn handler &#91;handler-fn &amp; &#91;opts&#93;&#93;
+  &#40;let &#91;opts &#40;or opts {}&#41;&#93;
+    &#40;fn &#91;req res&#93;
+      &#40;handler-fn &#40;req-&gt;map req res opts&#41; &#40;response req res opts&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>The <code>handler</code> accepts a <code>handler-fn</code> function that's passed the request map produced by the <code>req-&gt;map</code> helper. The <code>handler-fn</code> is expected to return a request handler function that will be used to generate the response. This function should accept the request map and the <code>response</code> call back function that writes the response map to the <code>ServerResponse</code> object. The <code>IHTTPResponseWriter</code> protocol is used to serialize different kinds of responses.</p><h4 id="concurrent&#95;request&#95;handling">Concurrent Request Handling</h4><p>JVM servers commonly use a listener thread for accepting client requests, the connections are then passed on to a thread pool of request handlers. This allows the listener to continue accepting connections while the requests are being processed.</p><p>Since Node is single threaded, long running request handlers block the server until they finish. While async operations can be used to handle IO in the background, any business logic will end up preventing the server from accepting new connections while it's running.</p><p>One way around this is to use the cluster module that spins up a single listening process that forks child processes and dispatches the requests to them. Setting this up is pretty straight forward: </p><pre><code class="clojure">&#40;defstate env :start &#40;config/env&#41;&#41;
+
+&#40;defstate http :start &#40;js/require &quot;http&quot;&#41;&#41;
+
+&#40;defn app &#91;&#93;
+  &#40;mount/start&#41;
+  &#40;let &#91;host &#40;or &#40;:host env&#41; &quot;127.0.0.1&quot;&#41;
+        port &#40;or &#40;some-&gt; env :port js/parseInt&#41; 3000&#41;&#93;
+    &#40;-&gt; @http
+        &#40;.createServer
+          &#40;handler
+            router
+            {:cookies {:signed? true}
+             :session {:store &#40;mem/memory-store&#41;}}&#41;&#41;
+        &#40;.listen port host #&#40;info &quot;{{name}} started on&quot; host &quot;:&quot; port&#41;&#41;&#41;&#41;&#41;
+
+&#40;defn start-workers &#91;os cluster&#93;
+  &#40;dotimes &#91;&#95; &#40;-&gt; os .cpus .-length&#41;&#93;
+    &#40;.fork cluster&#41;&#41;
+  &#40;.on cluster &quot;exit&quot;
+       &#40;fn &#91;worker code signal&#93;
+         &#40;info &quot;worker terminated&quot; &#40;-&gt; worker .-process .-pid&#41;&#41;&#41;&#41;&#41;
+
+&#40;defn main &#91;&amp; args&#93;
+  &#40;let &#91;os      &#40;js/require &quot;os&quot;&#41;
+        cluster &#40;js/require &quot;cluster&quot;&#41;&#93;
+    &#40;if &#40;.-isMaster cluster&#41;
+      &#40;start-workers os cluster&#41;
+      &#40;app&#41;&#41;&#41;&#41;
+</code></pre><p>However, it's worth noting that unlike threads, processes don't share memory. So, each child that gets spun up will require its own copy of the memory space.</p><h4 id="the&#95;template">The Template</h4><p>I setup a <a href='https://github.com/macchiato-framework/macchiato-template'>template</a> that creates a minimal app with some reasonable defaults. This template is published to Clojars, and you can try it out yourself by running:</p><pre><code>lein new macchiato myapp
+</code></pre><p>The template is setup similarly to Luminus. The source code for the project is found in the <code>src</code> folder, and the <code>env</code> folder contains code that's specific for dev and prod environments.</p><p>The <code>project.clj</code> contains <code>dev</code> and <code>release</code> profiles for working with the app in development mode and packaging it for production use. The app can be started in development mode by running:</p><pre><code>lein build
+</code></pre><p>This will clean the project, download NPM modules, and start the Figwheel compiler. Once Figwheel compiles the sources, you can run the app with Node in another terminal as follows:</p><pre><code>node target/out/myapp.js
+</code></pre><p>The app should now be available at <code>http://localhost:3000</code>.</p><p>Figwheel also starts the nREPL at <code>localhost:7000</code>. You can connect to it from the editor and run <code>&#40;cljs&#41;</code> to load the ClojureScript REPL.</p><p>Packaging the app for production is accomplished by running:</p><pre><code>lein package
+</code></pre><p>This will print out <code>package.json</code> for the app and generate the release artifact called <code>target/release/myapp.js</code>.</p><h3 id="looking&#95;forward">Looking Forward</h3><p>Overall, I think that ClojureScript on top of Node is ready for prime time. It opens up server-side Clojure development to a large community of JavaScript developers, and extends the reach of Clojure to any platform that supports Node.</p><p>While the initial results are very promising, there is still much work to be done in order to provide a solid stack such as Luminus. If you think this project is interesting, feel free to ping me via email or on the Clojurians slack. I would love to collaborate on making Macchiato into a solid choice for developing Node based applications.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/macchiato.html">macchiato</a>
+    
+    <a href="/clojurescript.html">clojurescript</a>
+    
+    <a href="/node.html">node</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2016-12-17-MacchiatoProgress.html">&laquo; Frameworks, Foundations, and Macchiato</a>
+        
+        
+        <a class="right button" href="/posts/2016-11-05-LuminusPostgresNotifications.html">PostgreSQL Async Notifications in Luminus &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): lib-noir access rule madness</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 12, 2013</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2013-06-12-lib-noir-access-rule-madness.html">lib-noir access rule madness</a></h1>
+</div>
+<div>
+    
+    <p>Access rule handling in <a href='https://github.com/noir-clojure/lib-noir'>lib-noir</a> has seen some major rework. James Reeves pointed out that the way the <code>restrict</code> macro worked was not ideal as it wasn't entirely idiomatic and wasn't very composable. For example it didn't take into account the use of the <code>context</code> macro in Compojure.</p><p>While there are some breaking changes, it's pretty easy to migrate the old rules and the new approach provides a lot more flexibility.</p><p>The first thing that's changed is how the restricted routes are defined. The macro now wraps the handler itself instead of the whole route. So instead of doing</p><pre><code class="clojure">&#40;restricted GET &quot;/private&quot; &#91;&#93; handler&#41;
+</code></pre><p>you would now write:</p><pre><code class="clojure">&#40;GET &quot;/private&quot; &#91;&#93; &#40;restricted handler&#41;&#41;
+</code></pre><p>Access rules definitions in the <code>noir.util.middleware/app-handler</code> have been revamped as well. The rules can now be specified by passing either a function representing a single rule or a map representing a group of rules.</p><p>When specified as a function, the rule must accept a single parameter that is the request map. Such rules will implicitly redirect to the "/" URI.</p><p>The rule group map contains the following keys:</p><ul><li><code>:redirect</code> - the URI string or a function to specify where requests will be redirected to if rejected (optional defaults to "/")</li><li><code>:uri</code> - the URI for which the rules in the map will be activated (optional if none specified applies to all URIs)</li><li><code>:uris</code> - a vector of URI patterns for which the rules in the map will be activated (optional)</li><li><code>:rule</code> - a single rule function for the group</li><li><code>:rules</code> - a vector containing the rule functions associated with the specified <code>:redirect</code> and the <code>:uri</code></li><li><code>:on-fail</code> - alternative to <code>:redirect</code> allows providing a function that accepts a request and handles the failure case</li></ul><p>The <code>:rules</code> key can point to either a vector or a map. If the rules are a vector the default behavior is that every rule in the group must succeed. If rules are specified as a map, you can provide the resolution strategy using the <code>:any</code> and <code>:every</code> keys.</p><p>Let's take a look at an example of how this all works below:</p><pre><code class="clojure">&#40;def-restricted-routes
+
+&#40;defroutes app-routes
+ ;;restricted routes
+ &#40;GET &quot;/restricted&quot; &#91;&#93; &#40;restricted &quot;this page is restricted&quot;&#41;&#41;
+ &#40;GET &quot;/restricted1&quot; &#91;&#93; &#40;restricted &quot;this is another restricted page&quot;&#41;&#41;
+ &#40;GET &quot;/users/:id&quot; &#91;&#93; &#40;restricted &quot;howdy&quot;&#41;&#41;
+ &#40;GET &quot;/admin&quot; &#91;&#93; &#40;restricted &quot;admin route&quot;&#41;&#41;
+ &#40;GET &quot;/config&quot; &#91;&#93; &#40;restricted &quot;config route&quot;&#41;&#41;
+ &#40;GET &quot;/super-secret&quot; &#91;&#93; &#40;restricted &quot;secret route&quot;&#41;&#41;
+ ;;public routes
+ &#40;GET &quot;/denied1&quot; &#91;&#93; &quot;denied&quot;&#41;
+ &#40;GET &quot;/denied2&quot; &#91;&#93; &quot;denied differently&quot;&#41;&#41;
+
+&#40;def app 
+ &#40;middleware/app-handler 
+   &#91;app-routes&#93;
+   :access-rules 
+   &#91;&#40;fn &#91;req&#93; &#40;session/get :user&#41;&#41;
+
+    {:uri &quot;/restricted&quot;
+     :redirect &quot;/denied1&quot;
+     :rule &#40;fn &#91;req&#93; false&#41;}
+
+    {:redirect &#40;fn &#91;req&#93; 
+                 &#40;log/info &#40;str &quot;redirecting &quot; &#40;:uri req&#41;&#41;&#41;
+                 &quot;/denied2&quot;&#41;
+     :uri &quot;/users/&#42;&quot;
+     :rule &#40;fn &#91;req&#93; false&#41;}
+
+    {:uris &#91;&quot;/admin&#42;&quot; &quot;/config&#42;&quot;&#93;
+     :rules {:any &#91;&#40;fn &#91;req&#93; &#40;session/get :admin&#41;&#41;
+                   &#40;fn &#91;req&#93; &#40;session/get :root&#41;&#41;&#93;}}
+
+    {:on-fail &#40;fn &#91;req&#93; &quot;you tried to access the super secret page!&quot;&#41;
+     :uri &quot;/super-secret&#42;&quot;
+     :rules &#91;&#40;fn &#91;req&#93; &#40;session/get :admin&#41;&#41;
+             &#40;fn &#91;req&#93; &#40;session/get :root&#41;&#41;&#93;}
+
+    {:uri &quot;/super-secret&#42;&quot;
+     :rules {:every &#91;&#40;fn &#91;req&#93; &#40;session/get :admin&#41;&#41;
+                     &#40;fn &#91;req&#93; &#40;session/get :root&#41;&#41;&#93;
+             :any   &#91;&#40;fn &#91;req&#93; &#40;session/get :zeus&#41;&#41;
+                     &#40;fn &#91;req&#93; &#40;session/get :athena&#41;&#41;&#93;}}
+&#93;&#41;&#41;
+</code></pre><p>The first rule will be activated for any handler that's marked as restricted. This means that all of the restricted pages will redirect to <code>&quot;/&quot;</code> if there is no user in the session.</p><p>The second rule will only activate if the request URI matches <code>&quot;/restricted&quot;</code> and will be ignored for other URIs. The <code>&quot;/restricted&quot;</code> route will redirect to the <code>&quot;/denied1&quot;</code> URI.</p><p>The third rule will match any requests matching the <code>&quot;/users/&quot;</code> URI pattern. These requests will be redirected to the <code>&quot;/denied2&quot;</code> URI and the URI of the request will be logged.</p><p>The next rule group matches both the <code>&quot;/admin&#42;&quot;</code> and the <code>&quot;/config&#42;&quot;</code> patterns and required that either the <code>:admin</code> or the <code>:root</code> keys are set in the session in addition to the <code>:user</code> key specified by the global rule.</p><p>Next, we have a rule group that uses <code>:on-fail</code> function that can provide its own handler instead of doing a redirect. It requires that both  the <code>:admin</code> or the <code>:root</code> keys are set in the session.</p><p>Finally, we have a group that uses a mix of <code>:every</code> and <code>:any</code> keys to specify its rules.</p><p>The <code>access-rule</code> macro has been removed in favor of specifying rule groups directly in the handler. This makes it easier to see how all the rules are defined and what routes each set of rules affects.</p><p>With this new approach we can create independent rule groups for specific URI patterns as well as easily specify generic rules that affect all restricted handlers.</p><p>I found the new rule managing scheme to work better for my projects. I'd be interested on getting feedback whether it works for others as well and I'm always open to suggestions for improvements. :)</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/noir.html">noir</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2013-07-30-Introducing-Selmer.html">&laquo; Introducing Selmer</a>
+        
+        
+        <a class="right button" href="/posts/2013-05-25-what-s-new-in-lib-noir.html">what&#39;s new in lib-noir &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

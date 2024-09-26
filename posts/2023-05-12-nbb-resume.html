@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Making a Resume with Node.js Babashka (nbb)</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>May 12, 2023</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2023-05-12-nbb-resume.html">Making a Resume with Node.js Babashka (nbb)</a></h1>
+</div>
+<div>
+    
+    <p>I recently had to update my resume and decided that I might as well have some fun with it while I do it. One thing that I've always found frustrating using an editor like OpenOffice is that it conflates the tasks of formatting and editing content. I don't want to have to worry about look and feel when I'm thinking about the content of the resume, and vice versa.</p><p>The obvious solution is to create a template for how the resume should look, and then populate it with the relevant data. Of course, there are already off the shelf tools such as <a href='https://jsonresume.org/'>JSON Resume</a> that do this, but what fun is there in using an existing tool when you can build one that does exactly what you want. Let's take a look at what's involved in making a similar tool with Clojure and <a href='https://github.com/babashka/nbb'>nbb</a>.</p><p>I decided to create a Hiccup template that would represent the layout of the HTML document and then to put the contents of the resume in a separate EDN file. Then all I'd need to do would be to walk over the template, inject the data, and render HTML which could then be converted to a PDF document.</p><h3 id="specification">Specification</h3><p>Generally, I find it's helpful to start by defining what the API will look like first, and then figure out what the best way to implement it is. This way there is less of a chance that implementation details will bleed into the API. In this scenario the API will be the format of the EDN file and the Hiccup template.</p><p>The EDN is just a data structure that's used to organize the data in the resume. I based mine on the <a href='https://jsonresume.org/schema/'>schema</a> that JSON Resume uses. The schema contains sections such as <code>:basics</code>, <code>:work</code>, <code>:education</code>, and so on. For example, the <code>:basics</code> section might look as follows:</p><pre><code class="clojure">{:basics {:name &quot;John Doe&quot;
+          :label &quot;Programmer&quot;
+          :image &quot;profile.jpg&quot;
+          :email &quot;john@gmail.com&quot;          
+          :summary &quot;A summary of John Doe…&quot;}}
+</code></pre><p>This data then needs to be fed into the Hiccup template that might look like this:</p><pre><code class="clojure">&#91;:html
+ &#91;:body
+  &#91;:header#header
+   &#91;:div.container
+    &#91;:div.row 
+     &#91;:div.col-sm-9.col-sm-push-3
+      &#91;:h1 :data/basics.name&#93;
+      &#91;:h2 :data/basics.label&#93;&#93;&#93;&#93;&#93;
+  &#91;:page/image {:src   :data/basics.image
+                :width &quot;60px&quot;}&#93;
+  &#91;:div &#91;:strong &quot;Email&quot;&#93; &#91;:td &#91;:span.email :data/basics.email&#93;&#93;&#93;
+  &#91;:section#about.row
+   &#91;:aside.col-sm-3
+    &#91;:h3 &quot;About&quot;&#93;&#93;
+   &#91;:div.col-sm-9
+    &#91;:p :data/basics.summary&#93;&#93;&#93;&#93;&#93;
+</code></pre><p>I decided to use namespaced keys to specify the dynamic elements in the template. This provides a clean way to differentiate them from the static Hiccup tags and hint at the type of key. For example, keys namespaced with <code>data</code> indicate that they're paths that should be looked up within the EDN document. The <code>:data/basics.name</code> keyword translates into <code>&#40;get-in data &#91;:basics :name&#93;&#41;</code> when the template is parsed.</p><p>Another example is using <code>page</code> namespace to indicate a tag that needs to be processed in a special way. The <code>:page/image</code> tag above will create an <code>:img</code> tag with the image at the path specified using <code>:data/basics.image</code> injected as a base 64 string. This trick provides a flexible way to specify dynamic behaviors in the template.</p><p>Finally, I wanted to handle evaluation of forms in order to handle things like iteration within the template. In the snippet below, <code>for</code> macro is called on the data found under the <code>projects</code> key in order to create a list of projects:</p><pre><code class="clojure">&#91;:section#projects.row
+    &#91;:aside.col-sm-3
+     &#91;:h3 &quot;Projects&quot;&#93;&#93;
+    &#91;:div.col-sm-9
+     &#91;:div.row
+      &#40;for &#91;{:keys &#91;name summary url&#93;} :data/projects&#93;
+        &#91;:div.col-sm-12
+         &#91;:h4.strike-through
+          &#91;:span name&#93;&#93;
+         &#91;:div summary&#93;
+         &#91;:div
+          &#91;:a {:href url} url&#93;&#93;&#93;&#41;&#93;&#93;&#93;
+</code></pre><p>Examples above cover all the functionality I expect to need for making a nice looking resume. Let's take a look at what's involved in putting it all together.</p><h3 id="implementation">Implementation</h3><p>Conveniently, <code>nbb</code> provides support for starting up nREPL by running <code>nbb nrepl-server :port 1337</code>. This facilitates interactive development that Clojure developers know and love. First thing I decided to do after getting the REPL fired up was to make a little Hiccup parser borrowing the relevant bits from the original implementation:</p><pre><code class="clojure">&#40;defn normalize-body &#91;body&#93;
+  &#40;if &#40;coll? body&#41; &#40;apply str &#40;doall body&#41;&#41; &#40;str body&#41;&#41;&#41;
+
+&#40;defn as-str  
+  &#91;&amp; xs&#93;
+  &#40;apply str &#40;map normalize-body xs&#41;&#41;&#41;
+
+&#40;defn escape-html  
+  &#91;text&#93;
+  &#40;-&gt; &#40;as-str text&#41;
+      &#40;string/replace #&quot;&amp;&quot; &quot;&amp;amp;&quot;&#41;
+      &#40;string/replace #&quot;&lt;&quot; &quot;&amp;lt;&quot;&#41;
+      &#40;string/replace #&quot;&gt;&quot; &quot;&amp;gt;&quot;&#41;
+      &#40;string/replace #&quot;'&quot; &quot;&amp;apos;&quot;&#41;&#41;&#41;
+
+&#40;defn xml-attribute &#91;id value&#93;
+  &#40;str &quot; &quot; &#40;as-str &#40;name id&#41;&#41; &quot;=\&quot;&quot; &#40;escape-html value&#41; &quot;\&quot;&quot;&#41;&#41;
+
+&#40;defn render-attribute &#91;&#91;name value&#93;&#93;
+  &#40;cond
+    &#40;true? value&#41; &#40;xml-attribute name name&#41;
+    &#40;not value&#41; &quot;&quot;
+    :else &#40;xml-attribute name value&#41;&#41;&#41;
+
+&#40;defn render-attr-map &#91;attrs&#93;
+  &#40;apply str &#40;sort &#40;map render-attribute attrs&#41;&#41;&#41;&#41;
+
+&#40;defn merge-attributes &#91;{:keys &#91;id class&#93;} map-attrs&#93;
+  &#40;-&gt;&gt; map-attrs
+       &#40;merge &#40;when id {:id id}&#41;&#41;
+       &#40;merge-with #&#40;if %1 &#40;str %1 &quot; &quot; %2&#41; %2&#41; &#40;when class {:class class}&#41;&#41;&#41;&#41;
+
+&#40;defn normalize-element &#91;&#91;tag &amp; content&#93;&#93;
+  &#40;let &#91;re-tag    #&quot;&#40;&#91;&#94;\s\.#&#93;+&#41;&#40;?:#&#40;&#91;&#94;\s\.#&#93;+&#41;&#41;?&#40;?:\.&#40;&#91;&#94;\s#&#93;+&#41;&#41;?&quot;
+        &#91;&#95; tag id class&#93; &#40;re-matches re-tag &#40;as-str &#40;name tag&#41;&#41;&#41;
+        tag-attrs {:id    id
+                   :class &#40;when class &#40;string/replace class #&quot;\.&quot; &quot; &quot;&#41;&#41;}
+        map-attrs &#40;first content&#41;&#93;
+    &#40;if &#40;map? map-attrs&#41;
+      &#91;tag &#40;merge-attributes tag-attrs map-attrs&#41; &#40;next content&#41;&#93;
+      &#91;tag tag-attrs content&#93;&#41;&#41;&#41;
+
+&#40;defn render-element &#91;&#91;tag attrs &amp; content&#93;&#93;
+  &#40;str &quot;&lt;&quot; &#40;name tag&#41; &#40;render-attr-map attrs&#41; &quot;&gt;&quot; &#40;as-str &#40;flatten content&#41;&#41; &quot;&lt;/&quot; &#40;name tag&#41; &quot;&gt;&quot;&#41;&#41;
+
+&#40;defn render-hiccup &#91;hiccup&#93;
+  &#40;postwalk
+   &#40;fn &#91;node&#93;
+     &#40;if &#40;and &#40;not &#40;map-entry? node&#41;&#41; &#40;vector? node&#41;&#41;
+       &#40;-&gt; node normalize-element render-element&#41;
+       node&#41;&#41;
+   hiccup&#41;&#41;
+</code></pre><p>Next, I wrote a template parser that would walk the Hiccup template and inject relevant data into it:</p><pre><code class="clojure">&#40;def path-sep &#40;.-sep path&#41;&#41;
+
+&#40;defn image? &#91;node&#93;
+  &#40;and &#40;vector? node&#41; &#40;= :page/image &#40;first node&#41;&#41;&#41;&#41;
+
+&#40;defn css? &#91;node&#93;
+  &#40;and &#40;vector? node&#41; &#40;= :page/css &#40;first node&#41;&#41;&#41;&#41;
+
+&#40;defn data-node? &#91;node&#93;
+  &#40;and &#40;keyword? node&#41; &#40;= &quot;data&quot; &#40;namespace node&#41;&#41;&#41;&#41;
+
+&#40;defn eval-forms &#91;template&#93;
+  &#40;prewalk
+   &#40;fn &#91;node&#93;
+     &#40;if &#40;list? node&#41;
+       &#40;eval node&#41;
+       node&#41;&#41;
+   template&#41;&#41;
+
+&#40;defn slurp &#91;filename &amp; {:keys &#91;encoding&#93;}&#93;
+  &#40;.toString
+   &#40;if encoding
+     &#40;fs/readFileSync filename encoding&#41;
+     &#40;fs/readFileSync filename&#41;&#41;&#41;&#41;
+
+&#40;defn spit &#91;filename data &amp; {:keys &#91;encoding mode flag&#93;
+                             :or   {encoding &quot;utf8&quot;
+                                    mode     &quot;0o666&quot;
+                                    flag     &quot;w&quot;}}&#93;
+  &#40;let &#91;data &#40;if &#40;string? data&#41; data &#40;str data&#41;&#41;&#93;
+    &#40;fs/writeFileSync filename data encoding mode flag&#41;&#41;&#41;
+
+&#40;defn inject-css &#91;theme ref&#93;
+  &#91;:style
+   {:type &quot;text/css&quot;}
+   &#40;slurp &#40;str theme path-sep ref&#41;&#41;&#93;&#41;
+
+&#40;defn image-&gt;b64 &#91;file-path {:keys &#91;theme&#93;}&#93;
+  &#40;when file-path
+    &#40;let &#91;format    &#40;last &#40;string/split file-path #&quot;\.&quot;&#41;&#41;&#93;
+      &#40;str
+       &quot;data:image/&quot; format &quot;;base64, &quot;
+       &#40;-&gt; &#40;path/resolve &#40;str theme path-sep file-path&#41;&#41;
+           &#40;fs/readFileSync&#41;
+           &#40;.toString &quot;base64&quot;&#41;&#41;&#41;&#41;&#41;&#41;
+
+&#40;defn inject-image &#91;&#91;&#95; path&#93; opts&#93;
+  &#91;:img {:src &#40;image-&gt;b64 path opts&#41;}&#93;&#41;
+
+&#40;defn parse-path &#91;path&#93;
+  &#40;mapv keyword &#40;string/split path #&quot;\.&quot;&#41;&#41;&#41;
+
+&#40;defn parse-template &#91;{:keys &#91;theme template data&#93; :as opts}&#93;
+  &#40;eval-forms
+   &#40;postwalk
+    &#40;fn &#91;node&#93;
+      &#40;cond
+        &#40;css? node&#41;
+        &#40;map &#40;partial inject-css theme&#41; &#40;rest node&#41;&#41;
+        &#40;image? node&#41;
+        &#40;inject-image node opts&#41;
+        &#40;data-node? node&#41;
+        &#40;get-in data &#40;parse-path &#40;name node&#41;&#41;&#41;
+        :else node&#41;&#41;
+    template&#41;&#41;&#41;
+</code></pre><p>As you can see, <code>postwalk</code> is used to navigate the template. Each node is inspected and then handled using the appropriate function based on its type. After all the data is injected in the template, the result is passed to <code>eval-forms</code> to evaluate any code such as the <code>for</code> macro we saw above.</p><p>With these pieces above in place, I can now generate a nice looking HTML page with the resume content. The last interesting bit is to convert the resulting HTML into a PDF document. The easiest way I found was to use puppeteer in headless mode to render the page and write it out as a PDF:</p><pre><code class="clojure">&#40;defn write-pdf &#91;{:keys &#91;browser pending target pdf-opts&#93;} html&#93;
+  &#40;-&gt; browser
+      &#40;.then #&#40;.newPage %&#41;&#41;
+      &#40;.then
+       &#40;fn &#91;page &#95;&#93; 
+         &#40;-&gt; &#40;.setContent page html&#41;
+             &#40;.then #&#40;.emulateMediaType page &quot;screen&quot;&#41;&#41;
+             &#40;.then &#40;fn &#91;&#95; &#95;&#93;
+                      &#40;-&gt; &#40;.pdf page &#40;clj-&gt;js &#40;merge {:path target} pdf-opts&#41;&#41;&#41;
+                          &#40;.then
+                           &#40;fn &#91;&#95;&#93; &#40;reset! pending false&#41;&#41;&#41;
+                          &#40;.catch #&#40;js/console.error &#40;.-message %&#41;&#41;&#41;&#41;&#41;&#41;
+             &#40;.catch #&#40;js/console.error &#40;.-message %&#41;&#41;&#41;&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>The entire code for this ended up weighing in at around 200 lines, and I'm pretty happy with the result. Being able to solve these kinds of tasks in a few lines of code is what makes Clojure such a productive language for me. Incidentally, <a href='https://github.com/yogthos/resume/blob/build/resume.pdf'>here's</a> a link to my resume, and I am currently open to collaboration or employment opportunities.</p><p>The entire project is available <a href='https://github.com/yogthos/resume'>here</a> for reference.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/babashka.html">babashka</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2023-06-10-disagreement.html">&laquo; Role of Debate in Problem Solving</a>
+        
+        
+        <a class="right button" href="/posts/2022-12-18-StructuringClojureApplications.html">Structuring Clojure Applications &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

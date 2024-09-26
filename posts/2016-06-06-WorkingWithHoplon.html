@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Consider Hoplon</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 6, 2016</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2016-06-06-WorkingWithHoplon.html">Consider Hoplon</a></h1>
+</div>
+<div>
+    
+    <p>A <a href='https://dl.dropboxusercontent.com/u/12379861/micha_on_hoplon_vs_react/index.html'>recent discussion of Hoplon vs React</a> has been making rounds. While I don't necessarily agree that using React is as difficult as Micha makes it sound, I do think that Hoplon provides an interesting alternative to React that has a number of benefits.</p><p>The main selling point for Hoplon is that it's simple. Hoplon doesn't use a virtual DOM, and thus it doesn't have a component lifecycle. One major benefit of this approach is in making it natural to use with existing Js libraries that expect to work with the browser DOM.</p><p>An example of this would be something like using a <a href='https://github.com/cljsjs/packages/tree/master/jquery-daterange-picker'>jQuery date picker widget</a>. With Reagent, we'd have to use the lifecycle hooks, and make sure that the component is mounted in the browser DOM before the library is called. Conversely, we may need to consider the case of the component updating separately. While, it's not difficult to reason about in most cases, it does introduce some mental overhead. Using the same date picker in Hoplon can be seen <a href='https://github.com/hoplon/jquery.daterangepicker/blob/master/src/hoplon/jquery/daterangepicker.cljs.hl'>here</a>.</p><p>However, while I found the idea of Hoplon interesting, I've never gave it a serious look due to the fact that it looked to be a monolithic stack. When you read Hoplon documentation, it's easy to get the impression that it has to be used with Boot, you have to use special <code>.hl</code> files to define ClojureScript, and you're expected to work with its server implementation.</p><p>This all can be appealing if you're looking for a full-stack solution where decisions have been made for you, but it's a bit of a deterrent for somebody who already has a preferred workflow and uses other tools such as Figwheel and Leiningen.</p><p>After having a discussion with Micha <a href='https://www.reddit.com/r/Clojure/comments/4mi64q/hoplon_vs_react/'>on Reddit</a>, I realized that this wasn't the case and decided to give Hoplon another shot.</p><h3 id="the&#95;setup">The Setup</h3><p>I used the <a href='https://github.com/reagent-project/reagent-template'>reagent-template</a> that I maintain as the base for he project by running the following command in the terminal:</p><pre><code>lein new reagent hoplon-app
+</code></pre><p>Next, I updated the dependencies in <code>project.clj</code> to remove the references to Reagent, and add the Hoplon dependency instead:</p><pre><code class="clojure">  :dependencies &#91;&#91;org.clojure/clojure &quot;1.8.0&quot;&#93;
+                 &#91;ring-server &quot;0.4.0&quot;&#93;
+                 &#91;hoplon &quot;6.0.0-alpha15&quot;&#93;
+                 &#91;ring &quot;1.4.0&quot;&#93;
+                 &#91;ring/ring-defaults &quot;0.2.0&quot;&#93;
+                 &#91;compojure &quot;1.5.0&quot;&#93;
+                 &#91;hiccup &quot;1.0.5&quot;&#93;
+                 &#91;yogthos/config &quot;0.8&quot;&#93;
+                 &#91;org.clojure/clojurescript &quot;1.9.36&quot;
+                  :scope &quot;provided&quot;&#93;
+                 &#91;secretary &quot;1.2.3&quot;&#93;&#93;
+</code></pre><p>That's all the changes I had to do in order to switch to using Hoplon in the project.</p><p>The next step was to open up the ClojureScript source in the <code>src/cljs/hoplon&#95;app/core.cljs</code> file and replace the references to Reagent with Hoplon:</p><pre><code class="clojure">&#40;ns hoplon-app.core
+  &#40;:require
+    &#91;hoplon.core
+     :as h
+     :include-macros true&#93;
+    &#91;javelin.core
+     :refer &#91;cell&#93;
+     :refer-macros &#91;cell= dosync&#93;&#93;&#41;&#41;
+
+&#40;h/defelem home &#91;&#93;
+  &#40;h/div
+    :id &quot;app&quot;
+    &#40;h/h3 &quot;Welcome to Hoplon&quot;&#41;&#41;&#41;
+
+&#40;defn mount-root &#91;&#93;
+  &#40;js/jQuery #&#40;.replaceWith &#40;js/jQuery &quot;#app&quot;&#41; &#40;home&#41;&#41;&#41;&#41;
+
+&#40;defn init! &#91;&#93;
+  &#40;mount-root&#41;&#41;    
+</code></pre><p>At this point I could start Figwheel and see the page load in the browser by running:</p><pre><code>lein figwheel
+</code></pre><p>As you can see the main difference so far is that we mount the Hoplon DOM using plain jQuery call, and the elements are defined using Hoplon helper macros.</p><p>Let's see how we can add a bit of state to our Hoplon app. Hoplon state management is handled by the <a href='https://github.com/hoplon/javelin'>Javelin</a> library. It uses a similar concept to the Reagent atom where we can define cells, and then whenever the state of the cells changes any elements that are looking at its value will be notified.</p><p>We'll create a simple to-do list to illustrate how this works. First, we need to create a cell to hold the data. We'll add the following code at the top of the namespace to do that:</p><pre><code class="clojure">&#40;def todo-items &#40;cell &#91;&quot;foo&quot;&#93;&#41;&#41;
+</code></pre><p>The above code will define a Javelin cell that contains a vector with the string <code>&quot;foo&quot;</code> in it. We can now render the value of the cell as follows the the <code>home</code> element:</p><pre><code class="clojure">&#40;h/defelem home &#91;&#93;
+  &#40;h/div
+    :id &quot;app&quot;
+    &#40;h/h3 &quot;Welcome to Hoplon&quot;&#41;
+    &#40;h/p &#40;cell= todo-items&#41;&#41;&#41;&#41;
+</code></pre><p>The <code>cell=</code> call is reactive and whenever the state of the cell changes the paragraph will be repainted to with its current value. We can now add some code to add new items to the to-do list:</p><pre><code class="clojure">&#40;h/defelem add-todo &#91;&#93;
+  &#40;let &#91;new-item &#40;cell &quot;&quot;&#41;&#93;
+    &#40;h/div
+      &#40;h/input :type &quot;text&quot;
+               :value new-item
+               :change #&#40;reset! new-item @%&#41;&#41;
+      &#40;h/button :click #&#40;dosync
+                          &#40;swap! todo-items conj @new-item&#41;
+                          &#40;reset! new-item &quot;&quot;&#41;&#41;
+                &#40;h/text &quot;Add #&#126;{&#40;inc &#40;count todo-items&#41;&#41;}&quot;&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>The above code should be fairly familiar to anybody who's used Reagent. We define a local state in a <code>let</code> binding and create a <code>div</code> that contains an <code>input</code> and a <code>button</code>. The <code>input</code> displays the value of the <code>new-item</code> cell and updates it in its <code>:change</code> event. Meanwhile, the button will swap the <code>todo-items</code> cell and add the value of the new item, then reset it to an empty string.</p><p>Notice that the button text displays the current item count. This is accomplished by Hoplon <code>#&#126;</code> helper that allows us to easily display cell values within strings.</p><p>We should now be able to update our <code>home</code> element as follows to have the <code>add-todo</code> component show up on the page:</p><pre><code class="clojure">&#40;h/defelem home &#91;&#93;
+  &#40;h/div
+    :id &quot;app&quot;
+    &#40;h/h3 &quot;Welcome to Hoplon&quot;&#41;
+    &#40;h/p &#40;cell= todo-items&#41;&#41;
+    &#40;add-todo&#41;&#41;&#41;
+</code></pre><p>When we add to-do items, they should be showing up in the list. So far everything looks nearly identical to working with Reagent.</p><p>Now, let's update the items to be rendered in the list a bit nicer. We'll write the following element to render the list:</p><pre><code class="clojure">&#40;h/defelem todo-list &#91;{:keys &#91;title&#93;}&#93;
+  &#40;h/div
+      &#40;h/h4 &#40;or title &quot;TODO&quot;&#41;&#41;
+      &#40;h/ul
+        &#40;h/for-tpl &#91;todo todo-items&#93;
+          &#40;h/li todo&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>The element uses the Hoplon <code>for-tpl</code> macro to run through the elements in the list. The macro is used to map dynamically sized collections to DOM nodes. With the element in place, we can update our <code>home</code> element to display a nice HTML list:</p><pre><code class="clojure">&#40;h/defelem home &#91;&#93;
+  &#40;h/div
+    :id &quot;app&quot;
+    &#40;h/h3 &quot;Welcome to Hoplon&quot;&#41;
+    &#40;todo-list {:title &quot;TODO List&quot;}&#41;
+    &#40;add-todo&#41;&#41;&#41;
+</code></pre><p>We should now see a list of items displayed that will get updated as we add items using the <code>add-todo</code> element. That's all there's to it. While it's a trivial app, I hope it gives you a taste of what working with Hoplon is like. The full source for the project can be seen <a href='https://github.com/yogthos/hoplon-app'>here</a>.</p><h3 id="conclusion">Conclusion</h3><p>I was very pleasantly surprised by how easy it was to use Hoplon in a project setup with Leiningen and Figwheel. The semantics that Hoplon provides are very similar to Reagent, and are arguably simpler since there's no need to worry about the component lifecycle.</p><p>The one aspect of Reagent that I prefer is that the UI is defined declaratively using the Hiccup syntax. This makes it possible to manipulate UI elements as plain data. However, I don't think that using functions to define the UI is a deal breaker.</p><p>Overall, I think that Hoplon is often overlooked when ClojureScript UI libraries are considered, and this is very unfortunate. It's a solid library that provides clean and simple semantics to the user.</p><p>If, like me, you've been avoiding Hoplon because you were under the impression that you have to use it in a specific way, then I strongly urge you to give it another look.</p><h4 id="update">Update</h4><p>Luminus now provides a Hoplon profile using the <code>+hoplon</code> flag.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/hoplon.html">hoplon</a>
+    
+    <a href="/clojurescript.html">clojurescript</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2016-07-15-JavaSSLWorkaround.html">&laquo; Working around the Java SSL trust store</a>
+        
+        
+        <a class="right button" href="/posts/2016-05-20-ExpandableWidgetsInReagent.html">Writing an expandable widget with Reagent &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>

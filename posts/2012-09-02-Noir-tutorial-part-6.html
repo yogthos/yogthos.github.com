@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"><![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"><![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"><![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"><!--<![endif]-->
+<head>
+    <!-- Website Template designed by www.downloadwebsitetemplates.co.uk -->
+    <!-- Modified to fit Cryogen.-->
+    <meta charset="UTF-8">
+    <a rel="me" href="https://mastodon.social/@yogthos"></a>
+    <a rel="me" href="https://mas.to/@yogthos">Mastodon</a>
+    <a rel="me" href="https://social.marxist.network/@yogthos">Mastodon</a>
+    <title>(iterate think thoughts): Noir tutorial - part 6</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72.png">
+    <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57.png">
+    <link rel="shortcut icon" href="images/ico/favicon.png">
+    <!--[if IE]><![endif]-->
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    
+    <!--
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/tomorrow-night-eighties.min.css">
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body>
+
+<div id="left">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</sapn><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span> 
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <div id="menucont" class="bodycontainer clearfix">
+        <div class="menutitle">
+            <p><span class="fa fa-reorder"></span><strong>Menu</strong></p>
+        </div>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="right" class="clearfix">
+    
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>September 2, 2012</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2012-09-02-Noir-tutorial-part-6.html">Noir tutorial - part 6</a></h1>
+</div>
+<div>
+    
+    <p>In the <a href='https://www.yogthos.net/blog/22'>first part</a> of the tutorial we've already seen how to run our application in standalone mode.  Here we will look at what we need to do to deploy it on an application server such as <a href='http://glassfish.java.net/'>Glassfish</a>, <a href='http://tomcat.apache.org/'>Tomcat</a>, <a href='http://www.jboss.org/'>jBoss</a>, or <a href='http://immutant.org/'>Immutant</a> which is a modification of jBoss geared specifically towards Clojure.</p><p>There are numerous reasons as to why you might want to do this. For example, an application server lets you run multiple applications at the same time. Another advantage is that the application server can take care of the configuration details, such as handling database connections. </p><p>When building real world applications, you will likely have separate dev/staging/prod configurations. Instead of having different builds for our application, we can instead configure our application servers appropriately for each environment. Then we can have a single build process which is much less error prone in my opinion. We can also configure CI, such as <a href='http://jenkins-ci.org/'>Jenkins</a> to build our application and automatically deploy it to the server ensuring that we always have the latest code running.</p><p>Finally, if you plan on using a hosting provider, you may end up deploying on a shared application server as opposed to being able to run your application standalone. </p><p>Let's go over the prerequisites for building our application into a WAR and deploying it to a server. You will need to setup an application server of your choice for this section. I will be using Tomcat, but the steps will be similar for other servers as well. If you will be using Tomcat, then download the <a href='http://apache.mirror.nexicom.net/tomcat/tomcat-7/v7.0.29/bin/apache-tomcat-7.0.29.zip'>latest version</a>. To start up the server you simply unpack the archive, navigate to the resulting directory, and run:<pre><code class="bash">chmod +x bin/catalina.sh
+bin/catalina.sh start
+Using CATALINA&#95;BASE:   apache-tomcat-7.0.29
+Using CATALINA&#95;HOME:   apache-tomcat-7.0.29
+Using CATALINA&#95;TMPDIR: apache-tomcat-7.0.29/temp
+Using JRE&#95;HOME:        /Library/Java/Home
+Using CLASSPATH:       apache-tomcat-7.0.29/bin/bootstrap.jar:apache-tomcat-7.0.29/bin/tomcat-juli.jar
+</code></pre></p><p>Your Tomcat should now be up and running and you can test it by navigating to <a href='http://localhost:8080'>localhost:8080</a>: <center><img src="/files/tomcat.png" alt="tomcat" /></center> With the application server running, let's prepare our application for deployment. First, we must ensure that the <code>server</code> namespace requires all the namespaces in our views package, and has the <code>gen-class</code> directive specified:<pre><code class="clojure">&#40;ns my-website.server
+  &#40;:require &#91;noir.server :as server&#93;
+            &#91;my-website.views 
+             common
+             files
+             log-stats
+             users
+             welcome&#93;&#41;     
+  &#40;:gen-class&#41;&#41;
+</code></pre></p><p>This will ensure that the server and the views are compiled during the build step, which is needed for them to be picked up by the application server when the application is deployed. Next, we will change <code>server/load-views</code> call to <code>server/load-vews-ns</code>:<pre><code class="clojure">&#40;server/load-views-ns 'my-website.views&#41;
+</code></pre></p><p>If you used Leiningen 2 to create the project template, then <code>load-views-ns</code> should already be set correctly.</p><p>Finally, we have to add a handler which will be used instead of the <code>-main</code> when running on the application server:<pre><code class="clojure">&#40;def base-handler 
+  &#40;server/gen-handler 
+    {:mode :prod, 
+     :ns 'my-website 
+     :session-cookie-attrs {:max-age 1800000}}&#41;&#41;
+</code></pre></p><p>It is possible to chain different handlers together. In our case, we will need a wrapper for our handler to prepend the servlet context to all the requests coming to our servlet. This is a workaround for a <a href='https://github.com/noir-clojure/noir/issues/120'>bug</a> in the current version of Noir, which ignores it. Without this fix none of the redirects will work correctly as they will be routed to the base application server URL instead.</p><p>Each wrapper is a function which accepts the current handler, and returns a function which accepts a request, does something to it, and then return the result of calling  the handler on it. The result is in turn a handler itself, so we can chain as many wrappers together as we like. In our case we will override the <code>resolve-url</code> function in <code>noir.options</code> with one of our own making:<pre><code class="clojure">&#40;defn fix-base-url &#91;handler&#93;
+  &#40;fn &#91;request&#93;    
+    &#40;with-redefs &#91;noir.options/resolve-url 
+                  &#40;fn &#91;url&#93;                    
+                    ;prepend context to the relative URLs
+                    &#40;if &#40;.contains url &quot;://&quot;&#41; 
+                      url &#40;str &#40;:context request&#41; url&#41;&#41;&#41;&#93;
+      &#40;handler request&#41;&#41;&#41;&#41;
+</code></pre></p><p>Above, we will check that the URL contains "://", if not then we treat it as a local URL and prepend the servlet context to it. Now we have to hook it up with our initial handler to produce the final request handler for our servlet:<pre><code class="clojure">&#40;def handler &#40;-&gt; base-handler fix-base-url&#41;&#41;
+</code></pre></p><p>Now that we've created our handler, we need to point our <code>project.clj</code> to it:<pre><code class="clojure">&#40;defproject my-website &quot;0.1.0-SNAPSHOT&quot;
+            :description &quot;my Noir website&quot;
+            :dependencies &#91;&#91;org.clojure/clojure &quot;1.4.0&quot;&#93;
+                           &#91;noir &quot;1.3.0-beta3&quot;&#93;
+                           &#91;org.clojure/java.jdbc &quot;0.2.3&quot;&#93;
+                           &#91;postgresql/postgresql &quot;9.1-901.jdbc4&quot;&#93;&#93;
+            :dev-dependencies &#91;&#91;lein-ring &quot;0.7.3&quot;&#93;&#93;
+            :ring {:handler my-website.server/handler}
+            :main my-website.server&#41;
+</code></pre></p><p>We've also added <code>lein-ring</code> plugin to our <code>dev-dependencies</code>, this is required for generating the WAR artifact from our build. Under the <code>:ring</code> key we set the <code>:handler</code> to the one we defined above.</p><p>Let's test that our project builds correctly and produces a working WAR by running the following commands from the temrinal:<pre><code class="bash">lein deps
+Copying 29 files to Noir-tutorial/lib
+&#91;INFO&#93; snapshot thneed:thneed:1.0.0-SNAPSHOT: checking for updates from clojars
+&#91;INFO&#93; snapshot thneed:thneed:1.0.0-SNAPSHOT: checking for updates from central
+Copying 5 files to Noir-tutorial/lib/dev
+
+lein ring uberwar
+Compiling my-website.server
+Compilation succeeded.
+Created Noir-tutorial/my-website-0.1.0-SNAPSHOT-standalone.war
+</code></pre></p><p>If we have our application server running, then we should be able to simply drop this WAR in its deployment folder and the server will take care of the rest. If we're using Tomcat, then we have to copy it to the <code>webapps</code> folder:<pre><code class="bash">cp my-website-0.1.0-SNAPSHOT-standalone.war ../apache-tomcat-7/webapps/my-website.war
+</code></pre></p><p>Make sure to replace the <code>../apache-tomcat-7</code> above with the location of your Tomcat server. We can now take a look at our server log and see that the application was deployed successfully:<pre><code class="bash">tail -f logs/catalina.out
+...
+INFO: Deploying web application archive apache-tomcat-7.0.29/webapps/my-website.war
+</code></pre></p><p>Now let's navigate to <a href='http://localhost:8080/my-website'>localhost:8080/my-website</a> and we should see our application running: <center><img src="/files/website-on-tomcat.png" alt="website" /></center></p><p>One last thing to note is that any Ajax calls in our pages will have to use the servlet context to be resolved correctly. A workaround for this issue is to use <code>noir.request/ring-request</code> to check if a context is present and set it as a hidden field on the page:<pre><code class="clojure">&#40;ns my-website.views.log-stats
+  &#40;:require &#91;my-website.views.common :as common&#93;
+            &#91;noir.request :as request&#93;
+            &#91;noir.response :as response&#93;&#41;
+  &#40;:use clojure.java.io hiccup.page hiccup.form noir.core&#41;
+  &#40;:import java.text.SimpleDateFormat&#41;&#41;
+
+&#40;defpage &quot;/access-chart&quot; &#91;&#93;
+  &#40;common/basic-layout
+    &#40;include-js &quot;/js/site.js&quot;&#41;
+    &#40;hidden-field &quot;context&quot; &#40;:context &#40;request/ring-request&#41;&#41;&#41;
+    &#91;:div#hits-by-time &quot;loading...&quot;&#93;&#41;&#41;
+</code></pre></p><p>Then we can check this value and prepend it to the URL when making our Ajax query:<pre><code class="javascript">$&#40;document&#41;.ready&#40;function&#40;&#41;{	
+    var context = $&#40;'#context'&#41;.val&#40;&#41;;
+    var url = '/get-logs';
+    if &#40;context&#41; url = context + url;
+    var options = {xaxis: { mode: &quot;time&quot;, 
+                            minTickSize: &#91;1, &quot;minute&quot;&#93;}};
+	$.post&#40;url, function&#40;data&#41;{
+	    $.plot&#40;$&#40;&quot;#hits-by-time&quot;&#41;, &#91;data&#93;, options&#41;;
+	    }&#41;;		
+}&#41;;
+</code></pre></p><p>As usual, the complete code for this section is available <a href='https://github.com/yogthos/Noir-tutorial/tree/e5964216fd009239d1494c7cfcb7888f4f6b374d'>here</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/> 
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/noir.html">noir</a>
+    
+</div>
+
+<br/>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2012-09-03-Noir-tutorial-part-7.html">&laquo; Noir tutorial - part 7</a>
+        
+        
+        <a class="right button" href="/posts/2012-09-01-Noir-tutorial-part-5.html">Noir tutorial - part 5 &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+<hr/>
+<div id="footercont" class="clearfix">Copyright &copy; 2024 Dmitri Sotnikov
+    <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+
+
+</body>
+</html>
