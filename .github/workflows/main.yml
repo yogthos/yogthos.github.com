@@ -37,10 +37,7 @@ jobs:
         with:
           lein: 2.9.1
       - name: Build site
-        run: lein run
-      #  uses: oxr463/setup-leiningen@0.0.1
-      #  with:
-      #    exec: lein run      
+        run: lein run      
       - name: Deploy
         uses: s0/git-publish-subdir-action@develop
         env:
