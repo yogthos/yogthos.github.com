@@ -19,7 +19,8 @@
                         "CNAME"
                         "files"
                         "static/ClojureDistilled.html"
-                        "static/reagent-forms-example.html"]
+                        "static/reagent-forms-example.html"
+                        "static/pixel-mosaic.html"]
  :keep-files           [".git"]
  :disqus?              false
  :disqus-shortname     ""
