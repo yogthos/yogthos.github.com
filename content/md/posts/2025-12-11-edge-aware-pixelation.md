@@ -121,10 +121,8 @@ Here we can use a blending strategy. For smooth regions, we use the average colo
 
 Here we can see the two methods side by side:
 <table border="0">
-  <tr><th>Naive</th><th>Edge detection</th></tr>
-  <tr>
-      <td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td><td>![Edge detected pixelation](/img/pixelation/pixelated-edges.png)</td>
-  </tr>
+<tr><th>Naive</th><th>Edge detection</th></tr>
+<tr><td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td><td>![Edge detected pixelation](/img/pixelation/pixelated-edges.png)</td></tr>
 </table>
 
 
