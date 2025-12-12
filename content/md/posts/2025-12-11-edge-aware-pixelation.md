@@ -117,9 +117,8 @@ for (each cell in grid) {
 }
 ```
 
-Here we can use a blending strategy. For smooth regions, we use the average color for natural blending. For edge regions, we can blend between average and median based on the desired sharpness. This lets us tune the aesthetic from soft, blended edges to crisp, high-contrast ones.
+Here we can use a blending strategy. For smooth regions, we use the average color for natural blending. For edge regions, we can blend between average and median based on the desired sharpness. This lets us tune the aesthetic from soft, blended edges to crisp, high-contrast ones. Looking at the two methods side by side, we can see how much smoother the resulting image is:
 
-Here we can see the two methods side by side:
 <table border="0">
 <tr><th>Naive</th><th>Edge detection</th></tr>
 <tr><td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td><td>![Edge detected pixelation](/img/pixelation/pixelated-edges.png)</td></tr>
