@@ -64,14 +64,9 @@ Next, we start with a regular grid matching the target pixel size.
 const grid = createUniformGrid(width, height, pixelSize);
 ```
 
-Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around. Here we can see the two methods side by side:
+Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around.
 
-<table border="0">
-  <tr><th>Naive</th><th>Edge detection</th></tr>
-  <tr><td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td>
-      <td>![Initial grid](/img/pixelation/grid.png)</td>
-  </tr>
-</table>
+![Initial grid](/img/pixelation/grid.png)
 
 #### 3\. Grid Optimization
 
@@ -124,7 +119,15 @@ for (each cell in grid) {
 
 Here we can use a blending strategy. For smooth regions, we use the average color for natural blending. For edge regions, we can blend between average and median based on the desired sharpness. This lets us tune the aesthetic from soft, blended edges to crisp, high-contrast ones.
 
-![Edge detected pixelation](/img/pixelation/pixelated-edges.png)
+Here we can see the two methods side by side:
+<table border="0">
+  <tr><th>Naive</th><th>Edge detection</th></tr>
+  <tr><td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td>
+      <td>![Edge detected pixelation](/img/pixelation/pixelated-edges.png)</td>
+  </tr>
+</table>
+
+
 
 ### Discussion
 
