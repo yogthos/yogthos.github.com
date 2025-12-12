@@ -1,4 +1,4 @@
-# Edge-Aware Pixelation for Better Pixel Art
+{:title "Edge-Aware Pixelation for Better Pixel Art" :layout :post, :tags ["programming" "javascript" "graphics"]}
 
 Pixelation is everywhere these days, from retro game aesthetics to modern design trends. But if you've ever tried to create pixel art from a photograph, you've probably noticed that the results often look a bit off. Edges get jagged, important features get distorted, and the whole image tends to lose its character.
 
