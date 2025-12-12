@@ -119,7 +119,7 @@ for (each cell in grid) {
 
 Here we can use a blending strategy. For smooth regions, we use the average color for natural blending. For edge regions, we can blend between average and median based on the desired sharpness. This lets us tune the aesthetic from soft, blended edges to crisp, high-contrast ones.
 
-![Edge detected pixelation](/img/pixelation/optimized-grid.png)
+![Edge detected pixelation](/img/pixelation/pixelated-edges.png)
 
 ### Discussion
 
