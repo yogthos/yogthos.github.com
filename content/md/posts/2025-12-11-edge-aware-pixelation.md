@@ -27,7 +27,7 @@ const blockColor = median(colorsInBlock);
 
 This avoids some of the blurring, but it still suffers from the same fixed grid issue. It ignores the image structure and can create harsh transitions between blocks.
 
-Basically, all these methods force a uniform grid onto the image without considering its content. The result is usually pixel blocks that cut across important features. For example, if we use the following image as the input.
+Basically, all these methods force a uniform grid onto the image without considering its content. The result is usually pixel blocks that cut across important features. For example, if we use the following [image from wikimedia](https://commons.wikimedia.org/wiki/File:CANADAMIKE.jpg) as the input.
 
 ![stock portrait](/img/pixelation/CANADAMIKE.jpg)
 
