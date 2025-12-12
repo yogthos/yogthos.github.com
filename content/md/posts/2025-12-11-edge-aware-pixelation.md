@@ -66,7 +66,7 @@ const grid = createUniformGrid(width, height, pixelSize);
 
 Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around.
 
-![Initial grid](/img/pixelation/edges.png)
+![Initial grid](/img/pixelation/grid.png)
 
 #### 3\. Grid Optimization
 
