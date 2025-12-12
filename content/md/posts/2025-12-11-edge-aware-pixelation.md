@@ -66,7 +66,7 @@ const grid = createUniformGrid(width, height, pixelSize);
 
 Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around. Here we can see the two methods side by side:
 
-<table>
+<table border="0">
   <tr><th>Naive</th><th>Edge detection</th></tr>
   <tr><td>![Naive pixelation](/img/pixelation/pixelated-naive.png)</td>
       <td>![Initial grid](/img/pixelation/grid.png)</td>
