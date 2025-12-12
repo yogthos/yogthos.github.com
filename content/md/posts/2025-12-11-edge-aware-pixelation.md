@@ -31,7 +31,7 @@ Basically, all these methods force a uniform grid onto the image without conside
 
 ![stock portrait](/img/pixelation/CANADAMIKE.jpg)
 
-The result ends up looking something like the following when using a naive pixelation algorithm.
+The result ends up looking something like the following when using a naive pixelation algorithm:
 
 ![Naive pixelation](/img/pixelation/pixelated-naive.png)
 
