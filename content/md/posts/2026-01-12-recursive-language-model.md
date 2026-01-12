@@ -14,15 +14,19 @@ Allowing an LLM to write and run code directly on your system would obviously be
 
 The process works as follows:
 
-1. The document is loaded into a secure, isolated Node.js environment as a read-only `context` variable.
-2. The model is given exploration tools: `text_stats()`, `fuzzy_search()`, and `slice()`.
-3. The Loop:
-  * The model writes TypeScript to probe the text.
-  * The Sandbox executes it and returns the output.
-  * The model reads the result and refines its next step.
-4. The loop iterates until the model has enough proven data to answer `FINAL("...")`.
+<ol>
+<li>The document is loaded into a secure, isolated Node.js environment as a read-only `context` variable.</li>
+<li>The model is given exploration tools: `text_stats()`, `fuzzy_search()`, and `slice()`.</li>
+<li>The Loop:
+<ul>
+<li>The model writes TypeScript to probe the text.</li>
+<li>The Sandbox executes it and returns the output.</li>
+<li>The model reads the result and refines its next step.</li>
+</ul>
+<li>The loop iterates until the model has enough proven data to answer `FINAL("...")`.</li>
+</ol>
 
-<img src="/img/rlm/rlm.jpg" alt="RLM execution model" width="400" />
+<img src="/img/rlm/rlm.jpg" alt="RLM execution model" width="600" />
 
 ---
 
