@@ -22,6 +22,7 @@ The process works as follows:
   * The model reads the result and refines its next step.
 4. The loop iterates until the model has enough proven data to answer `FINAL("...")`.
 
+![stock portrait](/img/rlm/rlm.jpg)
 ---
 
 The system can work entirely locally using something like Ollama with Qwen-Coder, or with hosted models like DeepSeek, which are much smarter by default. It also works as an MCP that you can plug in and let your agent use to solve problems.
