@@ -17,12 +17,12 @@ The process works as follows:
 1. The document is loaded into a secure, isolated Node.js environment as a read-only `context` variable.
 2. The model is given exploration tools: `text_stats()`, `fuzzy_search()`, and `slice()`.
 3. The Loop:
-
-* The model writes TypeScript to probe the text.
-* The Sandbox executes it and returns the output.
-* The model reads the result and refines its next step.
-
+  * The model writes TypeScript to probe the text.
+  * The Sandbox executes it and returns the output.
+  * The model reads the result and refines its next step.
 4. The loop iterates until the model has enough proven data to answer `FINAL("...")`.
+
+---
 
 The system can work entirely locally using something like Ollama with Qwen-Coder, or with hosted models like DeepSeek, which are much smarter by default. It also works as an MCP that you can plug in and let your agent use to solve problems.
 
