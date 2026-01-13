@@ -84,6 +84,14 @@ The key difference is that the traditional approach asks the model "what does th
 
 As with all things, there is a trade-off here: the RLM approach is slower since it takes multiple turns and can generate more tokens as a result. However, if the document you're working on is itself large, then you will actually save context tokens by not loading it directly.
 
+#### MCP Integration
+
+The project also [includes an MCP](https://www.npmjs.com/package/matryoshka-rlm) (Model Context Protocol) server, making it available as a tool for coding agents like [Crush](https://github.com/charmbracelet/crush). Once configured, you can ask the agent to analyze documents that would otherwise exceed its context window or require precise data extraction.
+
+The server exposes an `analyze_document` tool that takes a query and file path. The tool can then use the RLM approach to explore documents by writing code, executing it in the sandbox, and iterating until it finds the answer.
+
+This creates an interesting dynamic where you agent writes the high-level query, the RLM's backing model (which can be a local Ollama instance) does the iterative code exploration, and the verified results come back to your agent. The grounding problem is solved at the tool level, so the agent can trust the results it receives.
+
 ---
 
 *The implementation is available at [https://github.com/yogthos/Matryoshka](https://github.com/yogthos/Matryoshka).*
