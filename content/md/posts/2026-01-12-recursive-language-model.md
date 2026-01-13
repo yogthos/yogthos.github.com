@@ -86,6 +86,8 @@ As with all things, there is a trade-off here: the RLM approach is slower since 
 
 #### MCP Integration
 
+---
+
 The project also [includes an MCP](https://www.npmjs.com/package/matryoshka-rlm) (Model Context Protocol) server, making it available as a tool for coding agents like [Crush](https://github.com/charmbracelet/crush). Once configured, you can ask the agent to analyze documents that would otherwise exceed its context window or require precise data extraction.
 
 The server exposes an `analyze_document` tool that takes a query and file path. The tool can then use the RLM approach to explore documents by writing code, executing it in the sandbox, and iterating until it finds the answer.
