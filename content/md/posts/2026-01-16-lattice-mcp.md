@@ -312,24 +312,81 @@ Reading `web.py` (301 lines) reveals the server architecture:
 
 ### Complete Findings
 
-| Metric | Value |
-|--------|-------|
-| Total files | 17 (15 .py + 2 .md) |
-| Total lines | 7,770 |
-| Classes | 8 (1 main + 3 web + 4 edit) |
-| Instance methods | 148 |
-| API endpoints | 122 |
-| Config settings | 11 |
-| Imports | 48 |
-| Documentation sections | 8 categories, 120 endpoints |
+<table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Total files</td>
+        <td>17 (15 .py + 2 .md)</td>
+      </tr>
+      <tr>
+        <td>Total lines</td>
+        <td>7,770</td>
+      </tr>
+      <tr>
+        <td>Classes</td>
+        <td>8 (1 main + 3 web + 4 edit)</td>
+      </tr>
+      <tr>
+        <td>Instance methods</td>
+        <td>148</td>
+      </tr>
+      <tr>
+        <td>API endpoints</td>
+        <td>122</td>
+      </tr>
+      <tr>
+        <td>Config settings</td>
+        <td>11</td>
+      </tr>
+      <tr>
+        <td>Imports</td>
+        <td>48</td>
+      </tr>
+      <tr>
+        <td>Documentation sections</td>
+        <td>8 categories, 120 endpoints</td>
+      </tr>
+    </tbody>
+</table>
 
 ### Token Usage Comparison
 
-| Approach | Lines Processed | Tokens Used | Coverage |
-|----------|-----------------|-------------|----------|
-| Read everything | 7,770 | ~95,000 | 100% |
-| Matryoshka only | 6,904 | ~6,500 | 65% |
-| **Hybrid** | 7,770 | **~17,000** | **100%** |
+<table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Lines Processed</th>
+        <th>Tokens Used</th>
+        <th>Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Read everything</td>
+        <td>7,770</td>
+        <td>~95,000</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Matryoshka only</td>
+        <td>6,904</td>
+        <td>~6,500</td>
+        <td>65%</td>
+      </tr>
+      <tr>
+        <td><strong>Hybrid</strong></td>
+        <td>7,770</td>
+        <td><strong>~17,000</strong></td>
+        <td><strong>100%</strong></td>
+      </tr>
+    </tbody>
+</table>
 
 The hybrid method achieves a **82% savings** in tokens while retaining 100% of the original coverage. This approach combines two different strategies, one for compressing redundant information and one for preserving unique insights.
 
@@ -353,13 +410,13 @@ These fit comfortably in context, and there's no need to do anything different. 
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     Adapters                             │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐ │
-│  │   Pipe   │  │   HTTP   │  │   MCP Server          │ │
-│  └────┬─────┘  └────┬─────┘  └───────────┬───────────┘ │
-│       │             │                     │             │
-│       └─────────────┴─────────────────────┘             │
-│                          │                               │
+│                     Adapters                            │
+│  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐  │
+│  │   Pipe   │  │   HTTP   │  │   MCP Server          │  │
+│  └────┬─────┘  └────┬─────┘  └───────────┬───────────┘  │
+│       │             │                    │              │
+│       └─────────────┴────────────────────┘            │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │   LatticeTool     │                    │
 │                │   (Stateful)      │                    │
@@ -367,14 +424,14 @@ These fit comfortably in context, and there's no need to do anything different. 
 │                │   • Bindings      │                    │
 │                │   • Session       │                    │
 │                └─────────┬─────────┘                    │
-│                          │                               │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │  NucleusEngine    │                    │
 │                │  • Parser         │                    │
 │                │  • Type Checker   │                    │
 │                │  • Evaluator      │                    │
 │                └─────────┬─────────┘                    │
-│                          │                               │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │    Synthesis      │                    │
 │                │  • Regex          │                    │
