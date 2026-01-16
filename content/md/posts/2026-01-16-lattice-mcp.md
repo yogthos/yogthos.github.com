@@ -53,7 +53,7 @@ Matryoshka incorporates these insights into a functioning system for LLM agents.
 
 ### 1. Nucleus: A Declarative Query Language
 
-Instead of issuing commands, the LLM describes **what** it wants, using [Nucleus](https://github.com/yogthos/recursive-language-model), a simple S-expression query language. This changes the focus from describing each step to specifying the desired outcome.
+Instead of issuing commands, the LLM describes **what** it wants, using [Nucleus](https://github.com/michaelwhitford/nucleus), a simple S-expression query language. This changes the focus from describing each step to specifying the desired outcome.
 
 ```clojure
 (grep "class ")           ; Find all class definitions
