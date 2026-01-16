@@ -1,4 +1,4 @@
-{:title "Stop Round-Tripping Your Codebase: How to Cut LLM Token Usage by 80% Using Recursive Document Analysis" :layout :post, :tags ["programming" "typescript" "llm" "lisp" "miniKanren]}
+{:title "Stop Round-Tripping Your Codebase: How to Cut LLM Token Usage by 80% Using Recursive Document Analysis" :layout :post, :tags ["programming" "typescript" "llm" "lisp" "miniKanren"]}
 
 When you employ AI agents such as Claude, there’s a significant volume problem for document study. Reading one file of 1000 lines consumes about 10,000 tokens. Token consumption incurs costs and time penalties. Codebases with dozens or hundreds of files, a common case for real world projects, can easily exceed 100,000 tokens in size when the whole thing must be considered. The agent must read and comprehend, and be able to determine the interrelationships among these files. And, particularly, when the task requires multiple passes over the same documents, perhaps one pass to divine the structure and one to mine the details, costs multiply rapidly.
 
