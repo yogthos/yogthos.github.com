@@ -194,14 +194,80 @@ File sizes:
    &#91;784&#93; ### Deck Actions
    &#91;1231&#93; ### Graphical Actions
    ...
-</code></pre><h3 id="complete&#95;findings">Complete Findings</h3><table><thead><tr></tr></thead></table>|&mdash;&mdash;&ndash;|&mdash;&mdash;-|<table><thead><tr></tr></thead><tbody><tr></tr><tr></tr><tr></tr><tr></tr><tr></tr><tr></tr><tr></tr></tbody></table><h3 id="token&#95;usage&#95;comparison">Token Usage Comparison</h3><table><thead><tr></tr></thead></table>|&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;-|<table><thead><tr></tr></thead><tbody><tr></tr><tr></tr></tbody></table><p>The hybrid method achieves a <strong>82% savings</strong> in tokens while retaining 100% of the original coverage. This approach combines two different strategies, one for compressing redundant information and one for preserving unique insights.</p><p>The pure Matryoshka approach ends up missing details from small files (configuration defaults, web server classes), because Claude only uses the tool to query large ones. The hybrid workflow does direct, full-content reads on small files, while leveraging Matryoshka to analyze bigger files, in a kind of divide-and-conquer strategy. All that's needed is to provide the agent an explicit hint on the strategy to use.</p><h3 id="why&#95;hybrid&#95;works">Why Hybrid Works</h3><p>Small files (<300 lines) contain critical details:</p><ul><li><code>util.py</code>: All configuration defaults, the API decorator implementation</li><li><code>web.py</code>: Server architecture, CORS handling, request schema</li></ul><p>These fit comfortably in context, and there's no need to do anything different. Matryoshka adds value for:</p><ul><li><code>&#95;&#95;init&#95;&#95;.py</code> (2,244 lines): Query specific patterns without loading everything</li><li><code>README.md</code> (4,660 lines): Search documentation sections on demand<h2></h2></li></ul><h2 id="architecture">Architecture</h2><pre><code>┌─────────────────────────────────────────────────────────┐
-│                     Adapters                             │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐ │
-│  │   Pipe   │  │   HTTP   │  │   MCP Server          │ │
-│  └────┬─────┘  └────┬─────┘  └───────────┬───────────┘ │
-│       │             │                     │             │
-│       └─────────────┴─────────────────────┘             │
-│                          │                               │
+</code></pre><h3 id="complete&#95;findings">Complete Findings</h3><p><table><pre><code>&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Metric&lt;/th&gt;
+    &lt;th&gt;Value&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Total files&lt;/td&gt;
+    &lt;td&gt;17 &#40;15 .py + 2 .md&#41;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Total lines&lt;/td&gt;
+    &lt;td&gt;7,770&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Classes&lt;/td&gt;
+    &lt;td&gt;8 &#40;1 main + 3 web + 4 edit&#41;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Instance methods&lt;/td&gt;
+    &lt;td&gt;148&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;API endpoints&lt;/td&gt;
+    &lt;td&gt;122&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Config settings&lt;/td&gt;
+    &lt;td&gt;11&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Imports&lt;/td&gt;
+    &lt;td&gt;48&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Documentation sections&lt;/td&gt;
+    &lt;td&gt;8 categories, 120 endpoints&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt; </code></pre></table></p><h3 id="token&#95;usage&#95;comparison">Token Usage Comparison</h3><p><table><pre><code>&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Approach&lt;/th&gt;
+    &lt;th&gt;Lines Processed&lt;/th&gt;
+    &lt;th&gt;Tokens Used&lt;/th&gt;
+    &lt;th&gt;Coverage&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Read everything&lt;/td&gt;
+    &lt;td&gt;7,770&lt;/td&gt;
+    &lt;td&gt;&#126;95,000&lt;/td&gt;
+    &lt;td&gt;100%&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Matryoshka only&lt;/td&gt;
+    &lt;td&gt;6,904&lt;/td&gt;
+    &lt;td&gt;&#126;6,500&lt;/td&gt;
+    &lt;td&gt;65%&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;&lt;strong&gt;Hybrid&lt;/strong&gt;&lt;/td&gt;
+    &lt;td&gt;7,770&lt;/td&gt;
+    &lt;td&gt;&lt;strong&gt;&#126;17,000&lt;/strong&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;strong&gt;100%&lt;/strong&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt; </code></pre></table></p><p>The hybrid method achieves a <strong>82% savings</strong> in tokens while retaining 100% of the original coverage. This approach combines two different strategies, one for compressing redundant information and one for preserving unique insights.</p><p>The pure Matryoshka approach ends up missing details from small files (configuration defaults, web server classes), because Claude only uses the tool to query large ones. The hybrid workflow does direct, full-content reads on small files, while leveraging Matryoshka to analyze bigger files, in a kind of divide-and-conquer strategy. All that's needed is to provide the agent an explicit hint on the strategy to use.</p><h3 id="why&#95;hybrid&#95;works">Why Hybrid Works</h3><p>Small files (<300 lines) contain critical details:</p><ul><li><code>util.py</code>: All configuration defaults, the API decorator implementation</li><li><code>web.py</code>: Server architecture, CORS handling, request schema</li></ul><p>These fit comfortably in context, and there's no need to do anything different. Matryoshka adds value for:</p><ul><li><code>&#95;&#95;init&#95;&#95;.py</code> (2,244 lines): Query specific patterns without loading everything</li><li><code>README.md</code> (4,660 lines): Search documentation sections on demand<h2></h2></li></ul><h2 id="architecture">Architecture</h2><pre><code>┌─────────────────────────────────────────────────────────┐
+│                     Adapters                            │
+│  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐  │
+│  │   Pipe   │  │   HTTP   │  │   MCP Server          │  │
+│  └────┬─────┘  └────┬─────┘  └───────────┬───────────┘  │
+│       │             │                    │              │
+│       └─────────────┴────────────────────┘            │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │   LatticeTool     │                    │
 │                │   &#40;Stateful&#41;      │                    │
@@ -209,14 +275,14 @@ File sizes:
 │                │   • Bindings      │                    │
 │                │   • Session       │                    │
 │                └─────────┬─────────┘                    │
-│                          │                               │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │  NucleusEngine    │                    │
 │                │  • Parser         │                    │
 │                │  • Type Checker   │                    │
 │                │  • Evaluator      │                    │
 │                └─────────┬─────────┘                    │
-│                          │                               │
+│                          │                              │
 │                ┌─────────┴─────────┐                    │
 │                │    Synthesis      │                    │
 │                │  • Regex          │                    │
