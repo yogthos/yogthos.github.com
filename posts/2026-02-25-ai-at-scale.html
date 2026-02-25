@@ -98,7 +98,7 @@
  {:validate-session &#91;&#91;:authorized   &#40;fn &#91;data&#93; &#40;:session-valid data&#41;&#41;&#93;
                      &#91;:unauthorized &#40;fn &#91;data&#93; &#40;not &#40;:session-valid data&#41;&#41;&#41;&#93;&#93;}
 
-</code></pre><p>The handler associated with the spec is responsible for doing the actual work. Following Integrant-style philosophy, the cells are defined as a collection of multimethods.</p><pre><code class="clojure">&#40;defmethod cell/cell-spec :user/fetch-profile &#91;&#95;&#93;
+</code></pre><p>The handler associated with the spec is responsible for doing the actual work. Following <a href='https://github.com/weavejester/integrant'>Integrant</a> philosophy, the cells are defined as a collection of multimethods.</p><pre><code class="clojure">&#40;defmethod cell/cell-spec :user/fetch-profile &#91;&#95;&#93;
   {:id      :user/fetch-profile
    :doc     &quot;Fetch user profile from database&quot;
    :handler &#40;fn &#91;{:keys &#91;db&#93;} data&#93;
