@@ -116,7 +116,7 @@ The **State Map** acts as the single source of truth throughout this lifecycle. 
 
 Because the state map keeps a `:mycelium/trace` of every transition, you get unparalleled observability. If a workflow fails, you don’t just get a stack trace telling you where in the codebase the crash happened; you get the full state map at the moment of failure. You can see the inputs, the previous steps, and the exact data that caused the routing logic to stumble. For the coding agent, it’s as if there’s a black box flight recorder on every single run.
 
-This observability fundamentally transforms how we test applications. Testing in many modern applications is seen as a thoroughly distasteful chore—so much so that you will often find people spending more time with mocks and dependency injection than actually writing tests.
+This observability fundamentally transforms how we test applications. Testing in many modern applications is seen as a thoroughly distasteful chore, so much so that you will often find people spending more time with mocks and dependency injection than actually writing tests.
 
 Mycelium treats each fragment of logic as a pure update of a data structure. Testing reduces to a straightforward exercise in data juggling. You don’t have to mock up a database to test how a particular system handles a User Not Found scenario; you simply feed the component a state map lacking the `:user` key and see what output it produces.
 
