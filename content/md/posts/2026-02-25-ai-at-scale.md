@@ -48,7 +48,7 @@ We now have a self-correcting loop. The primary agent, the Conductor, designs th
 
 ### The State Machine Graph as a Contract
 
-Treating an application's high-level behavior as a state machine graph provides us with a master blueprint. It allows us to determine what the intent of a particular workflow is by reading a declarative schema describing the states and the transitions between them. A human can review and approve a data flow diagram, which specifies the semantics of each cell, and the rules guiding the flow of data across them. The details of how each cell functions are abstracted behind its API, and managed by the agent responsible for implementing its functionality. Hence, the orchestrator only needs to concern itself with the routing aspect of the application and ensuring that the schemas of nodes sharing an edge are compatible.
+Treating an application's high-level behavior as a state machine graph provides us with a master blueprint. It allows us to determine what the intent of a particular workflow is by reading a declarative schema describing the states and the transitions between the cells. A human can review and approve a data flow diagram, which specifies the semantics of each cell, and the rules guiding the flow of data across them. The details of how each cell functions are abstracted behind its API, and managed by the agent responsible for implementing its functionality. Hence, the orchestrator only needs to concern itself with the routing aspect of the application and ensuring that the schemas of nodes sharing an edge are compatible.
 
 The orchestration layer is in charge of directing the work, and executing the branching logic. Its sole concern is to examine the results from each node to decide on the next branch to take according to the EDN specification.
 
@@ -59,7 +59,7 @@ Because the intercellular connections form a directed graph, and since motion is
 You can glimpse the way in which Mycelium binds these ideas together by examining a snippet from the [user-onboarding](https://github.com/yogthos/mycelium/tree/main/examples/user_onboarding) demo. The workflow definition is the point of departure. We start by defining a cell and its strict contract:
 
 ```clojure
-;; A routing decision based on the state map content
+;; A cell contract for session validation
 {:id       :auth/validate-session
    :doc      "Check credentials against the session store"
    :schema   {:input  [:map
@@ -76,7 +76,7 @@ You can glimpse the way in which Mycelium binds these ideas together by examinin
 
 ```
 
-This map represents a stable building block. There is no ambiguity in a declarative specification. But a cell needs to know where its output goes. This routing logic is extracted entirely into separate `:edges` and `:dispatches` keys in the workflow:
+This map represents a stable building block. There is no ambiguity in a declarative specification. A cell is defined by the shape of its input and output, along with its resource requirements. The routing logic is extracted entirely into separate `:edges` and `:dispatches` keys in the workflow.
 
 ```clojure
  :edges
@@ -89,7 +89,9 @@ This map represents a stable building block. There is no ambiguity in a declarat
 
 ```
 
-The handler associated with the spec is responsible for doing the actual work. Following [Integrant](https://github.com/weavejester/integrant) philosophy, the cells are defined as a collection of multimethods.
+The edges shown in the snippet represent the possible transitions. The dispatches constitute a list of node identifiers, each with an associated decision function that examines the state and determines whether it should be processed by the identifier in question. Dispatches are processed on a first come, first served basis; that is, the state will be routed to the first matching identifier found.
+
+Next, we have the cell associated with the spec, which is responsible for performing the actual work. Following [Integrant](https://github.com/weavejester/integrant) philosophy, the cells are defined as a collection of multimethods.
 
 ```clojure
 (defmethod cell/cell-spec :user/fetch-profile [_]
@@ -108,21 +110,21 @@ Note how the `:user/fetch-profile` handler doesn’t need to know where the data
 
 Long before a user ever makes a request, the workflow goes through a rigorous validation phase at compile time. During startup, the engine verifies that every cell exists in the registry, that every transition has a valid destination, and that all the input and output schemas chain together with no discontinuities. This is the moment where the blueprint becomes an active, executable process.
 
-When a request (like `POST /api/onboarding`) actually arrives, the HTTP routing library recognizes the endpoint and shoves it onward to a bridge handler. This handler summons the pre-compiled workflow engine, giving it the database connection and the raw request. The state machine immediately proceeds through its transitions without the overhead of re-validating the graph. As this whole process is going on, the Malli schemas are serving as sentinels. At every node, before the handler function runs, the input schema is validated, and after the handler returns, the output schema is validated.
+When a request (like `POST /api/onboarding`) actually arrives, the HTTP routing library recognizes the endpoint and shoves it onward to an onboarding handler. This handler summons the pre-compiled workflow engine, giving it the database connection and the raw request. As the state machine proceeds through its transitions, the Malli schemas are serving as sentinels.
 
 ### Reliability, Debugging, and Testing
 
 The **State Map** acts as the single source of truth throughout this lifecycle. Every transformation is explicit in the return value, and there are no side channels modifying the state. Like a messenger, it travels through the system, carrying on its person all the data that has been gathered up to this point, as well as associated metadata.
 
-Because the state map keeps a `:mycelium/trace` of every transition, you get unparalleled observability. If a workflow fails, you don’t just get a stack trace telling you where in the codebase the crash happened; you get the full state map at the moment of failure. You can see the inputs, the previous steps, and the exact data that caused the routing logic to stumble. For the coding agent, it’s as if there’s a black box flight recorder on every single run.
+Because the state map keeps a `:mycelium/trace` of every transition, you get unparalleled observability. If a workflow fails, you don’t just get a stack trace telling you where in the codebase the crash happened; you get the full history at the moment of failure. You can see the inputs, the previous steps, and the exact data that caused the routing logic to stumble. For the coding agent, it’s as if there’s a black box flight recorder on every single run.
 
-This observability fundamentally transforms how we test applications. Testing in many modern applications is seen as a thoroughly distasteful chore, so much so that you will often find people spending more time with mocks and dependency injection than actually writing tests.
+Such level of observability fundamentally transforms how we test applications. Testing in often seen as a thoroughly distasteful chore, so much so that you will often find people spending more time with mocks and dependency injection than actually writing tests.
 
 Mycelium treats each fragment of logic as a pure update of a data structure. Testing reduces to a straightforward exercise in data juggling. You don’t have to mock up a database to test how a particular system handles a User Not Found scenario; you simply feed the component a state map lacking the `:user` key and see what output it produces.
 
 Because every workflow node is contractually bound by its Malli schema, you can take the `:validate-user-data` handler, feed it a map of bad data, and check that it sets an `:invalid` key on the state map. You’re not testing the whole onboarding flow; you’re testing one specific cell.
 
-In Mycelium, logical integration tests can be performed trivially, simply by executing the workflow with a mock resource map. Resources like the database are passed in separately, so a real Postgres connection can be exchanged for a mock in the test suite. The difference is entirely invisible to the workflow.
+In Mycelium, logical integration tests can be performed trivially, simply by executing the workflow with a mock resource map. Resources like the database are passed in separately, so a real Postgres connection can be exchanged for a mock in the test suite. The difference is entirely irrelevant to the workflow.
 
 ```clojure
 ;; A logical integration test
@@ -138,21 +140,21 @@ In Mycelium, logical integration tests can be performed trivially, simply by exe
 
 ```
 
-Because of the trace history, your test assertions become incredibly descriptive. You aren't just checking if the final result is `200 OK`. You are able to check that the system moved from `:start` to `:validate-session` to `:fetch-profile` in the exact order you expected. You get the confidence of a full system test with the speed and simplicity of a unit test.
+Because of the trace history, your test assertions become incredibly descriptive. You aren't just checking if the final result is `200 OK`. You are able to check that the system moved from `:start` to `:validate-session` to `:fetch-profile` in the exact order you expected. You get the confidence of a full system test by simply passing mock resources to your workflow, and verifying that transitions happen in correct order.
 
 ### Layered Abstraction and Infinite Scale
 
-The entire design is naturally recursive. A complete system implemented as a network of components can itself be viewed as a single component, which offers up an interface and can then be slotted into a yet-larger state machine network. You might have a simple network handling user login, which becomes a component in a medium-scale network managing the payment process, which itself becomes a component in a large-scale network implementing a complete online emporium. Scaling becomes a matter of component integration rather than increased coupling within the codebase.
+The entire design is naturally recursive. A complete system implemented as a network of cells can itself be viewed as a single cell, which offers up an interface and can then be slotted into a yet-larger state machine network. You might have a simple network handling user login, which becomes a component in a medium-scale network managing the payment process, which itself becomes a component in a large-scale network implementing a complete online emporium. Scaling becomes a matter of arranging components on a graph rather than increased coupling within the codebase.
 
-But of course, there must be clear boundaries set for such a system. The most promising way to define components and graphs draws on functional programming and formal methods. For example, Malli-driven schemas provide a means of establishing contracts that the LLM agent cannot bypass. The agent must fulfill the contract by adhering to all the constraints and requirements.
+But of course, there must be clear boundaries set for such a system. The most promising way to define components and graphs draws on functional programming and formal methods. For example, Malli-driven schemas provide a means of establishing checkpoints that the LLM agent cannot bypass. The agent must fulfill the contract by adhering to all the constraints and requirements.
 
-Once the high-level design is in place, these contracts can be issued to the agents in charge of the nodes in the graph. You no longer need an artificial intelligence that has to comprehend a massive context and understand the interconnections of components across a sprawling application. The job description of the agent in charge of the flow of control is also dramatically circumscribed. The internal details of the cells can be ignored, with attention paid only to the graph itself. If the graph becomes too complex, it, too, can be divided into separate, independent subgraphs. In this architecture, the context never becomes unmanageably large.
+Once the high-level design is in place, these contracts can be issued to the agents in charge of the nodes in the graph. You no longer need an exceptionally capable agent that's able to comprehend a massive context and keep track of the interconnections across a sprawling application. The job description of the agent in charge of the flow of control is likewise dramatically circumscribed. The internal details of the cells can be ignored, with attention paid only to the graph itself. If the graph grows too complex, it, too, can be divided into separate, independent subgraphs. In this architecture, the context never needs to become unmanageably large.
 
 ### The Agent Synergy
 
 Historically, this kind of design has been hard to sell. Workflow engines and state-graph systems are not without their proponents, but they haven’t exactly swept the world. The basic problem is that they require a lot of additional ceremony. While wiring functions together by hand permits the programmer to forge ahead in a straight line, forcing yourself to step back, design a state graph, worry about the transition logic among disparate files, and code the glue just feels too onerous. Most programmers would much rather just bang out an `if` statement and keep going.
 
-But the picture changes completely when we introduce coding agents. A large language model lacks ego and has no difficulty writing boilerplate code. It does not find itself bored by ceremony, nor frustrated by the need for upfront structural planning. In fact, language models thrive on it. What is a tedious "tax" for a human developer serves as an explicit, unambiguous map for an agent. By embracing this structure, the agent secures the clear boundaries it needs to stay coherent.
+But the picture changes completely when we introduce coding agents. A large language model lacks ego and has no difficulty writing boilerplate code. It does not find itself bored by ceremony, nor frustrated by the need for upfront structural planning. In fact, language models thrive on it. What is a tedious tax for a human developer serves as an explicit, unambiguous map for an agent. By embracing this structure, the agent secures the very boundaries it needs to stay coherent.
 
 Divorcing data flow from data transformation resolves the problem of LLM context overload in an elegant and general way. A strategic agent, in the form of the Conductor, coordinates the flow in the orchestration layer, plotting the tracks. Meanwhile, individual handler agents are responsible for writing, refining, and documenting their particular domain which is just a station on the railway. They do so within a safe, bounded context, avoiding the thicket of intractable problems posed by runaway cognitive saturation.
 
