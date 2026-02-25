@@ -30,7 +30,7 @@ An effective solution to this problem is to use inversion of control by removing
 
 ### Introducing Mycelium
 
-I’ve spent a great deal of time considering how to construct a system where distinct components are clearly separated by design, with formal boundaries between semantics of the code and the implementation details. This is the basic conceptual orientation of [Mycelium](https://github.com/yogthos/mycelium/), which treats the program as a recursive ecosystem of workflows, solving the very routing problem described above.
+I’ve spent a great deal of time considering how to construct a system where distinct components are clearly separated by design, with clear boundaries between semantics of the code and the implementation details. This is the basic conceptual orientation of [Mycelium](https://github.com/yogthos/mycelium/), which treats the program as a recursive ecosystem of workflows, solving the very routing problem described above.
 
 Clojure provides the tools for writing pure functions, but falls short of giving us guidance on how to orchestrate them when writing large applications. I initially developed [Maestro](https://github.com/yogthos/maestro) to provide a clear organizational framework, separating side-effectful concerns from pure calculation, and structuring workflows as graphs where the nodes represent computations of state, and the edges represent transitions between them. The nodes are distinct, context-free blocks, responsible for specific tasks, linked by a thin coordinating layer controlling the flow of data between them. The state itself is represented as a map that's passed from one node to another.
 
