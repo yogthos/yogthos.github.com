@@ -2,7 +2,7 @@
 
 #menucont ul.menu {
     margin: 0;
-    background: red;
+    background: var(--color-menu-bg);
 }
 
 #menucont ul.menu li {
@@ -15,7 +15,7 @@
 
 #menucont ul.menu li a {
     float: left;
-    color: #FFF;
+    color: var(--color-menu-text);
     width: 100%;
     padding: 10px 20px;
     margin: 0;
@@ -27,20 +27,81 @@
 }
 
 #menucont ul.menu li a:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--color-menu-hover);
 }
 
 #menucont ul.menu li.active a,
 #menucont ul.menu li.active a:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--color-menu-hover);
     font-weight: 600;
 }
 
-#menucont .menutitle {
+/* Hamburger button — hidden on desktop */
+.menu-toggle {
     display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 12px 0;
+    width: 100%;
+    text-align: left;
 }
 
-@media screen and (max-width: 480px) {
+.menu-toggle .hamburger {
+    display: inline-block;
+    position: relative;
+    width: 24px;
+    height: 2px;
+    background: var(--color-menu-text);
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+
+.menu-toggle .hamburger::before,
+.menu-toggle .hamburger::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 2px;
+    background: var(--color-menu-text);
+    transition: transform 0.2s;
+}
+
+.menu-toggle .hamburger::before {
+    top: -7px;
+}
+
+.menu-toggle .hamburger::after {
+    top: 7px;
+}
+
+/* Animate to X when open */
+.menu-toggle.active .hamburger {
+    background: transparent;
+}
+
+.menu-toggle.active .hamburger::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.menu-toggle.active .hamburger::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
+.menu-toggle .menu-label {
+    margin-left: 15px;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-menu-text);
+    vertical-align: middle;
+}
+
+@media screen and (max-width: 768px) {
 
     #menucont .menu {
         display: none;
@@ -76,12 +137,12 @@
     #menucont ul.menu li.active a,
     #menucont ul.menu li.active a:hover {
         font-weight: 600;
-        color: #FFF;
+        color: var(--color-menu-text);
         background: none;
     }
 
     #menucont ul.menu li a:hover {
-        color: #FFF;
+        color: var(--color-menu-text);
         background: none;
     }
 
@@ -89,32 +150,8 @@
         margin: 0 0 20px 0;
     }
 
-    #menucont .menutitle {
+    .menu-toggle {
         display: block;
-        width: 100%;
-        padding: 12px 42px 12px 0;
-        display: block;
-        cursor: pointer;
-        text-align: left;
-        color: #FFF;
-        text-transform: uppercase;
-    }
-
-    #menucont .menutitle p {
-        margin-bottom: 0;
-    }
-
-    #menucont .menutitle p strong {
-        margin: 0 0 0 15px;
-        font-size: 18px;
-        font-weight: 300;
-        letter-spacing: 2px;
-    }
-
-    #menucont .menutitle span {
-        margin: 0;
-        font-size: 20px;
     }
 
 }
-

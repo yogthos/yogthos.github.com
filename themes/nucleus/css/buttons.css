@@ -34,17 +34,15 @@
 .button {
     background: none;
     text-decoration-line: underline;
-    text-decoration-color: #555;
-    color: #000 !important;
+    text-decoration-color: var(--color-button-underline);
+    color: var(--color-button-text);
 }
 
 .button:hover {
-    background: #666;
-    color: #FFF !important;
+    background: var(--color-button-hover-bg);
+    color: var(--color-button-hover-text);
 }
 
 .button:active {
     top: 2px;
 }
-
-

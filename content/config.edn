@@ -1,6 +1,6 @@
 {:site-title           "(iterate think thoughts)"
  :author               "Dmitri Sotnikov"
- :description          "This blog is awesome"
+ :description          "Dmitri's blog about programming, Clojure, and software development"
  :site-url             "https://yogthos.net/"
  :post-root            "posts"
  :page-root            "pages"

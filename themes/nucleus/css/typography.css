@@ -1,3 +1,105 @@
+/* ==================================================
+   Color System (CSS Custom Properties)
+================================================== */
+
+:root {
+    --color-text: #444;
+    --color-heading: #111;
+    --color-bg: #fff;
+    --color-link: #6b9d98;
+    --color-link-hover: #222;
+    --color-sidebar-bg: rgb(177, 177, 177);
+    --color-sidebar-text: rgb(61, 61, 61);
+    --color-sidebar-paren: rgb(111, 220, 220);
+    --color-sidebar-fn: #fff;
+    --color-sidebar-logo-text: #000;
+    --color-menu-bg: rgba(0, 0, 0, 0.15);
+    --color-menu-hover: rgba(0, 0, 0, 0.2);
+    --color-menu-text: #fff;
+    --color-blockquote-bg: #eee;
+    --color-blockquote-text: #555;
+    --color-blockquote-border: #A71E2E;
+    --color-hr: rgba(0, 0, 0, 0.75);
+    --color-code-text: #000;
+    --color-code-bg: #2d2d2d;
+    --color-code-fg: #ccc;
+    --color-selection-bg: rgb(48, 66, 87);
+    --color-selection-fg: #fff;
+    --color-footer: rgba(0, 0, 0, 0.4);
+    --color-button-text: #000;
+    --color-button-underline: #555;
+    --color-button-hover-bg: #666;
+    --color-button-hover-text: #fff;
+}
+
+/* Dark mode: manual toggle */
+[data-theme="dark"] {
+    --color-text: #d4d4d4;
+    --color-heading: #e0e0e0;
+    --color-bg: #1a1a2e;
+    --color-link: #7ec8c0;
+    --color-link-hover: #a8d8d0;
+    --color-sidebar-bg: #16213e;
+    --color-sidebar-text: #c8c8c8;
+    --color-sidebar-paren: rgb(111, 220, 220);
+    --color-sidebar-fn: #fff;
+    --color-sidebar-logo-text: #e0e0e0;
+    --color-menu-bg: rgba(0, 0, 0, 0.3);
+    --color-menu-hover: rgba(255, 255, 255, 0.1);
+    --color-menu-text: #d4d4d4;
+    --color-blockquote-bg: #2a2a3e;
+    --color-blockquote-text: #b0b0b0;
+    --color-blockquote-border: #c0392b;
+    --color-hr: rgba(255, 255, 255, 0.3);
+    --color-code-text: #c8d0d8;
+    --color-code-bg: #1e1e2e;
+    --color-code-fg: #ccc;
+    --color-selection-bg: rgb(80, 100, 130);
+    --color-selection-fg: #fff;
+    --color-footer: rgba(255, 255, 255, 0.4);
+    --color-button-text: #d4d4d4;
+    --color-button-underline: #888;
+    --color-button-hover-bg: #555;
+    --color-button-hover-text: #fff;
+}
+
+/* Dark mode: OS-level preference (only if user hasn't explicitly chosen light) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --color-text: #d4d4d4;
+        --color-heading: #e0e0e0;
+        --color-bg: #1a1a2e;
+        --color-link: #7ec8c0;
+        --color-link-hover: #a8d8d0;
+        --color-sidebar-bg: #16213e;
+        --color-sidebar-text: #c8c8c8;
+        --color-sidebar-paren: rgb(111, 220, 220);
+        --color-sidebar-fn: #fff;
+        --color-sidebar-logo-text: #e0e0e0;
+        --color-menu-bg: rgba(0, 0, 0, 0.3);
+        --color-menu-hover: rgba(255, 255, 255, 0.1);
+        --color-menu-text: #d4d4d4;
+        --color-blockquote-bg: #2a2a3e;
+        --color-blockquote-text: #b0b0b0;
+        --color-blockquote-border: #c0392b;
+        --color-hr: rgba(255, 255, 255, 0.3);
+        --color-code-text: #c8d0d8;
+        --color-code-bg: #1e1e2e;
+        --color-code-fg: #ccc;
+        --color-selection-bg: rgb(80, 100, 130);
+        --color-selection-fg: #fff;
+        --color-footer: rgba(255, 255, 255, 0.4);
+        --color-button-text: #d4d4d4;
+        --color-button-underline: #888;
+        --color-button-hover-bg: #555;
+        --color-button-hover-text: #fff;
+    }
+}
+
+/* ==================================================
+   Typography
+================================================== */
+
 .textleft {
     text-align: left;
 }
@@ -12,8 +114,8 @@
 
 p {
     margin: 0 0 20px 0;
-    font-family: Tahoma,Verdana,Segoe,sans-serif; 
-    font-weight: 500 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-weight: 500;
 }
 
 strong, b {
@@ -27,23 +129,21 @@ em, i {
 h1 {
     margin: 0 0 10px 0;
     font-weight: 350;
-    text-transform: capitalize;
-    font-size: 20pt !important;
+    font-size: 20pt;
     line-height: 42px;
     letter-spacing: -1px;
-    color: #111;
-    padding-bottom: 1em !important;;
+    color: var(--color-heading);
+    padding-bottom: 1em;
 }
 
 h2 {
     margin: 30px 0 15px 0;
     font-weight: 350;
-    text-transform: capitalize;
-    font-size: 16pt !important;
+    font-size: 16pt;
     line-height: 21px;
     letter-spacing: -0.5px;
-    padding-bottom: 1em !important;
-    color: #111;
+    padding-bottom: 1em;
+    color: var(--color-heading);
 }
 
 h3 {
@@ -52,8 +152,8 @@ h3 {
     font-size: 14pt;
     line-height: 16px;
     letter-spacing: -0.4px;
-    padding-bottom: 1em !important;
-    color: #111;
+    padding-bottom: 1em;
+    color: var(--color-heading);
 }
 
 h4, h5, h6 {
@@ -61,7 +161,7 @@ h4, h5, h6 {
     font-weight: 100;
     font-size: 13pt;
     line-height: 12px;
-    color: #111;
+    color: var(--color-heading);
 }
 
 ul {
@@ -97,15 +197,15 @@ hr {
     padding: 0;
     margin: 30px 0 40px 0;
     border: none;
-    border-top: 4px solid #000;
+    border-top: 4px solid var(--color-heading);
     text-align: center;
 }
 
 blockquote {
-    background: #EEE;
-    margin: 0 0 5px 0 !important;
-    color: #555;
-    border-left: 5px solid #A71E2E;
+    background: var(--color-blockquote-bg);
+    margin: 0 0 5px 0;
+    color: var(--color-blockquote-text);
+    border-left: 5px solid var(--color-blockquote-border);
     padding: 15px;
     font-style: italic;
 }
@@ -132,5 +232,3 @@ blockquote p.author {
     }
 
 }
-
-
