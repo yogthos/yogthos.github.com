@@ -89,7 +89,7 @@ This map represents a stable building block. There is no ambiguity in a declarat
 
 ```
 
-The handler associated with the spec is responsible for doing the actual work. Following Integrant-style philosophy, the cells are defined as a collection of multimethods.
+The handler associated with the spec is responsible for doing the actual work. Following [Integrant](https://github.com/weavejester/integrant) philosophy, the cells are defined as a collection of multimethods.
 
 ```clojure
 (defmethod cell/cell-spec :user/fetch-profile [_]
