@@ -1,4 +1,4 @@
-{:title "Managing Complexity with Mycelium" :layout :post, :tags ["programming" "llm" "lisp" "clojure]}
+{:title "Managing Complexity with Mycelium" :layout :post, :tags ["programming" "llm" "lisp" "clojure"]}
 
 Software architecture is at root a creature of human frailty. The sacred cow of clean code and the holy grail of design patterns are understood to be, at least in practical terms, little more than tricks to help people keep their sanity along the way. Human cognitive capacity is strictly limited, and we're still figuring out ways to reliably build machines significantly more complex than can be held in a single mind. Current attempts to offload coding tasks to language models are hitting the same wall. These models can be brilliant, but only up to a point. They’ll effortlessly compose a flawless function, but when challenged to manage a project with a thousand such moving parts, they quickly lose the plot. This problem is commonly known as context rot, but it might equally well be called a coding architecture failure.
 
