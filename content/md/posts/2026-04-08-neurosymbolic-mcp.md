@@ -93,7 +93,7 @@ Above is the result of the Prolog solver having traversed every path in the call
 
 ## What This Makes Possible That Grep Cannot
 
-The real value isn't just efficiency — it's *correctness*. There are questions that grep fundamentally cannot answer, regardless of how many rounds you run:
+While efficiency is certainly nice, the real value lies in *correctness*. There are questions that grep fundamentally cannot answer, regardless of how many rounds you run:
 
 ### Transitive Reachability
 
@@ -109,7 +109,7 @@ chiasmus_graph analysis="path" from="handleRequest" to="dbQuery"
 → { paths: ["[handleRequest,validate,processData,dbQuery]"] }
 ```
 
-The solver explores every possible path. If it says "not reachable", that's a proof by exhaustion — there is no chain of calls from A to B in the entire graph.
+The solver explores every possible path. If it says "not reachable", that's a proof by exhaustion showing that there is no chain of calls from A to B in the entire graph.
 
 ### Dead Code Detection
 
