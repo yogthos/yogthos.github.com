@@ -40,7 +40,7 @@ Unlike regex-based tools, tree-sitter understands language grammar making it pos
 
 Chiasmus supports Python, Go, TypeScript, JavaScript, and Clojure out of the box, and provides adapters for other languages. When you pass source files to `chiasmus_graph`, the parser identifies method declarations `arrow_function`, `method_definition` in TS/JS; `defn`, `defn-` in Clojure. Next, it resolves call expressions `call_expression` → callee name, handling `obj.method()` → `method`, `this.bar()` → `bar`, `db/query` → `query`. It tracks scope of which routine is the caller for each call site and extracts imports and exports for cross-file resolution.
 
-Tree-sitter is an incremental parsing library that produces concrete syntax trees. Unlike regex-based tools, it understands language grammar — it knows that `foo()` in `const bar = () => { foo(); }` is a call from `bar` to `foo`, not just a string that contains "foo".
+Tree-sitter is an incremental parsing library that produces concrete syntax trees. Unlike regex-based tools, it understands language grammar, and so, it knows that `foo()` in `const bar = () => { foo(); }` is a call from `bar` to `foo`, not just a string that contains "foo".
 
 ### Step 2: Prolog Fact Generation
 
