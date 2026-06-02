@@ -1,4 +1,3 @@
-# 
 {:title "Putting Code Under a Microscope: Wavelet-Based Context for LLMs" :layout :post, :tags ["programming" "llm" "mcp" "entropy-coding" "compression" "wavelets"]}
 
 Every developer who has tried an AI coding tool is familiar with the problem of watching the model fumble with the codebase to find relevant sections to edit. Since it's not possible to load an entire codebase into the context for large projects, it greps through a few files to give it some context, and guesses what to do next. But code has a hierarchical structure with layers and boundaries. Functions sit inside classes. Classes live in files. Files make up modules. One 400-line file can contain six different conceptual areas, each with its own distinct purpose.
