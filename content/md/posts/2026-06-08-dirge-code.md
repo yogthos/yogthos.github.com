@@ -1,7 +1,5 @@
 {:title "Making budget models punch above their weight with a smart harness" :layout :post, :tags ["programming" "llm"]}
 
-# Dirge: the coding agent that fits in your pocket and punches above its weight
-
 [Dirge](https://dirge-code.github.io/) is an agentic harness that I've been developing for my own use, and it's getting to the point where it's becoming generally useful. In this post, I'll discuss some of the rationale behind it and the interesting features it provides which differentiate it from other agentic harnesses.
 
 The first thing to note is its performance. Most existing coding tools like OpenCode are rather memory-intensive, often using around 300 MB of RAM even when sitting there doing nothing. Dirge is written in Rust, which compiles to a tiny binary file weighing in at about 30 MB. When Dirge starts up, it needs only around 8 MB of RAM while idle, while working on tasks pushes that up to roughly 15 MB. So you could run twenty copies of Dirge at the same time for the cost of a single instance of OpenCode.
@@ -20,7 +18,7 @@ Dirge is essentially a state machine wrapped around the model. It lays down a se
 
 A steering-and-repair layer ensures that each turn lands. A long-horizon layer ensures continuity within a session despite the limitation of the context window’s size. A learning layer transfers hard-won knowledge between sessions. That knowledge is stored in one SQLite database associated with the project. On top of that sits a plugin system which lets you reach into any part of the agentic loop you want. Let's take a look at these features in order.
 
-### Making each turn land
+## Making each turn land
 
 You might have heard that open models aren’t good at tool calling and that you have to pay for a top-tier model trained on API contracts to get reliable results. All tool calling means is that the model has to output structured data, like JSON, in a specific format. Frontier models, like GPT-4 or Claude, are directly trained on thousands of API contracts to get them to produce outputs that match function signatures and parameter rules. Open models are typically trained for general text generation rather than structured output tasks, and aren't capable of producing such precise outputs. But that's precisely an area where the harness can close the gap in how the model’s output is parsed, formatted, and verified.
 
@@ -36,7 +34,7 @@ Finally, the loop doesn’t just take the model’s word that it has finished. A
 
 While none of these features might seem remarkable by themselves, together, they address much of the mechanical noise, such as misdirected calls, interrupted edits, and retry loops. These common problems would otherwise consume context and drag a model down into a negative feedback loop, degrading its performance. Each feature takes care of one particular kind of failure, such as malformed calls introducing garbage data, interrupted edits corrupting state, and retry loops multiplying errors. Collectively, they prevent these failures from compounding and getting out of control. Without these rails, the model loses clear context and begins to emit increasingly bad outputs, which cause more failures, and so on in a downward spiral.
 
-### Holding the thread over a long task
+## Holding the thread over a long task
 
 Steering and correcting each turn helps keep individual tasks alive. But actual work is done across many turns, which means that eventually the context window fills up. The obvious way of dealing with this, summarizing the conversation when it gets too long, doesn't actually work all that well in practice. A monolithic summary near the limit of capacity often loses important information. And what's worse is that the model makes that summary just when its powers of compression are at their most degraded.
 
@@ -46,7 +44,7 @@ Two things keep this system running smoothly during long sessions. First, the ch
 
 The end result is that a long-running task stays on the rails. The model is always working against an up-to-date, intent-anchored picture of where things are, rather than a degraded transcript.
 
-### An agent that learns your project
+## An agent that learns your project
 
 The third time dimension is the most annoying thing about modern agents. Since they have no memory, each session begins de novo. A fresh agent will not remember that your project uses `eslint-config-custom` or that the integration-test mock server needs to be started with `--feature=test-utils`. It will also forget that you spent 45 minutes last week fixing a race condition in the auth middleware. This amnesiac behavior means that context and instructions have to be rebuilt every time a session begins.
 
@@ -56,7 +54,7 @@ Most agents rely heavily on markdown files such as `MEMORY.md` that the agent re
 
 Memory formation is handled by a two-tier injection system. First, hot entries that are highly relevant get placed directly into the system prompt. Once that inline space runs out, the remaining entries drop down to a one-line breadcrumb index that the agent can look up when needed. This approach keeps the prompt small and stable in cache, no matter how much the project grows. And since there's a database backing the data, the SQLite FTS5 engine that supports full-text search can be used to replace wrangling markdown files. The agent can now ask about its own history (e.g., “how did we fix this last time?”) instead of reading through a wall of markdown text. Each entry also has a salience score where use of an entry boosts its salience, while disuse causes it to drop. When space gets low, the least useful entries end up getting pruned from the database. Removal of an entry creates a tombstone, so any archived material can be resurrected if needed. And so, you no longer have to maintain text files and constantly remind the agent to keep them up to date. The process runs consistently and transparently in the background of the session, and each new session starts with an up-to-date picture of how the project works.
 
-### Programmable: the harness as a platform
+## Programmable: the harness as a platform
 
 The real power of Dirge, though, comes from the ability to reach inside any part of its agentic loop. Most agents are barely customizable, giving you a config file with a few flags, or an MCP model where every extension runs as its own process that the agent communicates with via JSON-RPC. And the model is responsible for having to find and invoke each one of these tools. While MCP use is fully supported, and can be great for hooking up external tools, it’s a roundabout way to change the behavior of the agent itself.
 
@@ -73,7 +71,7 @@ A minimal plugin looks as follows:
 
 Plugins get the full harness API. They can intercept any tool call, block it, alter it, or replace it entirely. They can even add new slash commands and tools or pop up dialogs in the TUI. Anything from augmenting the system prompt to modifying the message context before each call is directly available to plugins. All this happens via lifecycle hooks like `on-init`, `on-prompt`, `on-tool-start`, `on-tool-end`, and `prepare-next-run`. Each [example plugin](https://github.com/dirge-code/dirge/tree/main/plugins) in the project repository does something useful in under 100 lines of code. The one I use the most is an nREPL plugin that connects to a running Clojure REPL and gives the agent an `nrepl_eval` tool that lets it check its own changes live as it works on the program. The plugin replaces an entire MCP server with just a few lines of code. For power users, the agent becomes a platform which they can extend and modify to fit their needs.
 
-### The rest of the package
+## The rest of the package
 
 Dirge ships with everything you'd expect from a modern coding agent and a few things you might not. You can use OpenRouter, OpenAI, Anthropic, Gemini, DeepSeek, GLM, and Ollama out of the box, or configure any endpoint that works with OpenAI. Role-based routing allows different parts of the system to use different models. The main loop, summarizer, critic, and subagents can each point to their own model. So one model handles the conversation while another looks at code.
 
