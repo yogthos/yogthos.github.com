@@ -21,6 +21,10 @@ code {
   font-weight: 550;
 }
 
+pre {
+    margin-bottom: 20px;
+}
+
 pre code {
     display: block;
     overflow-x: auto;

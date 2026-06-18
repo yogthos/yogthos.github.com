@@ -137,7 +137,7 @@ Everything we've done so far produces a frozen flow field. Next, we'll need to m
 
 Remember the unused `t` in `force-at`, which we were going to come back to? Well, what I didn't mention is that Perlin noise can be defined for any number of dimensions, and the implementation here is actually 3D. The first two dimensions are
 in space, but the third one is time. Each frame, we advance `t` a tiny bit, and because
-the noise is smooth in all directions, the entire current field ends up drifting as a result. Eddies migrate, streams bend, while calm patches open and close. The field smoothly evolves from one frame to another frame as we increment the counter:
+the noise is smooth in all directions, the entire current field ends up drifting as a result. Eddies migrate, streams bend, while calm patches open and close. The field smoothly evolves from one frame to another as we increment the counter:
 
 ```clojure
 (swap! state update :time inc)
