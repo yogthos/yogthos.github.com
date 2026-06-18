@@ -1,6 +1,6 @@
 {:title "The Hidden Elegance of Gradient Noise " :layout :post, :tags ["programming" "clojure" "graphics"]}
 
-How would you go about rendering a scene reminiscent of dark teal water, lit from somewhere below, with thousands of faint cyan filaments drifting and swirling across it? Your instinct might be to reach for a shader or to create a particle simulation. But what if you could render the whole thing using just a couple hundred lines of arithmetic? That's precisely what we're going to do in this post by rendering these filaments using the same function Ken Perlin wrote in 1985 to fake textures on a computer that couldn't draw them for real, which we know today as Perlin noise.
+How would you go about rendering a scene reminiscent of dark teal water, lit from somewhere below, with thousands of faint cyan filaments drifting and swirling across it? Your instinct might be to reach for a shader or to create a particle simulation, but you could render the whole thing using just a couple hundred lines of arithmetic instead. That's precisely what we're going to do in this post by rendering these filaments using the same function Ken Perlin wrote in 1985 to fake textures on a computer that couldn't draw them for real, which we know today as Perlin noise.
 
 <iframe src="/files/perlin-flow.html" title="Perlin flow field visualization" loading="lazy" style="width:100%;height:480px;border:0;display:block;border-radius:6px;margin:1.5em 0;"></iframe>
 
