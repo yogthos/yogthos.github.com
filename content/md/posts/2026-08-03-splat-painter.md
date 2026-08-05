@@ -106,6 +106,20 @@ At this point, the only viable solution was to move generation entirely to the G
 
 Doing heavy math on the GPU made the whole thing fast enough to tweak different parameters interactively. Controlling the number of splats being used, how small the splats can get, their hardness, and smoothing across different resolutions allows tailoring the end effect for each image being rendered. Most of these controls loosely map to physical painting concepts such as brush size, paint load, glaze transparency, stroke length, and hand steadiness. All that naturally fell out of the approach to model the problem as a painting exercise.
 
+And a few more examples:
+
+![](/img/splats/hk_original.png)
+
+![](/img/splats/hk.png)
+
+![](/img/splats/coyote_original.png)
+
+![](/img/splats/coyote.png)
+
+![](/img/splats/on-the-phone_original.png)
+
+![](/img/splats/on-the-phone.png)
+
 ## Conclusion
 
 In the days of generative image models, it's still fun to see what can be achieved using traditional image transformation techniques. Building a desktop app to prove the concept turned out to be a great exercise for Jolt and my Glimmer reactive GUI library on top of GTK. The exercise also shook out a lack of type hinting optimizations in Jolt, leading to general performance improvements, and helped prove out the nREPL-driven development workflow.
