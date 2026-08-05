@@ -27,7 +27,7 @@ If you've found my projects useful, consider supporting me on [Patreon](https://
 
 ### Publications
 
-* [Web Development With Clojure](https://pragprog.com/book/dswdcloj3/web-development-with-clojure-third-edition)
+* [Web Development With Clojure](https://pragprog.com/titles/dswdcloj3/web-development-with-clojure-third-edition/)
 * [The Unconducted Chorus: How Patterns Shape Our Reality](https://theunconductedchorus.com/)
 <br>
 ### Talks
