@@ -131,6 +131,20 @@ p {
     font-weight: 500;
 }
 
+/* text-align:justify opts paragraphs into justif (it only enhances elements
+   whose computed text-align is justify); hyphens:auto is the no-JS fallback.
+   text-rendering:optimizeSpeed overrides <body>'s optimizeLegibility, whose
+   context-dependent kerning drifts between justif's break-time measure and
+   paint — spilling one glyph past the right margin in Firefox. */
+article p,
+article li {
+    text-align: justify;
+    text-rendering: optimizeSpeed;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    hyphenate-limit-chars: 6 3 2;
+}
+
 strong, b {
     font-weight: 600;
 }
