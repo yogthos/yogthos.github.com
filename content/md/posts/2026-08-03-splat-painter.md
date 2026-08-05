@@ -106,7 +106,7 @@ At this point, the only viable solution was to move generation entirely to the G
 
 Doing heavy math on the GPU made the whole thing fast enough to tweak different parameters interactively. Controlling the number of splats being used, how small the splats can get, their hardness, and smoothing across different resolutions allows tailoring the end effect for each image being rendered. Most of these controls loosely map to physical painting concepts such as brush size, paint load, glaze transparency, stroke length, and hand steadiness. All that naturally fell out of the approach to model the problem as a painting exercise.
 
-And a few more examples:
+And a few more examples illustrating how the painter works with different kinds of scenes and settings:
 
 ![](/img/splats/hk_original.png)
 
