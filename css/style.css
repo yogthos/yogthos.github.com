@@ -69,6 +69,13 @@ a.post-title {
     color: var(--color-heading);
 }
 
+/* Links are underlined in content so they're recognizable by shape,
+   not just color — color alone fails for color-blind readers. */
+#content a:not(.post-title):not(:has(img)) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 /* ==================================================
    Images
 ================================================== */
