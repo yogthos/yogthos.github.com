@@ -31,6 +31,20 @@ document.querySelectorAll('a[rel="external"]').forEach(function(a) {
         var next = isDark() ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
+        // Flip the highlight.js stylesheets to match the manual choice;
+        // otherwise the code-block text keeps the OS-scheme palette while
+        // the block background follows the toggle, becoming unreadable.
+        var l = document.getElementById('hljs-light');
+        var d = document.getElementById('hljs-dark');
+        if (l && d) {
+            if (next === 'dark') {
+                l.media = 'not all';
+                d.media = 'all';
+            } else {
+                l.media = 'all';
+                d.media = 'not all';
+            }
+        }
     });
 })();
 
