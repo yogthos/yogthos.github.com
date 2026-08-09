@@ -111,6 +111,10 @@ is treated as the artifact that we pass around. Jolt moves the needle closer to 
 worked, and how `save-lisp-and-die` still works in Common Lisp today. The program is
 a live thing you keep that can evolve over time as opposed to being a recipe you can run.
 
+### Durable session state
+
+Another interesting application would be use cases such as desktop apps, where the user can save their session and then get back to where they left off when restarting the app. I built a [TodoMVC example](https://github.com/jolt-lang/examples/tree/main/image-dump-example) illustrating what that looks like in practice. You can click around, add or modify tasks, then dump the state and reload it in a fresh instance.
+
 ## Portable Scheme backends
 
 Originally, my goal for Jolt was to build a Clojure implementation on Chez Scheme.
