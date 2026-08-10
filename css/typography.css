@@ -30,6 +30,9 @@
     --color-button-underline: #555;
     --color-button-hover-bg: #666;
     --color-button-hover-text: #fff;
+    --color-table-border: #e0e0e0;
+    --color-table-rule: #888;
+    --color-table-stripe: #f6f6f6;
 }
 
 /* Dark mode: manual toggle */
@@ -61,6 +64,9 @@
     --color-button-underline: #888;
     --color-button-hover-bg: #555;
     --color-button-hover-text: #fff;
+    --color-table-border: #33334d;
+    --color-table-rule: #6f6f95;
+    --color-table-stripe: rgba(255, 255, 255, 0.045);
 }
 
 /* Dark mode: OS-level preference (only if user hasn't explicitly chosen light) */
@@ -93,6 +99,9 @@
         --color-button-underline: #888;
         --color-button-hover-bg: #555;
         --color-button-hover-text: #fff;
+        --color-table-border: #33334d;
+        --color-table-rule: #6f6f95;
+        --color-table-stripe: rgba(255, 255, 255, 0.045);
     }
 }
 
@@ -246,6 +255,69 @@ blockquote p.author {
     font-size: 14px;
     letter-spacing: 2px;
     color: #999;
+}
+
+/* ==================================================
+   Tables
+================================================== */
+
+/* display:block + fit-content sizes the table to its content, shrinks it
+   (wrapping cells) when that doesn't fit, and scrolls only when even the
+   wrapped table is too wide — so wide tables never blow out the page. */
+#content table {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 0 0 25px 0;
+    font-size: 14px;
+    line-height: 22px;
+    /* digits share a width so numeric columns line up when read down */
+    font-variant-numeric: tabular-nums;
+}
+
+#content th,
+#content td {
+    padding: 9px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-table-border);
+}
+
+#content th:first-child,
+#content td:first-child {
+    padding-left: 0;
+}
+
+#content thead th {
+    color: var(--color-heading);
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-table-rule);
+}
+
+#content tbody tr:nth-child(even) {
+    background: var(--color-table-stripe);
+}
+
+#content tbody td:first-child {
+    color: var(--color-heading);
+}
+
+/* Tables used to lay out images side by side aren't data — strip the
+   data-table chrome back off them. */
+#content table:has(img) {
+    font-size: inherit;
+}
+
+#content table:has(img) tr {
+    background: none;
+}
+
+#content table:has(img) th,
+#content table:has(img) td {
+    padding: 0 10px 0 0;
+    border: none;
 }
 
 @media screen and (max-width: 768px) {
