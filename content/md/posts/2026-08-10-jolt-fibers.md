@@ -1,6 +1,6 @@
 {:title "Fibers in Jolt: green threads that fit core.async" :layout :post, :tags ["programming" "clojure" "scheme" "chez" "concurrency"]}
 
-Jolt now provides opt-in support to run `go` blocks on fibers instead of OS threads. This post will discuss how that works along with the different trade-offs made compared to other implementations, and why core.async turns out to be a great fit for the mechanism. All the numbers below are from an Apple M1 Pro with 10 cores, measured with the harness in `bench/fibers` on the current tree.
+Jolt now [provides opt-in support to run `go` blocks on fibers](http://jolt-lang.net/docs/fibers.html) instead of OS threads. This post will discuss how that works along with the different trade-offs made compared to other implementations, and why core.async turns out to be a great fit for the mechanism. All the numbers below are from an Apple M1 Pro with 10 cores, measured with the harness in `bench/fibers` on the current tree.
 
 ## The problem with a thread per process
 
