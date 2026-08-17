@@ -1,8 +1,6 @@
 {:title "A practical workflow for LLM-assisted development" :layout :post, :tags ["programming" "llm" "agentic" "dirge"]}
 
-When LLMs work, it can feel like magic. When they fail, it feels like you are arguing with a confident bullshit artist who refuses to admit they are lost. Through a lot of trial and error, I have developed some intuition regarding what these models are actually good at and how to manage them to get useful results fairly reliably.
-
-It took me many months of daily use to develop some intuition for where LLMs are likely to produce code that is useful and where they are likely to fail. It also took me a bit of time to figure out how to limit scope and provide enough scaffolding to ensure I get useful results reliably. Having invested the time to learn to use the tool effectively, I very much see the benefits, as I am able to build projects on a scale I would not have attempted before.
+When LLMs work, it can feel like magic, but when they fail, it feels like you are arguing with a confident bullshit artist. It took me many months of daily use to develop some intuition for where LLMs are likely to produce code that is useful and where they are likely to fail. It also took me a bit of time to figure out how to limit scope and provide enough scaffolding to ensure I get useful results reliably. Having invested the time to learn to use the tool effectively, I very much see the benefits, as I am able to build projects on a scale I would not have attempted before.
 
 In a way, the process is the inverse of regular programming. We tend to build up programs step by step when writing code by hand as we add each function with intention. LLMs tend to produce a lot of code out of the gate and the focus shifts to whittling the code down to what you actually need.
 
