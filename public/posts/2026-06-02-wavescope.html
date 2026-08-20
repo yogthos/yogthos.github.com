@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): Putting Code Under a Microscope: Wavelet-Based Context for LLMs</title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 2, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-06-02-wavescope.html">Putting Code Under a Microscope: Wavelet-Based Context for LLMs</a></h1>
+</div>
+<div>
+    
+    <p>Every developer who has tried an AI coding tool is familiar with the problem of watching the model fumble with the codebase to find relevant sections to edit. Since it's not possible to load an entire codebase into the context for large projects, it greps through a few files to give it some context, and guesses what to do next. But code has a hierarchical structure with layers and boundaries. Functions sit inside classes. Classes live in files. Files make up modules. One 400-line file can contain six different conceptual areas, each with its own distinct purpose.</p><p>When a human developer reads the code, we leverage the structure when we try to understand it. We examine the way files and classes are organized, and try to find relevant logic based on that. Wouldn't it be nice if the agent could, like you, zoom in and out of the code so that it could look at the big picture, then jump directly to the exact function it needs without having to open the entire file.</p><p>That’s what <strong>WaveScope</strong> does. It’s an MCP server that uses wavelet transforms to give LLMs a multi-resolution view of the codebase. Imagine something like progressive image loading, but for source files. Even though newer models can handle large contexts on paper, what happens in practice is that they start losing focus. The more context the agent has the harder it is to figure out what it actually needs to work on, and what to prioritize leading to context rot.</p><p>Currently, there are two main ways of dealing with the problem. Grep-based search finds exact matches but ignores structure since pattern matching on individual lines can’t tell you where a class boundary is or where an error handling region starts. Embedding-based RAG is another approach which understands semantic meaning but loses position and structure. Neither gives the model a real sense of the architecture of the code.</p><h3 id="code&#95;has&#95;a&#95;rhythm">Code Has a Rhythm</h3><p>Open a file in any language like Clojure, TypeScript, Rust, or Go and you’ll see repeating common structures throughout the code. Imports sit at the top. Class and function definitions pop up at regular intervals. Indentation also has its own distinct pattern in every language. Comment blocks and blank lines are pauses in between. What if there was some way to extract these patterns, and create a structure similar to an AST without actually having to know the syntax of the language.</p><p>Luckily for us, wavelets were made for processing exactly this sort of signal by decomposing it into multiple scales at once. The transform gives you all the fine details along with the large-scale patterns at the same time. This family of algorithms is very versatile and has been used in many different fields. Seismologists use them to spot earthquakes, doctors sharpen MRI scans with them, and audio engineers separate basslines from vocals. Code structure, it turns out, is just another kind of signal that can be decomposed in a similar fashion.</p><p>So how does that actually work? Once each line has a score, the file can be treated as a 1D signal representing a sequence of numbers that rises and falls with the density of the structure. The Ricker wavelet is a little template shaped like a bump with a dip on each side. You slide it across the signal one position at a time and, at every position, measure how well the signal underneath matches that shape. A strong match means there's an elevated region sitting between two quieter regions which suggests a structural boundary. The output is a coefficient at every line scored on how much it looks like a boundary.</p><p>The trick for encoding different resolutions lies in the width of the template. You can slide the same shape stretched to many widths, each representing a different scale. A narrow wavelet only matches when the elevated region is a line or two wide, so it fires on small, sharp features. A wide one ignores line-level noise and responds to larger regions elevated relative to their surroundings, firing for big structures. So, the next trick is to run multiple widths at once to see boundaries which light up across a band of widths rather than just one. Features consistent across different scales tend to be genuine structural edges that we care about.</p><p>Since code structure nests at different sizes, each size shows up at the width that fits it. We can see a concrete example of how this works by running WaveScope on its own <code>src/context.ts</code>. A single line such as a lone <code>import</code> statement, or <code>export class FileContext {</code> declaration stands out over its quieter neighbors making it a sharp one-line spike that the fine, narrow wavelets lock onto. Its coefficient peaks at scale 1 or 2 and fades away at wider scales. At the other extreme is the long keyword-dense cascade inside the <code>inferLabel</code> method, which has a wide run of consecutive <code>if &#40;tokens.includes&#40;&quot;class&quot;&#41;&#41;</code>, <code>interface</code>, <code>enum</code>, and <code>struct</code> branches. That whole region reads as one broad elevated plateau, and its coefficient climbs steadily as the wavelet widens to roughly 0.5 at scale 16, 1.0 at scale 32, 1.3 at scale 64, and about 2.3 at scale 128, where it peaks as the strongest structural response in the entire file. The biggest structure produces the strongest coarse-scale signal, which is exactly the spot you want surfaced first when you zoom out.</p><p>The line scores that feed all of this come from the same pass. In our example, <code>export class FileContext {</code> scores 1.6 because the <code>class</code> keyword weight of 1.0 and <code>export</code> at 0.6, the one-line <code>get lineCount&#40;&#41;</code> accessor scores about 0.58, the <code>readonly</code> field declarations beneath it score roughly 0.08 each, while comments and blank lines around the class score a flat 0.0. The class declaration towers over its own body, the body towers over the whitespace around it, and the wavelet reads those relative heights at every width.</p><p>The intuition above is the front half of the pipeline where you score every line into a 1D signal, then slide the Ricker wavelet across it at eight scales which are 1, 2, 4, 8, 16, 32, 64, and 128 lines giving us a coefficient at every line and width. Next, we need a couple more steps to turn raw coefficient arrays into something the model can use.</p><p>First is to do multi-scale peak detection where the arrays are scanned for local maxima and ranked by magnitude. Strongest boundaries represent features such as the beginning of a class or the transition between imports and code. Because a real boundary shows up at several adjacent scales, as we saw above, these repeats can be safely collapsed into a single peak to avoid flooding the ranking with duplicates of the same spot.</p><p>The second step is the band assembly, where the peaks are separated into three broad zoom bands. The fine band at scales 1–2 shows raw source lines in a close window around the query center. The medium band at scales 4–16 tracks function and class signatures with some context around them. Finally, the coarse band at scales 32–128 compresses the whole radius into a section-level summary.</p><p>All of that processing is handled by the MCP server, and the model simply sees structured JSON with bands and peak positions without having to worry about any of the wavelet math.</p><h3 id="what&#95;the&#95;model&#95;actually&#95;gets">What the Model Actually Gets</h3><p>Let's say an agent calls <code>query&#95;wavelet&#95;context</code> which is centered on line 150 inside a 500 line TypeScript file that has some authentication logic. In this case, the fine band will have the actual lines of code being inspected. The medium band will provide a summary of lines 0–400, guided by peaks such as the imports at top and test helpers at bottom.</p><p>The model derives its knowledge of what <code>updateUser</code> does by paying attention to the fine band, but it also knows about authentication context from the coarse band. It's able to jump to related code by recognising class and function boundaries in the wavelet peaks without needing to see all 500 lines of text from the file.</p><p>There is also a utility called <code>get&#95;important&#95;positions</code>, which operates on the whole project. It goes through every source file, smooths out the wavelet peaks, and gives you a ranked list of the most important places in the code.</p><p>Beyond locating structural boundaries, the server can also measure how complex or irregular those structures are, using a pair of entropy analysis tools driven by a Haar discrete wavelet transform and bit-cost estimation I discussed in my <a href='https://yogthos.net/posts/2026-05-24-libwce.html'>last post</a>. Ricker coefficients can be quantized at each scale using <code>get&#95;entropy&#95;bands</code> which computes their bit-plane counts with higher cost indicating more structural irregularity at that resolution. The original per-line structural signal can also be decomposed through multiple Haar levels using <code>get&#95;complexity&#95;heatmap</code> to project the entropy cost back onto a per-line irregularity score. The model can use these scores as a sort of texture channel to understand where gnarly parts of the code live. Any boilerplate regions will end up with a low score, and so they can be safely summarized or skipped, while high-entropy regions will likely contain dense logic or unusual patterns that warrant extra attention. These tools give the model a data-driven way to triage code at high level and works great for refactoring tasks where the model can easily find sections with tangled logic and break it up.</p><p>The key advantage of wavelets is that they focus on the overall structure of the code which is something that can only be inferred using tools like regex. It's worth mentioning that it's possible to get a lot of the same type of analysis using AST parsing which is even more exact. However, AST tools necessitate having a parser for each language while wavelets are completely agnostic of the semantics of the text they're applied to. They simply flag statistical regularities, and that's what makes them such a broadly applicable tool in the first place.</p><p>Wavescope’s approach strikes a happy medium between grepping and full blown AST analysis since the transform works on any 1D signal. Language awareness comes from a simple keyword-weighting layer rather than a full parser with each language just needing a 10-line config to describe its core semantics. And the whole thing is cheap to run, able to process an entire file in milliseconds to create hierarchical and multi-scale outputs. The scales happen to be a natural representation of code structure which provides the LLM with a map to navigate it.</p><p>Since the wavelet locates edge positions at all levels simultaneously, it trivially locates structural changes that even sophisticated parsers might struggle to detect. For example, a long sequence of <code>if</code>/<code>else</code> blocks looks structurally different from a class with many short methods while regions of documentation appear as valleys between peaks. The wavelet doesn't need to know what these things actually are to perceive that they are structurally different. And this often happens to be just what the model needs to figure out what to do.</p><h3 id="by&#95;the&#95;numbers">By the Numbers</h3><p>To illustrate the concept, I ran three realistic development tasks against WaveScope's own 14 file codebase containing just under five thousand lines of TypeScript to compare the token cost with the traditional way. "Traditional" here means what LLM coding agents actually do: grep for landmarks, read targeted chunks of code, and skim file headers to get a sample of what the structure looks like.</p><p>One common task is to understand the structure of a large file. So, I had the agent analyze <code>index.ts</code> weighing in at 854 lines to see where imports end, to find where the tool registrations cluster, and identify the startup code. These are your typical tasks where the approach would be to grep for export landmarks and section comments, then read the import block, find a registration example, and recognize the startup tail. That costs about 2,000 tokens producing a patchy picture which is just a heuristic. WaveScope's coarse band plus the top 15 important positions give the same structural overview using just 750 tokens with section-level boundaries that grep can't surface because it's only matching lines without the structural context around them.</p><p>Now, let's take a look at a different kind of task, which I've alluded to earlier, where we want to find tangled code that needs refactoring. A naive way would be to run <code>wc -l</code> to find the biggest files, then skim large chunks looking for deep nesting and high cyclomatic complexity. Such a task runs at about 5,200 tokens to read 600 lines across two files, and you would still miss tangled code in any files you didn't scan. On the other hand, WaveScope's <code>get&#95;complexity&#95;heatmap</code> flags exact per-line irregularity scores across every file you point it at. Running it on the three largest files, which are <code>index.ts</code>, <code>wce.ts</code>, and <code>context.ts</code> costs a mere 436 tokens. That's a whopping 92% reduction, but also surfaces precise hotspots at line 287 in <code>handleDiffWaveletContext</code> scoring 0.92, line 59 in <code>FileContext</code> with a score of 0.92, and so on. The analysis finds every section of interest across the whole codebase producing a ranked list of spots to look at closely.</p><p>Another example would be to identify which files are architecturally core versus peripheral. The traditional approach runs <code>head -25</code> on every file to read imports, which ends up costing around 2,900 tokens for all 14 files. As a result, you learn what each file imports without actually knowing which ones define the project's architecture, and the model will have to spend more tokens digging deeper based on its best guesses. WaveScope's project-wide <code>get&#95;important&#95;positions</code> returns a structural-density ranking of every file in just 1,700 tokens along with meaningful rankings. Now it's clear that <code>signal.ts</code> tops the list with the highest keyword density per line. The heavyweight algorithmic files are <code>wce.ts</code>, <code>context.ts</code>, and <code>index.ts</code> which have lower average density because their structural features are spread across hundreds of lines of implementation. Other files, such as the <code>haar.ts</code> and <code>file-cache.ts</code> utilities, end up with a low ranking. Now it's clear which files need to be read first in order to understand the conceptual skeleton of the project.</p><p>Across all three tasks, WaveScope used significantly fewer tokens while producing meaningful answers that are structural rather than textual which is precisely what we were interested in. The structure provides the model with understanding of relationships within the code base that is simply not possible to do by doing regex based heuristics. On top of that, a 128K token window would burn 8% of its capacity using the traditional approach for these three tasks while WaveScope needs only 2%. And the gap scales proportionally with the size of the codebase, making the tool particularly effective for analyzing large projects.</p><p>It's also worth noting that processing all 14 files using signal extraction, Ricker CWT at 8 scales, peak detection, and band assembly all averages at just 3 milliseconds per file. And the entropy heatmap adds about 1ms per file on top. In the context of reasoning time for the model, this is effectively free to do.</p><p>Hopefully, the examples above make the value of using structural peak analysis clear already, but we can leverage the information that's already been produced even further by passing it through an entropy encoder to see just how complex those regions actually are. Running <code>get&#95;entropy&#95;bands</code> against <code>index.ts</code> gives a breakdown of the bit-cost estimates per wavelet scale, which is an indirect measure of structural irregularity. Here, it can be seen that the finest detail at scale costs 613 bits while the coarsest costs 322, suggesting that the file is structurally busy at the line level. A high density of handler functions and schema definitions found in a tool registration class is what's responsible for the pattern.</p><p>Next, we can call <code>get&#95;complexity&#95;heatmap</code> to take things further by back-projecting entropy onto individual lines via a Haar DWT. Doing that identifies the top irregularity hotspots in <code>index.ts</code> such as <code>handleDiffWaveletContext</code> with a score of 0.92 and <code>handleGetCursorImportantPositions</code> with a score of 0.90. These are non-trivial async handler functions with the most branching logic in them, and the heatmap is able to flag them without knowing anything about TypeScript! The entire heatmap costs 474 tokens as well, giving the model a data-driven triage list to focus on and to safely skip the boilerplate.<h2></h2></p><p>WaveScope is open source and can be found at <a href='https://github.com/yogthos/wavescope-mcp'>https://github.com/yogthos/wavescope-mcp</a>. Add it as a drop-in MCP server to give your agent a zoom lens for code.</p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/compression.html">compression</a>
+    
+    <a href="/llm.html">llm</a>
+    
+    <a href="/entropy-coding.html">entropy-coding</a>
+    
+    <a href="/programming.html">programming</a>
+    
+    <a href="/mcp.html">mcp</a>
+    
+    <a href="/wavelets.html">wavelets</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2026-06-08-dirge-code.html">&laquo; Making budget models punch above their weight with a smart Rust harness</a>
+        
+        
+        <a class="right button" href="/posts/2026-05-24-libwce.html">libwce: the entropy layer of a wavelet codec, on its own &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module" src="/js/justif/dist/auto.js"></script>
+
+
+</body>
+</html>

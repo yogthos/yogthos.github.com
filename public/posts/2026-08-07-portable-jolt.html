@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): Program images and portable Scheme backends for Jolt</title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>August 7, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-08-07-portable-jolt.html">Program images and portable Scheme backends for Jolt</a></h1>
+</div>
+<div>
+    
+    <p>Two features landed in <a href='https://jolt-lang.github.io/'>Jolt</a> recently, both of which fell out from loosening the coupling between Jolt and the host runtime. The first is the ability to serialize program images in the style of Common Lisp and Smalltalk, and the second is to have a portable Scheme layer decoupled from the Chez runtime. Let's take a look at what these things buy Jolt in practical terms.</p><h2 id="images:&#95;a&#95;black&#95;box&#95;for&#95;your&#95;program">Images: a black box for your program</h2><p>If you've ever had to support a production system like a web application, then you know the value of having good logging.  What typically happens is that you sprinkle statements through the code, ship them somewhere searchable, and then use them as bread crumbs when something breaks. When a system has errors, you have to first reconstruct what it was doing to understand what happened. If your logging didn't capture a critical piece of information, then the investigation devolves into guess work and attempts to reconstruct the state which caused the error. This can be a particularly frustrating experience when production goes down at 3am.</p><p>The trouble with logging is that it forces you to guess the question before you know it. Each log line is a projection of program state chosen in advance, often being composed of two or three things that seemed relevant when you wrote the call. If the actual cause happened to be in the fourth thing, the log tells you nothing of value. You can't go back and ask a different question, because the values are gone, and you likely have no way to access them even if they're still in memory. All you have to work with is the rendering you decided on when you wrote the code originally.</p><p>As a result, people tend to over-log defensively, which creates a different type of problem where you end up with a volume of logs that add noise and make tracing harder while often still missing the fields that actually mattered.</p><p>But what if I told you that there was a better way, and you didn't have to rely on logging at all? This is precisely what <code>jolt.image</code> lets us do. Instead of choosing what to record ahead of time, you can just dump the whole state of the program at the time of the error to disk. Then you can just copy the file to your local machine, load up the state in the REPL and then poke around in it to see what happened.</p><p>Here's what that looks like in practice. To dump the state when an error happens, all you have to do is call <code>image/dump!</code> in the exception handler:</p><pre><code class="clojure">&#40;try
+  &#40;process-batch! batch&#41;
+  &#40;catch Exception e
+    &#40;image/dump! &#40;str &quot;crash-&quot; &#40;random-uuid&#41; &quot;.jimg&quot;&#41;
+                 {:error   &#40;Throwable-&gt;map e&#41;
+                  :batch   batch
+                  :pending @work-queue}&#41;
+    &#40;throw e&#41;&#41;&#41;
+</code></pre><p>Or skip the enumeration entirely and take the whole program:</p><pre><code class="clojure">&#40;catch Exception e
+  &#40;image/dump-world! &quot;crash.jimg&quot;&#41;
+  &#40;throw e&#41;&#41;
+</code></pre><p><code>dump-world!</code> walks the var table and writes every data var's root so that nothing in your code has to declare what its state consists of up front. The image is architecture agnostic, so an image written on an arm64 server will restore fine on your x86-64 desktop. Once you've copied the file to your local machine, you just have to open it in a REPL:</p><pre><code class="clojure">$ jolt repl
+user=&gt; &#40;require '&#91;jolt.image :as image&#93;&#41;
+user=&gt; &#40;image/restore-world! &quot;crash.jimg&quot;&#41;
+412
+user=&gt; &#40;filter #&#40;nil? &#40;:price %&#41;&#41; @app.core/current-batch&#41;
+&#40;{:id 4182, :sku &quot;B-77&quot;, ...}&#41;
+</code></pre><p>What comes back are the values that were present in memory at the time the problem occurred. Maps, records, cycles and shared structure are all intact with their respective metadata attached, and functions come back callable as well. A named function resolves to the live one, while an anonymous closure travels as its source form along with its captured values to get compiled back on restore. So you can actually call the function that failed, on the data that failed in the REPL and see exactly what went wrong. You can now ask a strictly larger set of questions than any log file can answer, and you didn't have to know any of them in advance.</p><p>You can think of the program image as a black box recorder. Just like an aircraft stores the instrument states to allow investigators to decide afterwards what to look at, a program image gives you all the information needed to debug the problem.</p><p>At this point, a keen reader might ask how this approach handles open resources such as a socket or a file port that can't be serialized. The approach I landed on was to have <code>dump-world!</code> write them as stub records by default. Once the image is restored, you can list them by calling <code>&#40;image/stubs&#41;</code>, and either register a resolver that reopens them or swap live values in by hand from the REPL using <code>&#40;image/register-stub-resolver! kind-or-pred f&#41;</code>.</p><p>One limitation is that a closure over a compile-time constant refuses to dump because the constant gets folded into compiled code and can't be recovered while the stored source still needs it. Closures built by <code>partial</code> and <code>comp</code> have the same problem for a related reason. The image's header is also checked on read so that you don't get stale data from an incompatible build. While <code>dump-world!</code> will dump everything it can, <code>dump!</code> is strict by default, and names the path to the offending object instead of writing something subtly incomplete. It's useful in cases where you want to be explicit about having the whole state available.</p><h3 id="sending&#95;a&#95;program&#95;to&#95;someone">Sending a program to someone</h3><p>While post-mortem debugging is an obvious use case, another interesting application is to facilitate collaboration. An image is a program state you can hand to another person which opens up some intriguing possibilities.</p><p>For teaching, that means you can put someone directly into the middle of a running system, with real data loaded, without them having to build or seed anything. Imagine being able to say "here's the image with the pipeline implemented halfway through; go look at stage 2 in it." For a bug report, it means a colleague can reproduce your problem exactly, because they are just loading your state. They can poke at it, change something, dump it again, and send it back to you.</p><p>It's a whole different relationship with a program than what we're used to since, traditionally, source code is treated as the artifact that we pass around. Jolt moves the needle closer to how Smalltalk and the Lisp machines worked, and how <code>save-lisp-and-die</code> still works in Common Lisp today. The program is a live thing you keep that can evolve over time as opposed to being a recipe you can run.</p><h3 id="durable&#95;session&#95;state">Durable session state</h3><p>Another interesting application would be use cases such as desktop apps, where the user can save their session and then get back to where they left off when restarting the app. I built a <a href='https://github.com/jolt-lang/examples/tree/main/image-dump-example'>TodoMVC example</a> illustrating what that looks like in practice. You can click around, add or modify tasks, then dump the state and reload it in a fresh instance.</p><h2 id="portable&#95;scheme&#95;backends">Portable Scheme backends</h2><p>Originally, my goal for Jolt was to build a Clojure implementation on Chez Scheme. However, <a href='https://jackrusher.com/'>Jack Rusher</a> pointed out that it would be possible to factor out a portable runtime and compiler making Chez just one target among several. Gambit was the obvious choice for a second host since it has a  JavaScript backend making it possible to run Jolt in a browser. If you visit the  <a href='https://jolt-lang.github.io/'>official site</a> you can now try playing in an interactive REPL, which is Jolt running in the browser.</p><p>The refactor split the Scheme part of the compiler into three distinct layers. The core is written in portable Scheme implementing collections, sequences, the reader, the printer, vars, multimethods. This is ordinary Scheme that any serious implementation runs unchanged.</p><p>Next there is the adapter contract where the host shows through. Every host capability goes through an <code>sa-&#42;</code> entry point, and the contract file lists 72 names grouped into tiers: <code>system</code> (clocks, environment, exit), <code>threads</code>, <code>eval</code>, <code>introspect</code> (continuation frames for backtraces), <code>ffi</code>, <code>native-compile</code>, and <code>image</code>. A target can either implement a tier or degrade it honestly so that an absent capability raises a message-carrying error or returns empty. That last property is key for making partial ports actually usable. The Gambit version runs with <code>ffi</code>, <code>native-compile</code> and <code>image</code> degraded, and declares its capabilities explicitly.</p><p>Finally, target-owned files are the two pieces nobody can share. These include the adapter itself, and the hash kernel. For example, the Chez version uses unsafe fixnum operations that other Schemes spell differently. On the compiler side, per-target differences go through a primitive table with the main entry being the unsafe-op prefix, so a target that maps it to the empty string simply gets checked operations everywhere stating whether it's safe, portable, or slower.</p><p>The dialect-specific work is both smaller than you'd guess and duller than you'd hope. Most of it involves mapping records to their parent types, the hashtable API, <code>fx</code> operation spellings, the shape of error objects, and making the hash function produce bit-identical output to Chez. The Gambit port weighs in at about 6,000 lines, and a good fraction of it, including the seed itself, is generated on Chez rather than having to be written from scratch. Cross-minting the seed from a known working build is the trick that keeps a new target from having to bootstrap itself.</p><h3 id="why&#95;more&#95;than&#95;one&#95;scheme&#95;is&#95;worth&#95;having">Why more than one Scheme is worth having</h3><p>The immediate payoff is reach. Gambit compiles to a single JavaScript file, so Jolt now runs in a browser allowing for a REPL on the front page of the site using the real compiler and standard library evaluating directly on the client. It's not terribly fast, but works for a demo.</p><p>Scheme is a whole family of languages with different dialects each optimizing for different use cases. So, the deeper payoff here is in opening up an ecosystem of implementations that made different bets. All of them share core language semantics, but each dialect puts its own twist on the language providing a runtime optimized for different use cases. Jolt can now piggyback on this whole ecosystem providing a Clojure layer on top.</p><p>Chez makes an excellent default since it's fast, relatively small, feature-rich, with real threads, an FFI, and native compilation. Gambit gets you to JavaScript and C. Meanwhile, a whole-program optimizing compiler in the Stalin lineage is a different proposition entirely; it affords aggressive closure and type analysis producing tiny output that suits a small binary shipped to a constrained device where startup and footprint dominate. Such a compiler typically has no runtime <code>eval</code> at all, which sounds disqualifying until you notice that the seed is already cross-minted on Chez. This way the compiler can live on one Scheme while the emitted program runs on another.</p><p>The key part here is that the program is the same Clojure regardless of which host you target. What changes are the capabilities available, which have to be stated in the contract providing clear boundaries for what can be expressed by each runtime. Thanks to many existing Scheme implementations, the same code can now run on a server, in a browser tab, as a tiny static binary, or get embedded in existing programs.</p><p>A program shouldn't be trapped in the process that started it, nor should it be married to the runtime it was first compiled for. Lisps were always meant to be flexible, and Jolt embraces this philosophy.</p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/programming.html">programming</a>
+    
+    <a href="/scheme.html">scheme</a>
+    
+    <a href="/chez.html">chez</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2026-08-10-jolt-fibers.html">&laquo; Fibers in Jolt: green threads that fit core.async</a>
+        
+        
+        <a class="right button" href="/posts/2026-08-03-splat-painter.html">Painting with Gaussians &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module" src="/js/justif/dist/auto.js"></script>
+
+
+</body>
+</html>

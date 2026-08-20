@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): The Hidden Elegance of Gradient Noise </title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>June 17, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-06-17-perlin-flow.html">The Hidden Elegance of Gradient Noise </a></h1>
+</div>
+<div>
+    
+    <p>How would you go about rendering a scene reminiscent of dark teal water, lit from somewhere below, with thousands of faint cyan filaments drifting and swirling across it? Your instinct might be to reach for a shader or to create a particle simulation, but you could render the whole thing using just a couple hundred lines of arithmetic instead. That's precisely what we're going to do in this post by rendering these filaments using the same function Ken Perlin wrote in 1985 to fake textures on a computer that couldn't draw them for real, which we know today as Perlin noise.</p><p><iframe src="/files/perlin-flow.html" title="Perlin flow field visualization" loading="lazy" style="width:100%;height:480px;border:0;display:block;border-radius:6px;margin:1.5em 0;"></iframe></p><p>I'll walk you through a moving-water visualization to illustrate what Perlin noise actually is, and how a single noise value can be used to steer thousands of particles into curving currents to create a flowing surface. The snippets use  the <a href='https://github.com/squint-cljs/squint'>Squint</a> ClojureScript dialect, but the ideas are language-agnostic.</p><h2 id="what&#95;is&#95;perlin&#95;noise?">What is Perlin noise?</h2><p>Naively using random values is the wrong approach for creating a natural-looking texture. Pure randomness at every pixel will produce boring static that's chaotic and grainy. Real surfaces such as marble or water are smooth because neighbouring points tend to be correlated. A piece of marble that's bright here is probably still fairly bright a millimetre over there.</p><p>Perlin noise provides a way to generate that kind of structured pseudo-randomness. It's a deterministic function from a point in space to a scalar value, with three properties that make it magical for graphics, which are as follows.</p><p>Nearby inputs give nearby outputs without seams, leading to smooth transitions. The same seed always gives the same output, so the texture ends up being stable across frames. And it has no preferred direction, making it look isotropic, unlike a simple grid of blurred random dots.</p><p>Under the hood it's just gradient noise generated in three steps. First, we need a tile space in the form of a grid, and then we plant a pseudo-random gradient vector at every corner to provide a direction. For any point inside a cell, we need to figure out how strongly each corner's gradient points toward it using a dot product. Finally, we just blend the contributions of the surrounding corners.</p><p>A naive linear blend would leave ugly visible creases at every grid line. Perlin, instead, passes the interpolation parameter through a fade curve which is a polynomial shaped so that it starts and ends flat, allowing the value to ease gently into each corner:</p><pre><code class="clojure">&#40;defn fade &#91;t&#93;
+  &#40;&#42; t t t &#40;+ &#40;&#42; t &#40;- &#40;&#42; t 6&#41; 15&#41;&#41; 10&#41;&#41;&#41;
+</code></pre><p>The formula above is just <code>6t⁵ − 15t⁴ + 10t³</code> with its first derivative being zero at both <code>t = 0</code> and <code>t = 1</code>, which is precisely what guarantees the output is smooth across cell boundaries. Linear interpolation itself is likewise dead simple:</p><pre><code class="clojure">&#40;defn lerp &#91;t a b&#93;
+  &#40;+ a &#40;&#42; t &#40;- b a&#41;&#41;&#41;&#41;
+</code></pre><p>The gradient lookup hashes a corner to one of a fixed set of directions and returns the dot product against the point's offset within the cell:</p><pre><code class="clojure">&#40;defn grad &#91;hash x y z&#93;
+  &#40;let &#91;h &#40;bit-and hash 15&#41;
+        u &#40;if &#40;&lt; h 8&#41; x y&#41;
+        v &#40;if &#40;&lt; h 4&#41; y &#40;if &#40;or &#40;== h 12&#41; &#40;== h 14&#41;&#41; x z&#41;&#41;&#93;
+    &#40;+ &#40;if &#40;zero? &#40;bit-and h 1&#41;&#41; u &#40;- u&#41;&#41;
+       &#40;if &#40;zero? &#40;bit-and h 2&#41;&#41; v &#40;- v&#41;&#41;&#41;&#41;&#41;
+</code></pre><p>A small seeded PRNG shuffles an identity permutation table at construction time to decide which gradient each corner gets, making the field reproducible. A caller doesn't need to worry about any of this and simply passes their desired <code>x</code>, <code>y</code>, and <code>z</code> to <code>noise3</code> to get back a smooth value. Perlin's raw output sits roughly in <code>&#91;-1, 1&#93;</code>, and the implementation remaps it to <code>&#91;0, 1&#93;</code> so that downstream consumers can scale it linearly into their own positive range:</p><pre><code class="clojure">&#40;/ &#40;+ 1 n&#41; 2&#41;
+</code></pre><p>And that's the whole noise engine in a nutshell. Now that we have our noise, let's see what we can do with it to create a smooth animation.</p><h2 id="from&#95;a&#95;number&#95;to&#95;a&#95;current">From a number to a current</h2><p>Smooth scalar values are nice, but what if we wanted to create an animation which moves in a particular direction? Well, to do that we just have to treat the noise value as an angle to give us a compass heading. Next, we multiply by a full turn (<code>2π</code>) so that the entire <code>&#91;0, 1&#93;</code> range maps to every possible direction:</p><pre><code class="clojure">&#40;defn create-flow-field 
+  &#91;{:keys &#91;noise noise-scale force-scale time-scale&#93;
+    :or {noise-scale 0.003 force-scale 1 time-scale 0.15}}&#93;
+  &#40;let &#91;noise3 &#40;:noise3 noise&#41;&#93;
+    {:force-at
+     &#40;fn &#91;x y t&#93;
+       &#40;let &#91;theta &#40;&#42; &#40;noise3 &#40;&#42; x noise-scale&#41; &#40;&#42; y noise-scale&#41; &#40;&#42; t time-scale&#41;&#41;
+                      js/Math.PI 2&#41;&#93;
+         #js {:x &#40;&#42; &#40;js/Math.cos theta&#41; force-scale&#41;
+              :y &#40;&#42; &#40;js/Math.sin theta&#41; force-scale&#41;}&#41;&#41;}&#41;&#41;
+</code></pre><p>And with that trick we get a flow field which we can ask for a velocity vector of a pixel at <code>&#40;x, y&#41;</code>. Since the underlying noise is smooth, nearby pixels get nearly identical headings and the field ends up looking like a coherent map of currents, complete with eddies, calm spots, and converging streams.</p><p>The <code>noise-scale</code> knob controls the zoom factor of the flow. Scaling the coordinates down before sampling samples the noise at a coarse resolution, creating swirls that are broad and slow. On the other hand, scaling up produces nervous little vortices.</p><p>A keen reader will have noticed that the function takes a third coordinate, <code>t</code>, that we'll come back to later. For now, I'll leave a hint that it's going to be our secret ingredient for motion.</p><h2 id="drawing&#95;the&#95;curves">Drawing the curves</h2><p>To actually see the current we have to drop particles into the field and let them drift. Each particle needs to keep track of its previous position as it's moved by its local current, so that we can draw a short line segment from where it was to where it landed:</p><pre><code class="clojure">&#40;defn update-particle! &#91;p force&#93;
+  &#40;set! &#40;.-lifetime p&#41; &#40;dec &#40;.-lifetime p&#41;&#41;&#41;
+  &#40;if &#40;neg? &#40;.-lifetime p&#41;&#41;
+    &#40;respawn! p&#41;
+    &#40;do
+      &#40;set! &#40;.-prevX p&#41; &#40;.-x p&#41;&#41;
+      &#40;set! &#40;.-prevY p&#41; &#40;.-y p&#41;&#41;
+      &#40;set! &#40;.-x p&#41; &#40;+ &#40;.-x p&#41; &#40;.-x force&#41;&#41;&#41;
+      &#40;set! &#40;.-y p&#41; &#40;+ &#40;.-y p&#41; &#40;.-y force&#41;&#41;&#41;
+      &#40;wrap! p &#40;.-width p&#41; &#40;.-height p&#41;&#41;&#41;&#41;
+  p&#41;
+</code></pre><p>When we run that for a few thousand particles over a thousand frames in a row, they trace a curve through the field, and since the field is smooth and continuous, neighbouring particles trace neighbouring curves. The collective result has a look of flow lines following a current similar to the way dye disperses in moving water.</p><p>Each segment itself is just a stroked line, tinted by a second, finer noise pass so the colour shimmers across the surface instead of reading as just flat cyan:</p><pre><code class="clojure">&#40;defn- draw-segment! &#91;p noise2&#93;
+  &#40;let &#91;v     &#40;noise2 &#40;&#42; &#40;.-x p&#41; 0.004&#41; &#40;&#42; &#40;.-y p&#41; 0.004&#41;&#41;
+        hue   &#40;+ 185 &#40;&#42; v 30&#41;&#41;
+        light &#40;+ 55 &#40;&#42; v 25&#41;&#41;&#93;
+    &#40;set! &#40;.-strokeStyle ctx&#41; &#40;str &quot;hsla&#40;&quot; hue &quot;, 80%, &quot; light &quot;%, 0.3&#41;&quot;&#41;&#41;
+    &#40;doto ctx
+      &#40;.beginPath&#41;
+      &#40;.moveTo &#40;.-prevX p&#41; &#40;.-prevY p&#41;&#41;
+      &#40;.lineTo &#40;.-x p&#41; &#40;.-y p&#41;&#41;
+      &#40;.stroke&#41;&#41;&#41;&#41;
+</code></pre><p>So the shape of the motion comes from the noise field while the colour comes from an independent one sampled at a different scale. Thus, we have two channels of the same primitive, doing two different jobs.</p><h2 id="two&#95;additions&#95;that&#95;make&#95;it&#95;move">Two additions that make it move</h2><p>Everything we've done so far produces a frozen flow field. Next, we'll need to make two small changes to turn it into a living animation.</p><h3 id="1.&#95;time&#95;is&#95;just&#95;a&#95;third&#95;dimension">1. Time is just a third dimension</h3><p>Remember the unused <code>t</code> in <code>force-at</code>, which we were going to come back to? Well, what I didn't mention is that Perlin noise can be defined for any number of dimensions, and the implementation here is actually 3D. The first two dimensions are in space, but the third one is time. Each frame, we advance <code>t</code> a tiny bit, and because the noise is smooth in all directions, the entire current field ends up drifting as a result. Eddies migrate, streams bend, while calm patches open and close. The field smoothly evolves from one frame to another as we increment the counter:</p><pre><code class="clojure">&#40;swap! state update :time inc&#41;
+</code></pre><p>The <code>time-scale</code> parameter governs how fast that evolution happens, and we want to keep it small to produce gentle change rather than a strobe. And that's how using an extra noise dimension as the clock turns a static render into an animation. In case you're wondering, you can generalize it freely, and a 3D animation can be similarly created using 4D noise.</p><h3 id="2.&#95;trails&#95;decay&#95;into&#95;the&#95;deep">2. Trails decay into the deep</h3><p>The last step is to make sure that our trails fade over time to create continuous motion as old trails fade out, and new ones appear over time. To achieve a shimmering effect we want to avoid fully clearing the canvas. Instead, every frame paints a translucent dark rectangle over the scene before drawing the new segments:</p><pre><code class="clojure">&#40;set! &#40;.-fillStyle ctx&#41; &quot;rgba&#40;3, 18, 26, 0.03&#41;&quot;&#41;
+&#40;.fillRect ctx 0 0 width height&#41;
+</code></pre><p>A value of <code>0.03</code> alpha is doing a huge amount of work creating the effect of old line segments slowly getting drowned. A particle's recent trail glows bright, one from half a second ago starts to fade, and then it's gone completely. The result is a cheap, accidental motion-blur that gives the surface its reflective, continuously flowing quality.</p><p>Tuning this alpha number shifts the whole mood, with higher values making trails vanish almost instantly, while lower ones smear into long ghostly streaks.</p><h2 id="tying&#95;the&#95;edges&#95;together">Tying the edges together</h2><p>Another thing to consider is how to keep the surface believable at the borders. Here, we can have particles that drift off one edge reappear on the opposite side using a toroidal, seamlessly tiling wrap. When a particle wraps, its previous position needs to wrap along with it to avoid drawing ugly streaks across the canvas:</p><pre><code class="clojure">&#40;defn- wrap-delta &#91;v extent&#93;
+  &#40;cond &#40;&gt;= v extent&#41; &#40;- extent&#41;
+        &#40;neg? v&#41;     extent
+        :else        0&#41;&#41;
+</code></pre><p>In a flow field, particles spiral into a handful of attractor orbits and drain out of the rest of the canvas. To keep the whole surface populated, each particle has to have a randomized lifetime so that when it expires, it can respawn at a fresh random location with its lifetime reset. Lifetimes also need to be jittered from the start so that respawns stay staggered rather than all firing on the same frame.</p><h2 id="the&#95;loop">The loop</h2><p>Here's how the whole machine runs frame by frame:</p><pre><code class="clojure">&#40;defn draw &#91;&#93;
+  &#40;let &#91;{:keys &#91;width height particles time&#93;} @state
+        force-at &#40;:force-at field&#41;
+        noise2   &#40;:noise2 noise&#41;
+        n        &#40;alength particles&#41;&#93;
+    ;; Fade old trails toward the deep.
+    &#40;set! &#40;.-fillStyle ctx&#41; &quot;rgba&#40;3, 18, 26, 0.03&#41;&quot;&#41;
+    &#40;.fillRect ctx 0 0 width height&#41;
+    &#40;set! &#40;.-lineWidth ctx&#41; 1&#41;
+    &#40;set! &#40;.-lineCap ctx&#41; &quot;round&quot;&#41;
+    ;; For each particle: sample the current, drift, draw its segment.
+    &#40;dotimes &#91;i n&#93;
+      &#40;let &#91;p &#40;aget particles i&#41;&#93;
+        &#40;update-particle! p &#40;force-at &#40;.-x p&#41; &#40;.-y p&#41; time&#41;&#41;
+        &#40;draw-segment! p noise2&#41;&#41;&#41;
+    ;; Advance the clock and schedule the next frame.
+    &#40;swap! state update :time inc&#41;
+    &#40;reset! raf-id &#40;js/requestAnimationFrame draw&#41;&#41;&#41;&#41;
+</code></pre><p>If you read the function from top to bottom, you can see the exact steps that are happening. First, a dark background is painted on the canvas, then the noise field is sampled for each of a couple thousand particles to see which way the water flows. The particles are nudged that way, and a faint coloured line is drawn behind each. Doing that sixty times a second creates the final animation.</p><h2 id="why&#95;it&#95;works">Why it works</h2><p>Now we can see how the whole animation is put together. The noise gives us the basis for the flow field, the third dimension provides an arrow of time, and the fade creates a sense of motion. All of these ideas compose into something that feels far more complex than the sum of its parts.</p><p>The full source can be seen on <a href='https://squint-cljs.github.io/squint/?src=gzip%3AH4sIAAAAAAAAE51a%2FY7bNhL%2FP08xcVGclKwd2fvRrH29y26vvRboHYI2wCU1Fi0tjSxmZVIlKVvaIIe%2Bw90T9kkOQ4qS%2FLm5CotYEueLM8OZH6kECaYCVmW%2BQKXq8wnMNWJy9wRgNoMfERNM4PUP%2F%2Fw7cA2lxgSkyGvYZDxHWJQ8T7hYgskQClSr0jDDpQDDFjmOngAEORqYMwjWMmeG5%2FgUglJovhSYDBfcDHXGUzNUfJkZIMUQhSEpBwhSAXN3CxCs9YYVT4G519UdBMQtFQTPoYKoukomiy%2Bu08uQBISey2lfQ%2FBev%2FgHM9mIr8rcsVZSwSt2wppXDMaXragjl7diDK%2FYDq2BTlHwHI5bQSNHrWBr%2BOIxI47YdDUGtu6csX%2BxdeNqy%2FXihBWtreYEkYHxRUj%2B7yu8mFxfXF99Mbm%2BCul68iSw%2BZayBGFu7iB4BsRpyEX2Phi636vQuh%2FGNp6OK0dVwNwAg8Wd9WnLsgDWF79ULIF5xnQGFdTwQNN0yZC5uTCRgB0eX3bmlhDwFII%2FQwYvQ2Lshtbd0EUItXuiwH75JWQwnoT%2BjjxQwUObxM8d6QMq%2BdeeahiHIekbQtkF6DDlJAxJ%2FRAolu0Uh8CUYvXQLYs5Uwo4vO%2FmaVYFBGyJhuiAe3OY9m96o%2B8bE7rR92BWRc%2BfsUJmcCgk19gVCKeJ1j0EXBg5tCZBoJhYIkwur3q5V7gJ9qmwQGbgcjyhJdsSKrEECHr1iNy8XRlmM%2FiG6wzV77%2F95x0zqEFnZZrmCDK1pYgnKAw3db8mnVkhmMCi7lU7qlEAQSI1%2Fgpz3tl%2BCREMx%2B36CPretjPm3XJOc0mp8AwCJZYhxZxTfP3Sm83gb7Jc5JhALuV9WbjyCFpCUMzf3sFzeBfCRrFCQ5wjE3ndmmX4CjUZdjmedLZQmIo2hC4APmE4Gd%2FqdiGycTtvSqdfD%2Ft1w9LayQyr3dlVJ2qQY6l3WepHWR52WR5OsLzt5uhtpJkeZ3i3y1A%2FwvDTLsPDIwxpReuy8vacoqyJsvaGnKJ8IMoHb8EJyhICW0bTU4rXnuiUzo0nOqVuNoNYKoFqSNWVozBTm89QFlDMeVLdAXkO1ywvmUFbg10eH7yWLh15UgGrgNXAHu4gsIW7SWvgSRW2g6ea4I0rtA3b2xDenSK%2B6RPfhPDTKeLbPnHARQw34WmWW9hjeRueNul2y6TbR%2BTvm3T7iEmzGRjFcy6QKeDCoCosHJPCV8yXEJcLHLoAgw%2BwPi5SULlQBWwehyaOcP2pGMaRlxAsKVRpRWsnfQjpmfyUYEwZ37wN%2F4jUW7twraA6bGXfdrL7Y5%2Bi4o%2FP0GXUTdjM0yl%2BCK1FLrQ34dacW4rwD2u7tdraOR7QedvTuU8X%2Bj68d81m8BpVzgXI0hSloT3Dv%2BfD8dn4bgYKV6wAI2EenY3vjlQGQqHPYQwiJNzTn6PtYZO2h91B0HQ1amgtNAD4MG0omx%2F3eO4ezz9aUDObUXndpBzzBJ5DwZThcY56B%2B4QzdARzT9M77HWTSt1woY6ZjlCKlXs76ldu9sjHrLXVCr40BcRjaLofEvQuCcKotH48uPHDnH5dr41tcYBH6ZODDPOgLbnm9aiBiBmaCx%2B9n4MnkHVn1hIb%2Bq9N6Zn2dEk9F399Xcw6SfLZ%2B81fJhWVq2niaWmEmRY2PfAruRpvcWkuTjE9DGkv50w%2BvB2QSR%2FbHhiMsjQbl1yniJN63jUbMw8Gc3vO5FywU3tAuMnVpGhNUwLheu39EQ376D2cqetiPZmumLV97tvW3pnpvt32ljrfj66RP5WbiBlChjEUqqEC%2Bq9q1IbsHszWnA59eUFi%2B%2BBC80TBKwMCjOCG0gVW%2BGfNAlayTWuUNhFy%2FINqzVsMM%2BhFAkq%2BMXx%2FHJGsJWB5mKZowWtRI9Clsts5Lcm9HqYYG4YzNeNNpu%2BsRQJBH%2F5EvzbkMBOc9ttRQUu%2Fwrr0D64wXZsirlG%2FxB1sSaVT2FebMW1WzJJBUHPqmA0rKAIHXGnOKl3qWqicsL8FmqToRgKafxWLWnhV6DRPG1lU5NubpMq3KNxGdLStY9EGx7RVO9JqTsJ9japD2t6t63pnae11IXLpNe%2BDIIuuGI5IQWKdYobYMYoFhupQKoFN9pCvUQxV%2Bo9ilCo%2FT0JjJlYM00ZqDCuaQWaDFf0zCBVqDPIZexgyD1iYcsAbDJJe6NSpSxGKGRR5sxgMiKBZDqlW8GFwIQExaVSlLNaNgZQsqIi0zYahARtFLJ7YLGSulGgWNFmqkJdsI2gzOnV1%2B0CpZhI5Cok37nkKnp1T9THaJvFWrRHAVvZIai17uWCaHJpO76Cuu9eNEWTDe1IW1Eo1KNhv6zQXr5dKmWR9MuiXTW2iFoPHJRGrX%2F7nXWBPbCwi3Vn0BnWOrdoXiTy%2BCpwfjmRvM4Zj641%2B2un0zsHPLZc7O8usSslRT%2Fe2%2FFsFw3l5IYZVPD7b%2F%2F16e5ykIul87cUMTZD3ZEJ5XEwWqL5Orc197b%2BLqGmksi4tDV4YMUO%2BjXHZX8wUkiV2j5tbfIpQq7jNUK3BToTvMSeT3gCcdgq3B2NtX6DlaFbbeocId5p%2BoOE6yJn9XSRy%2Fh%2BVkjNaUVPU15hMjOymEazHFMzjWYPQy4SrKbX19fXs0LajcgQ17TRmAopsNM%2BYkWBIvkq43lCqhcyqfvTCSH2tHGb2c7TpnKe%2FUoKQ4Y3URlMkkFzjmjpkkJBsOLCneKNhgmueYyveYX5D1SSSNuGi0RuQhhbMOqUODwEwdaJ2CSaXERXER3UWhqHGYN9GNmA00bIdBcDjl%2FCdAsFji5gugUEoyi6bhEOaEPNPmBGruBDAxWiFiZEMG2RrQUo8zsnDSISYSUollICOBGC512VUKj5AxWHri5ubLoIgepfVlXnojYjspbkW2dER7NTBZ21LjrhgbO0DYWobYWeq5nacbbsIJtT1uWwY6eqahRsYFBUgyOajvBkWzwjjeaNYkKnUq1sClJ6RRD5Xy%2FbHh%2B6qDGtZdziuw7b9Qo1HVi2ZVpvhcIj2S208xFeWdldcyKllOSTqyjac9YL6%2BaegBCuot7XE7BHwcR1Q4efIx%2FB9lTyZxBtNbFWUQug8nodHWyK40n%2FoLc7Fd7F6bs7BM%2B%2Fg9ZOXDu7BS%2BgmeYnSTgOvD%2BJfQvnf%2BztgeirmmHKALI4a7eewOirhrMTbGkELoCAlvVpA29SrrSBDVt3IZ7NCHA1nVYTONKFQpZYWKaYyVCByZggXvpSRx%2FnMgTNVujAf7cRP9z6D7iRxnuBDEZFqTObLA0uOJzqXTFiyi5Rap9vaKrWFRqXtlMtatpfIG0VziDldB7lymXBtLaekAJB8aKwolpgR9I8bOxPnLxBM2caiDHNmYFY5rJULQoktDhs9Fs45M4OuuW2dhP1ZxDPWrRBFfnCeamBFO5NryKWtF2hQ42Xl0S3hvP%2BKshdlXkOl83o5HIPMGqj5D3%2B6MqQscDRKBhkOmfBwCoYnMHL6PMzGDTyBp%2BfQTQ6D9sKlUgCy6ZqG%2BwCl1y8Zt16CkYEK97IXVTmAVhHR%2BeIjq46BMxGztw%2B4iT%2FPla9ulMYe8CwX8z8uQYE7RGHa7Q9MO7iA%2F5opDkE6hG0OctyFEvCdl5r923JVvK8jCkZE6buIeV57nLUrhgwXBhNuU07GsV4rt3u2sgNU4ldXwliceYFLvnafyT3CUorm3ABF8szUJjmGBu%2BJr6Y%2Ba8%2FPvykvhf8gVouWHB%2BBuOXZzC5okBHFOmmFRH1Dxgb24aoBW1V%2BN0dg0DXyq3k8YHhr1jh1cpSJF5N78vUTg%2Fwnx27cPqPj5Zmb%2FNRQNBFdjulbCL0C832OvXL9GDNcXoavMNF3G1JaHIe9rzXLxT%2BWqI2N4Kv7Fb0Gxti0tTPYG1Ltkthuy23c%2BUJvHKi7qysmIkY8x1RPHF7pQZQ2fudzh5%2BWl%2B%2FO50Xn0Xn48mYfWImeJv%2BH3f0cPbPbjrDnGuDAhVJG7Ek%2BZrg%2FPfNyw79wcDRD5r%2F1tG5Y98ZVtFnPwfW5%2BH%2FAAdbYsWgIgAA'>Squint playground</a>, and the version running above is served from <a href='/files/perlin-flow.js'>perlin-flow.js</a> generated from Squint.</p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/graphics.html">graphics</a>
+    
+    <a href="/programming.html">programming</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2026-07-02-jolt.html">&laquo; Jolt: running Clojure on Chez Scheme</a>
+        
+        
+        <a class="right button" href="/posts/2026-06-08-dirge-code.html">Making budget models punch above their weight with a smart Rust harness &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module" src="/js/justif/dist/auto.js"></script>
+
+
+</body>
+</html>

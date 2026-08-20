@@ -1,0 +1,3 @@
+Maybe a few blog posts on "clunky native toolkits" would help to popularise Jolt. I just realised that a blog post with some presentation-slide-like pictures (bullet points) is as good as or even better than a conference talk.
+
+Is there a list of the Clojure libraries that can already be consumed? I could make a bullet point list to show for tomorrow. Does not need to stand the test of time, that is the motto.

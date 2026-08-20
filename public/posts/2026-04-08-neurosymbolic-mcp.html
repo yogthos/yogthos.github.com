@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): Giving LLMs a Formal Reasoning Engine for Code Analysis</title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>April 8, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-04-08-neurosymbolic-mcp.html">Giving LLMs a Formal Reasoning Engine for Code Analysis</a></h1>
+</div>
+<div>
+    
+    <p>LLM coding assistants continue to become more capable at writing code, but they have an inherent weakness when it comes to reasoning about code structure. What's worse is that they assemble the picture of the code by grepping through source files and reconstructing call chains in ad hoc fashion. This works for simple questions, but quickly starts to fall apart for transitive ones such as "Can user input reach this SQL query through any chain of calls?" or "What's all the dead code in this module?" Such questions require exhaustive structural analysis that simply can't be accomplished using pattern matching.</p><p><a href='https://github.com/yogthos/chiasmus'>Chiasmus</a> is an MCP server aiming to address the problem by giving LLMs access to formal reasoning engines, bundling Z3 for constraint solving and Tau Prolog for logic programming. Source files are parsed using tree-sitter and then turned into formal grammars, providing the LLM with a structured representation of the code along with a logic engine that can answer questions about it with certainty while using a fraction of the tokens.</p><p>The project is grounded in the neurosymbolic AI paradigm described by <a href='https://doi.org/10.1109/MIS.2023.3268724'>Sheth, Roy, and Gaur</a>. The core idea is that AI systems benefit from combining neural networks (perception, language understanding) with symbolic knowledge-based approaches (reasoning, verification). LLMs are excellent at understanding what you're asking and generating plausible code, but they lack the ability to prove properties about that code. Symbolic solvers have that ability but can't understand natural language or navigate a codebase. Chiasmus bridges the two: the LLM handles perception (parsing your question, understanding context, filling templates), while the solvers handle cognition (exhaustive graph traversal, constraint satisfaction, logical inference).</p><h2 id="the&#95;problem&#95;with&#95;grepping&#95;through&#95;source">The Problem with Grepping Through Source</h2><p>When an LLM assistant needs to answer "what's the blast radius of changing <code>lintSpec</code>?", here's what typically happens:</p><pre><code class="text">Step 1: grep lintSpec src/&#42;&#42;/&#42;.ts
+  → found in engine.ts &#40;lintLoop&#41; and mcp-server.ts &#40;handleLint&#41;
+
+Step 2: grep lintLoop src/&#42;&#42;/&#42;.ts
+  → called from solve&#40;&#41; at lines 75 and 87
+
+Step 3: grep handleSolve src/&#42;&#42;/&#42;.ts
+  → called from createChiasmusServer switch...
+</code></pre><p>Three rounds of tool calls, each consuming tokens for both the query and the response. At each step, the LLM has to reason about what it found and decide what to grep next. And after all that, it's still only traced <em>part</em> of the chain while missing paths through <code>correctionLoop</code>, <code>runAnalysis</code>, and several other transitive callers.</p><p>This isn't a failure of the LLM. It's a fundamental limitation of the approach. Grep finds string matches. Structural questions about code such as reachability, dead code, cycles, impact analysis require graph traversal, which grep cannot do.</p><h2 id="how&#95;chiasmus&#95;works:&#95;tree-sitter&#95;→&#95;prolog&#95;→&#95;formal&#95;queries">How Chiasmus Works: Tree-sitter → Prolog → Formal Queries</h2><p>Chiasmus takes a different approach. Instead of searching through text, it:</p><ol><li><strong>Parses source files with tree-sitter</strong> into typed ASTs</li><li><strong>Walks the ASTs</strong> to extract structural facts: method definitions, call relationships, imports, exports</li><li><strong>Serializes these as Prolog facts</strong> a declarative representation of the call graph</li><li><strong>Runs formal queries</strong> via the Prolog solver to answer structural questions</li></ol><h3 id="step&#95;1:&#95;tree-sitter&#95;parsing">Step 1: Tree-sitter Parsing</h3><p>Unlike regex-based tools, tree-sitter understands language grammar making it possible to produce concrete syntax trees. Since it knows that <code>foo&#40;&#41;</code> in <code>const bar = &#40;&#41; =&gt; { foo&#40;&#41;; }</code> is a call from <code>bar</code> to <code>foo</code>, it can answer semantic questions regarding the symbol.</p><p>Chiasmus supports Python, Go, TypeScript, JavaScript, and Clojure out of the box, and provides adapters for other languages. When you pass source files to <code>chiasmus&#95;graph</code>, the parser identifies method declarations <code>arrow&#95;function</code>, <code>method&#95;definition</code> in TS/JS; <code>defn</code>, <code>defn-</code> in Clojure. Next, it resolves call expressions <code>call&#95;expression</code> → callee name, handling <code>obj.method&#40;&#41;</code> → <code>method</code>, <code>this.bar&#40;&#41;</code> → <code>bar</code>, <code>db/query</code> → <code>query</code>. It tracks scope of which routine is the caller for each call site and extracts imports and exports for cross-file resolution.</p><p>Tree-sitter is an incremental parsing library that produces concrete syntax trees. Unlike regex-based tools, it understands language grammar, and so, it knows that <code>foo&#40;&#41;</code> in <code>const bar = &#40;&#41; =&gt; { foo&#40;&#41;; }</code> is a call from <code>bar</code> to <code>foo</code>, not just a string that contains "foo".</p><h3 id="step&#95;2:&#95;prolog&#95;fact&#95;generation">Step 2: Prolog Fact Generation</h3><p>The extracted relationships become Prolog facts:</p><pre><code class="prolog">defines&#40;'src/formalize/validate.ts', lintSpec, routine, 16&#41;.
+defines&#40;'src/formalize/engine.ts', lintLoop, routine, 208&#41;.
+defines&#40;'src/formalize/engine.ts', solve, routine, 64&#41;.
+defines&#40;'src/mcp-server.ts', handleLint, routine, 527&#41;.
+
+calls&#40;lintLoop, lintSpec&#41;.
+calls&#40;solve, lintLoop&#41;.
+calls&#40;handleLint, lintSpec&#41;.
+calls&#40;handleSolve, solve&#41;.
+calls&#40;correctionLoop, solve&#41;.
+
+exports&#40;'src/formalize/validate.ts', lintSpec&#41;.
+</code></pre><p>We now have a complete representation of the call graph with all subroutine definitions, call edges, and import relationships are encoded as ground facts that a Prolog engine can reason about.</p><h3 id="step&#95;3:&#95;built-in&#95;rules&#95;for&#95;structural&#95;analysis">Step 3: Built-in Rules for Structural Analysis</h3><p>Alongside the facts, Chiasmus appends rules that enable the kinds of queries LLMs actually need. The most important of these is cycle-safe transitive reachability:</p><pre><code class="prolog">reaches&#40;A, B&#41; :- reaches&#40;A, B, &#91;A&#93;&#41;.
+reaches&#40;A, B, &#95;&#41; :- calls&#40;A, B&#41;.
+reaches&#40;A, B, Visited&#41; :-
+    calls&#40;A, Mid&#41;,
+    \+ member&#40;Mid, Visited&#41;,
+    reaches&#40;Mid, B, &#91;Mid|Visited&#93;&#41;.
+</code></pre><p>This rule says that A reaches B if A calls B directly, or if A calls some intermediate routine that has not yet been visited to reaches B. The visited list prevents infinite loops on cyclic call graphs which is a real concern in any codebase with mutual recursion or event loops. The solver can use this rule to answer transitive reachability over the entire call graph without the need for iterative grepping.</p><h3 id="step&#95;4:&#95;query&#95;execution">Step 4: Query Execution</h3><p>Now the same "blast radius" question becomes a single tool call:</p><pre><code class="text">chiasmus&#95;graph analysis=&quot;impact&quot; target=&quot;lintSpec&quot;
+→ &#91;&quot;lintLoop&quot;, &quot;handleLint&quot;, &quot;solve&quot;, &quot;correctionLoop&quot;,
+   &quot;handleVerify&quot;, &quot;handleSolve&quot;, &quot;handleGraph&quot;,
+   &quot;createChiasmusServer&quot;, &quot;runAnalysis&quot;, &quot;runAnalysisFromGraph&quot;&#93;
+</code></pre><p>Above is the result of the Prolog solver having traversed every path in the call graph to collect all the methods that transitively call <code>lintSpec</code>. The LLM didn't need to know anything about the graph structure at all here.</p><h2 id="what&#95;this&#95;makes&#95;possible&#95;that&#95;grep&#95;cannot">What This Makes Possible That Grep Cannot</h2><p>While efficiency is certainly nice, the real value lies in <em>correctness</em>. There are questions that grep fundamentally cannot answer, regardless of how many rounds you run:</p><h3 id="transitive&#95;reachability">Transitive Reachability</h3><p>"Can user input reach the database query?" Being able to answer this question requires proving whether a path exists through potentially dozens of intermediate routines across multiple files. Grep can find direct callers, but tracing the full transitive closure requires the LLM to make decisions at each step about which paths to follow. It will miss branches, run out of context, and give you a best guess. Hence why the agent can end up giving different answers when asked the same question repeatedly.</p><p>With Chiasmus:</p><pre><code class="text">chiasmus&#95;graph analysis=&quot;reachability&quot; from=&quot;handleRequest&quot; to=&quot;dbQuery&quot;
+→ { reachable: true }
+
+chiasmus&#95;graph analysis=&quot;path&quot; from=&quot;handleRequest&quot; to=&quot;dbQuery&quot;
+→ { paths: &#91;&quot;&#91;handleRequest,validate,processData,dbQuery&#93;&quot;&#93; }
+</code></pre><p>The solver explores every possible path. If it says "not reachable", that's a proof by exhaustion showing that there is no chain of calls from A to B in the entire graph.</p><h3 id="dead&#95;code&#95;detection">Dead Code Detection</h3><p>"Which routines are never called?" This is another question where answering with grep would necessitate checking every method definition against every call site in the codebase. Even for a project with around 100 subroutines, that's 100 grep calls at a minimum, and you'd still miss methods that are only called by other dead methods.</p><p>With Chiasmus:</p><pre><code class="text">chiasmus&#95;graph analysis=&quot;dead-code&quot;
+→ &#91;&quot;unusedHelper&quot;, &quot;legacyParser&quot;, &quot;deprecatedValidator&quot;&#93;
+</code></pre><p>One call. The Prolog rule is simple:</p><pre><code class="prolog">dead&#40;Name&#41; :-
+    defines&#40;&#95;, Name, routine, &#95;&#41;,
+    \+ calls&#40;&#95;, Name&#41;,
+    \+ entry&#95;point&#40;Name&#41;.
+</code></pre><p>A routine is dead if it's defined, nobody calls it, and it's not an entry point. The solver is able to trivially check this against every node in the graph exhaustively.</p><h3 id="cycle&#95;detection">Cycle Detection</h3><p>"Are there circular call dependencies?" is another kind of task that isn't possible to answer because grep cannot detect cycles at all. it's a question requiring traversal.</p><pre><code class="text">chiasmus&#95;graph analysis=&quot;cycles&quot;
+→ &#91;&quot;eventHandler&quot;, &quot;processQueue&quot;, &quot;dispatchEvent&quot;&#93;
+</code></pre><p>On the other hand, the solver finds all nodes that can reach themselves through any chain of calls.</p><h3 id="impact&#95;analysis">Impact Analysis</h3><p>"What breaks if I change this method?" This is reverse transitive reachability scenario where we need to find everything that transitively depends on the target. Grep can give you direct callers, and then you'd have to iterate on each one exhaustively. Chiasmus gives you the full blast radius.</p><pre><code class="text">chiasmus&#95;graph analysis=&quot;impact&quot; target=&quot;validate&quot;
+→ &#91;&quot;handleRequest&quot;, &quot;batchProcessor&quot;, &quot;main&quot;, &quot;testHarness&quot;&#93;
+</code></pre><h2 id="token&#95;economics">Token Economics</h2><p>Each grep call consumes tokens for the query, the response (which includes matching lines plus context), and the LLM's reasoning about what to do next. For a transitive question requiring N hops through the call graph you end up with ~N tool calls × (query tokens + response tokens + reasoning tokens). For a 5-hop chain, this might be 5 calls × ~500 tokens = ~2,500 tokens, and assuming the LLM doesn't go down wrong paths. With Chiasmus, we have asingle tool call × ~200 tokens and small JSON response. The heavy lifting happens in the Prolog solver, which runs locally and doesn't consume API tokens at all.</p><p>The savings compound with codebase size. In a 500-routine project, dead code detection via grep would require hundreds of calls. Via Chiasmus, it's still just one call.</p><h2 id="beyond&#95;code:&#95;mermaid&#95;diagrams&#95;and&#95;formal&#95;verification">Beyond Code: Mermaid Diagrams and Formal Verification</h2><p>The same architecture handles more than source code. For example, Chiasmus can parse Mermaid diagrams directly into Prolog facts:</p><pre><code class="text">chiasmus&#95;verify solver=&quot;prolog&quot; format=&quot;mermaid&quot;
+  input=&quot;stateDiagram-v2
+    &#91;&#42;&#93; --&gt; Idle
+    Idle --&gt; Processing : submit
+    Processing --&gt; Review : complete
+    Review --&gt; Approved : approve
+    Review --&gt; Processing : revise
+    Approved --&gt; &#91;&#42;&#93;&quot;
+  query=&quot;can&#95;reach&#40;idle, approved&#41;.&quot;
+→ { status: &quot;success&quot;, answers: &#91;{}&#93; }
+</code></pre><p>If it's expressed as a Mermaid graph then you can formally verify properties of it, be it an architecture diagram, a state machine from a design doc, or a workflow from a ticket. Can every state reach the terminal state? Are there dead-end states? Is there a cycle between review and processing? These all become one-line queries against a solver.</p><p>Of course, not all constraint problems can be usefully expressed as graphs. Chiasmus provides Z3, an SMT solver that can prove properties over combinatorial spaces for cases such access control conflicts, configuration equivalence, or dependency resolution. "Can these RBAC rules ever produce contradictory allow/deny decisions?" isn't a question you can even begin to grep for. It requires exploring every possible combination of roles, actions, and resources. Z3 does this exhaustively and yields either a proof of consistency or a concrete counterexample.</p><h2 id="the&#95;neurosymbolic&#95;advantage">The Neurosymbolic Advantage</h2><p>The Neurosymbolic AI paper classifies systems by how tightly they couple neural and symbolic components. Chiasmus largely operates in Category 2(a) where the LLM identifies what formal analysis is needed and delegates to symbolic solvers for execution. But it pushes toward Category 2(b) in several ways:</p><p>It provides enriched feedback loops when the solver produces UNSAT, feeding specific assertions conflict back to the LLM as structured guidance. It tracks derivation traces, so that when Prolog proves a query, the trace of which rules fired gives the LLM an explanation of why the answer holds. Finally, Chiasmus supports template learning extracting verification pattern prove useful into a reusable templates. The symbolic structure (skeleton with typed slots) is learned organically from successful neural-symbolic interactions, creating a feedback loop where the system improves with use.</p><p>The practical consequence here is that using Chiasmus provides logically derived answers rather than probabilistic guess based on pattern matching over training data. It's a logical proof by exhaustion derived from a formal representation of the call graph. The neural component understands the question, and the symbolic component provides the answer.</p><h2 id="the&#95;architecture">The Architecture</h2><p>Chiasmus runs as an MCP server, and setup for Claude Code is one command:</p><pre><code class="bash">claude mcp add chiasmus -- npx -y chiasmus
+</code></pre><p>The server exposes nine tools:</p><ul><li><strong>chiasmus_graph</strong>: tree-sitter call graph analysis (callers, callees, reachability, dead-code, cycles, path, impact)</li><li><strong>chiasmus_verify</strong>: submit formal logic to Z3 or Prolog solvers directly</li><li><strong>chiasmus_craft</strong>: create reusable verification templates</li><li><strong>chiasmus_formalize</strong>: find the right template for a problem</li><li><strong>chiasmus_skills</strong>: search the template library</li><li><strong>chiasmus_solve</strong>: end-to-end autonomous verification</li><li><strong>chiasmus_learn</strong>: extract templates from verified solutions</li><li><strong>chiasmus_lint</strong>: structural validation of formal specs</li></ul><h2 id="what&#95;changes&#95;for&#95;the&#95;developer">What Changes for the Developer</h2><p>From the developer's perspective, the experience is subtle but significant. You ask your coding assistant a structural question, and instead of watching it grep through files for 30 seconds, it answers immediately with a complete, provably correct result. "What calls this method?" comes back with every transitive caller in the graph. "Is there dead code?" comes back with a definitive list, not "I checked a few files and didn't find any callers."</p><p>The LLM spends fewer tokens on exploration and more on the work you actually asked for. And when it tells you something about your code's structure, you can trust it because the answer comes from a solver, not a guess.</p><p>The project is open source at <a href='https://github.com/yogthos/chiasmus'>github.com/yogthos/chiasmus</a>.</p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/llm.html">llm</a>
+    
+    <a href="/solver.html">solver</a>
+    
+    <a href="/prolog.html">prolog</a>
+    
+    <a href="/programming.html">programming</a>
+    
+    <a href="/neurosymbolic.html">neurosymbolic</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2026-05-24-libwce.html">&laquo; libwce: the entropy layer of a wavelet codec, on its own</a>
+        
+        
+        <a class="right button" href="/posts/2026-02-25-ai-at-scale.html">Managing Complexity with Mycelium &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module" src="/js/justif/dist/auto.js"></script>
+
+
+</body>
+</html>

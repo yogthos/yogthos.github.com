@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): Grounding LLMs with Recursive Code Execution</title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>January 12, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-01-12-recursive-language-model.html">Grounding LLMs with Recursive Code Execution</a></h1>
+</div>
+<div>
+    
+    <p>Despite context windows expanding to millions of tokens, LLMs still struggle with the fundamental task of precision. When you ask an LLM to "analyze this report," it often glances at the text and simply hallucinates a plausible-sounding answer based on probability.</p><p>A good example of the problem can be seen when asking a model to sum sales figures from a financial report. Left to its own devices, it will likely not bother reading the whole document and simply give you a made-up answer. This is especially a problem with smaller models that you can run locally.</p><p>The standard approach to dealing with this problem is to use Retrieval Augmented Generation (RAG), which relies on semantic similarity (embeddings). If you ask for "sales figures," a Vector DB retrieves chunks of text that sound like sales figures. However, semantic similarity is fuzzy and limited in functionality. Embeddings can't count, so you can't ask questions like "count the number of times X happens." They also can't handle information scattered across a bunch of unrelated lines in a document. Furthermore, they don't distinguish between concepts like "Projected Sales" and "Actual Sales" when they appear in similar contexts.</p><p>It would be nice to have a system that treats text as a dataset to be queried rather than a prompt to be completed. This is where the <a href='https://arxiv.org/abs/2512.24601'>Recursive Language Model paper</a> comes in. The core idea here is that instead of having the model operate directly on the document, it uses a programmatic interface to interact with it via a REPL. The model acts as a programmer writing code to explore the document, interpreting execution results, and only then formulating an answer based on them.</p><p>The core insight is that code execution provides grounding for the model. When an LLM guesses a number by trying to understand the document, it might be right, or it might be wrong. It has no way to know. When it writes <code>regex.match&#40;&#41;</code> and the computer returns <code>&#91;'$2,340,000'&#93;</code>, that result is a hard fact. What the model needs to understand is how to form a query—a general task it's likely good at—instead of trying to solve a domain-specific problem it has no direct training on.</p><p>Allowing an LLM to write and run code directly on your system would obviously be a security nightmare, so the implementation uses <code>isolated-vm</code> to create a secure sandbox for it to play in. The model cannot hallucinate <code>rm -rf /</code> or <code>curl</code> a random URL. Having a sandbox also prevents infinite loops or memory leaks. And since the document is immutable, the model can read it but cannot alter the source truth.</p><p>The process works as follows:</p><p><ol> <li>1. The document is loaded into a secure, isolated Node.js environment as a read-only <code>context</code> variable.</li> <li>2. The model is given exploration tools: <code>text&#95;stats&#40;&#41;</code>, <code>fuzzy&#95;search&#40;&#41;</code>, and <code>slice&#40;&#41;</code>.</li> <li>3. The Loop: <ul> <li><span>&#8195;</span>• The model writes TypeScript to probe the text.</li> <li><span>&#8195;</span>• The Sandbox executes it and returns the output.</li> <li><span>&#8195;</span>• The model reads the result and refines its next step.</li> </ul> <li>4. The loop iterates until the model has enough proven data to answer <code>FINAL&#40;&quot;...&quot;&#41;</code>.</li> </ol></p><p><img src="/img/rlm/rlm.jpg" alt="RLM execution model" width="600" /><h2></h2></p><p>The system can work entirely locally using something like Ollama with Qwen-Coder, or with hosted models like DeepSeek, which are much smarter by default. It also works as an MCP that you can plug in and let your agent use to solve problems.</p><p>Finally, I used Universal Tool Calling Protocol (UTCP) patterns from <a href='https://github.com/universal-tool-calling-protocol/code-mode'>code-mode</a> to generate strict TypeScript interfaces. This provides the LLM with a strict contract such as:</p><pre><code class="typescript">// The LLM sees exactly this signature in its system prompt
+declare function fuzzy&#95;search&#40;query: string, limit?: number&#41;: Array&lt;{
+  line: string;
+  lineNum: number;
+  score: number; // 0 to 1 confidence
+}&gt;;
+
+</code></pre><p>One problem is that LLMs tend to be messy coders; they forget semicolons, use hallucinated imports, etc. The way around that is to add a self-healing layer. If the sandbox throws a syntax error, a lightweight intermediate step attempts to fix imports and syntax before re-running. This keeps the reasoning chain alive and minimizes round trips to the model.</p><p>As a demo to test out the concept, I made a <a href='https://github.com/yogthos/Matryoshka/blob/main/test-fixtures/scattered-data.txt'>document</a> containing a bunch of scattered data, with 5 distinct sales figures hidden inside 4,700 characters of Lorem Ipsum filler and unrelated business jargon.</p><p>Predictably, feeding the text into a standard context window and asking for the total promptly resulted in a hallucinated total of $480,490. It just grabbed numbers that looked like currency from unrelated sections, mashed them together, and called it a day.</p><p>Running the same query through RLM was a completely different story. The model took 4 iterations to converge on the actual solution. Instead of trying to guess, it started writing code to explore the document. It first checked the file size:</p><pre><code class="javascript">const stats = text&#95;stats&#40;&#41;;
+console.log&#40;`Document length: ${stats.length}, Lines: ${stats.lineCount}`&#41;;
+
+</code></pre><p>Next, it used fuzzy search to locate relevant lines, ignoring the noise:</p><pre><code class="javascript">const matches = fuzzy&#95;search&#40;&quot;SALES&#95;DATA&quot;&#41;;
+console.log&#40;matches&#41;;
+// Output: &#91;
+//   { line: &quot;SALES&#95;DATA&#95;NORTH: $2,340,000&quot;, ... },
+//   { line: &quot;SALES&#95;DATA&#95;SOUTH: $3,120,000&quot;, ... }
+// &#93;
+
+</code></pre><p>And finally, it wrote a regex to parse the strings into integers and summed them programmatically to get the correct result:</p><pre><code class="javascript">// ...regex parsing logic...
+console.log&#40;&quot;Calculated Total:&quot;, total&#41;; // Output: 13000000
+
+</code></pre><p>Only after the code output confirmed the math did the model verify the answer.</p><p>The key difference is that the traditional approach asks the model "what does this document say," while the recursive coding approach asks it to "write a program to find out what this document says." The logic is now expressed using actual code, and the role of the LLM is to write the code and read the results as opposed to working with the document directly.</p><p>As with all things, there is a trade-off here: the RLM approach is slower since it takes multiple turns and can generate more tokens as a result. However, if the document you're working on is itself large, then you will actually save context tokens by not loading it directly.</p><h4 id="mcp&#95;integration">MCP Integration</h4><h2></h2><p>The project also <a href='https://www.npmjs.com/package/matryoshka-rlm'>includes an MCP</a> (Model Context Protocol) server, making it available as a tool for coding agents like <a href='https://github.com/charmbracelet/crush'>Crush</a>. Once configured, you can ask the agent to analyze documents that would otherwise exceed its context window or require precise data extraction.</p><p>The server exposes an <code>analyze&#95;document</code> tool that takes a query and file path. The tool can then use the RLM approach to explore documents by writing code, executing it in the sandbox, and iterating until it finds the answer.</p><p>This creates an interesting dynamic where you agent writes the high-level query, the RLM's backing model (which can be a local Ollama instance) does the iterative code exploration, and the verified results come back to your agent. The grounding problem is solved at the tool level, so the agent can trust the results it receives.<h2></h2></p><p><em>The implementation is available at <a href='https://github.com/yogthos/Matryoshka'>https://github.com/yogthos/Matryoshka</a>.</em></p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/llm.html">llm</a>
+    
+    <a href="/programming.html">programming</a>
+    
+    <a href="/javascript.html">javascript</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        <a class="button" href="/posts/2026-01-16-lattice-mcp.html">&laquo; Stop Round-Tripping Your Codebase: How to Cut LLM Token Usage by 80% Using Recursive Document Analysis</a>
+        
+        
+        <a class="right button" href="/posts/2025-12-11-edge-aware-pixelation.html">Edge-Aware Pixelation for Better Pixel Art &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module" src="/js/justif/dist/auto.js"></script>
+
+
+</body>
+</html>

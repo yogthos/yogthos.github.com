@@ -1,0 +1,3 @@
+export { CJK_CHAR, Fitness, INF_BAD, INF_PENALTY, ItemType, UNDERFULL_RATIO, badness, breakParagraph, breakRp, buildItems, cjkBreakAllowed, composeProtrusion, defaultBreakOptions, defaultBuildOptions, demerits, demeritsUncapped, fitness, fontProtrusion, graphemes, hangingPunctuation, kinsokuNotAtLineEnd, kinsokuNotAtLineStart, latinProtrusion, layoutLines, lineText, lineWidthAt, maxEndingStretch, protrusionCodes, withSums } from './chunk-SNOJHREQ.js';
+//# sourceMappingURL=core.js.map
+//# sourceMappingURL=core.js.map

@@ -1,0 +1,157 @@
+/** Menu Styles **/
+
+#menucont ul.menu {
+    margin: 0;
+    background: var(--color-menu-bg);
+}
+
+#menucont ul.menu li {
+    position: relative;
+    float: left;
+    width: 100%;
+    list-style-type: none;
+    padding: 0;
+}
+
+#menucont ul.menu li a {
+    float: left;
+    color: var(--color-menu-text);
+    width: 100%;
+    padding: 10px 20px;
+    margin: 0;
+    font-size: 15pt;
+    text-transform: uppercase;
+    line-height: 22px;
+    text-decoration: none;
+    letter-spacing: 2px;
+}
+
+#menucont ul.menu li a:hover {
+    background: var(--color-menu-hover);
+}
+
+#menucont ul.menu li.active a,
+#menucont ul.menu li.active a:hover {
+    background: var(--color-menu-hover);
+    font-weight: 600;
+}
+
+/* Hamburger button — hidden on desktop */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 12px 0;
+    width: 100%;
+    text-align: left;
+}
+
+.menu-toggle .hamburger {
+    display: inline-block;
+    position: relative;
+    width: 24px;
+    height: 2px;
+    background: var(--color-menu-text);
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+
+.menu-toggle .hamburger::before,
+.menu-toggle .hamburger::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 2px;
+    background: var(--color-menu-text);
+    transition: transform 0.2s;
+}
+
+.menu-toggle .hamburger::before {
+    top: -7px;
+}
+
+.menu-toggle .hamburger::after {
+    top: 7px;
+}
+
+/* Animate to X when open */
+.menu-toggle.active .hamburger {
+    background: transparent;
+}
+
+.menu-toggle.active .hamburger::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.menu-toggle.active .hamburger::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
+.menu-toggle .menu-label {
+    margin-left: 15px;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-menu-text);
+    vertical-align: middle;
+}
+
+@media screen and (max-width: 768px) {
+
+    #menucont .menu {
+        display: none;
+        margin: 0;
+    }
+
+    #menucont .menu.open {
+        display: block;
+    }
+
+    #menucont ul.menu li {
+        position: relative;
+        float: none;
+    }
+
+    #menucont ul.menu li, #menucont ul.menu ul li {
+        display: block;
+    }
+
+    #menucont ul.menu li a {
+        width: 100%;
+        display: inline-block;
+        margin: 0;
+        padding: 5px 0;
+        text-indent: 0;
+        line-height: 23px;
+        color: rgba(255, 255, 255, 0.6);
+        background: none;
+        font-weight: 300;
+        text-transform: uppercase;
+    }
+
+    #menucont ul.menu li.active a,
+    #menucont ul.menu li.active a:hover {
+        font-weight: 600;
+        color: var(--color-menu-text);
+        background: none;
+    }
+
+    #menucont ul.menu li a:hover {
+        color: var(--color-menu-text);
+        background: none;
+    }
+
+    #menucont ul.menu > li:last-child a {
+        margin: 0 0 20px 0;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+}
