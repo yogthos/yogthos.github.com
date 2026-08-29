@@ -46,10 +46,14 @@ Jolt's FFI lets you promote a C function to the Clojure layer by naming the symb
 (ns glimmer-gtk.ffi
   (:require [jolt.ffi :as ffi]))
 
-(ffi/defcfn gtk-button-new-with-label "gtk_button_new_with_label" [:string] :pointer)
-(ffi/defcfn gtk-button-set-label      "gtk_button_set_label"      [:pointer :string] :void)
-(ffi/defcfn gtk-box-new               "gtk_box_new"               [:int :int] :pointer)
-(ffi/defcfn gtk-box-append            "gtk_box_append"            [:pointer :pointer] :void)
+(ffi/defcfn gtk-button-new-with-label "gtk_button_new_with_label" [:string]
+  :pointer)
+(ffi/defcfn gtk-button-set-label "gtk_button_set_label" [:pointer :string]
+  :void)
+(ffi/defcfn gtk-box-new "gtk_box_new" [:int :int]
+  :pointer)
+(ffi/defcfn gtk-box-append "gtk_box_append" [:pointer :pointer]
+  :void)
 ```
 
 Pointers are plain machine addresses represented as numbers, strings are marshalled to and from C strings automatically, and GTK booleans are ints that are handled by a one line `->bool` helper. There is no C shim to compile or bindings generator to run, and no interface DSL to learn. The shared libraries are declared in `deps.edn` under `:jolt/native`, and Jolt loads them before the namespaces are required.
@@ -57,7 +61,8 @@ Pointers are plain machine addresses represented as numbers, strings are marshal
 One thing to note here is that the main loop binding needs a bit of special treatment.
 
 ```clojure
-(ffi/defcfn g-application-run "g_application_run" [:pointer :int :pointer] :int :blocking)
+(ffi/defcfn g-application-run "g_application_run" [:pointer :int :pointer]
+  :int :blocking)
 ```
 
 The `:blocking` flag tells the runtime that the call parks the thread for the lifetime of the app, so it shouldn't pin the garbage collector while GTK owns the main loop.
@@ -65,9 +70,15 @@ The `:blocking` flag tells the runtime that the call parks the thread for the li
 GTK's API is also full of enums like `GTK_ALIGN_START` and `GTK_ORIENTATION_VERTICAL`, so a common approach is to maintain a table of constants mirroring the C headers. But glimmer-gtk has no need for such tables since every GObject enum registers its members with a lowercase nick which maps to a Clojure keyword. So, three extra bindings are all it takes to resolve a nick to its integer value at runtime through the GObject type registry.
 
 ```clojure
-(ffi/defcfn g-type-from-name         "g_type_from_name"         [:string] :size_t)
-(ffi/defcfn g-type-class-ref         "g_type_class_ref"         [:size_t] :pointer)
-(ffi/defcfn g-enum-get-value-by-nick "g_enum_get_value_by_nick" [:pointer :string] :pointer)
+(ffi/defcfn g-type-from-name
+  "g_type_from_name" [:string] 
+  :size_t)
+(ffi/defcfn g-type-class-ref         
+  "g_type_class_ref" [:size_t] 
+  :pointer)
+(ffi/defcfn g-enum-get-value-by-nick 
+  "g_enum_get_value_by_nick" [:pointer :string]
+  :pointer)
 ```
 
 When you write `[:label {:halign :start}]`, the backend looks up the `GtkAlign` type to get its class struct, asks it for the member with the `start` nick, and reads the integer out of the struct it gets back. Successful lookups are then memoized, and a raw integer can still be used as an escape hatch. This trick is the reason why there isn't a single `GTK_*` constant needed anywhere in the library.
@@ -78,11 +89,17 @@ So that's all the boilerplate that's needed to expose the needed GTK components.
 (defn- ->bool [x] (if x 1 0))
 
 (defn- button-spec []
-  {:ctor    (fn [p] (if (:label p) (g/gtk-button-new-with-label (:label p)) (g/gtk-button-new)))
+  {:ctor    (fn [p]
+              (if (:label p)
+                (g/gtk-button-new-with-label (:label p))
+                (g/gtk-button-new)))
    :apply   (fn [w p]
-              (when (contains? p :label)     (g/gtk-button-set-label w (:label p)))
-              (when (:tooltip p)             (g/gtk-widget-set-tooltip-text w (:tooltip p)))
-              (when (contains? p :sensitive) (g/gtk-widget-set-sensitive w (->bool (:sensitive p)))))
+              (when (contains? p :label)
+                (g/gtk-button-set-label w (:label p)))
+              (when (:tooltip p)
+                (g/gtk-widget-set-tooltip-text w (:tooltip p)))
+              (when (contains? p :sensitive)
+                (g/gtk-widget-set-sensitive w (->bool (:sensitive p)))))
    :container :none})
 ```
 
