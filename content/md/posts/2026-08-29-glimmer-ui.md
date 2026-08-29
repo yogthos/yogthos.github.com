@@ -1,4 +1,4 @@
-{:title "Clunky Native Toolkits" :layout :post, :tags ["programming" "clojure" "jolt" "gui"]}
+{:title "Wrapping GTK4 in 800 lines of Clojure with Jolt" :layout :post, :tags ["programming" "clojure" "jolt" "gui"]}
 
 Native toolkits are not terribly ergonomic, and are a lot more painful to use compared with web dev in many ways. Building a UI with them is an imperative exercise where you construct widgets one call at a time, pack them into containers, and wire each event to its handler by hand. What's worse is that the structure of the interface often ends up living outside your language altogether forcing you to use tools like GtkBuilder XML or Xcode storyboards, where none of your usual tools for composing and refactoring code can reach. Layout is governed by box packing rules and constraint systems that are easy to describe but hard to predict. And a common task such as turning a list of items into a list of widgets that stay in sync with the data results in a ton of boilerplate that you have to repeat over and over.
 
