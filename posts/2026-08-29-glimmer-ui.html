@@ -95,22 +95,39 @@
 </code></pre><p>The outer function runs once to create the local state, and the inner one re-runs whenever <code>@count</code> changes, patching the live widgets in place instead of rebuilding the tree. If you've used Reagent before, this should all look very familiar with the only difference being that the elements are GTK4 widgets instead of DOM nodes.</p><h3 id="what&#95;it&#95;takes&#95;to&#95;wrap&#95;a&#95;widget">What it takes to wrap a widget</h3><p>It turns out that there is surprisingly little code involved in hooking a C toolkit up to a reactive Clojure core. The entire glimmer-gtk backend sits under 800 lines of Clojure split across four namespaces, and none of it involves anything exotic.</p><p>Jolt's FFI lets you promote a C function to the Clojure layer by naming the symbol it points at along with its argument and return types. We can see a few examples of what bindings from the GTK backend look like below.</p><pre><code class="clojure">&#40;ns glimmer-gtk.ffi
   &#40;:require &#91;jolt.ffi :as ffi&#93;&#41;&#41;
 
-&#40;ffi/defcfn gtk-button-new-with-label &quot;gtk&#95;button&#95;new&#95;with&#95;label&quot; &#91;:string&#93; :pointer&#41;
-&#40;ffi/defcfn gtk-button-set-label      &quot;gtk&#95;button&#95;set&#95;label&quot;      &#91;:pointer :string&#93; :void&#41;
-&#40;ffi/defcfn gtk-box-new               &quot;gtk&#95;box&#95;new&quot;               &#91;:int :int&#93; :pointer&#41;
-&#40;ffi/defcfn gtk-box-append            &quot;gtk&#95;box&#95;append&quot;            &#91;:pointer :pointer&#93; :void&#41;
-</code></pre><p>Pointers are plain machine addresses represented as numbers, strings are marshalled to and from C strings automatically, and GTK booleans are ints that are handled by a one line <code>-&gt;bool</code> helper. There is no C shim to compile or bindings generator to run, and no interface DSL to learn. The shared libraries are declared in <code>deps.edn</code> under <code>:jolt/native</code>, and Jolt loads them before the namespaces are required.</p><p>One thing to note here is that the main loop binding needs a bit of special treatment.</p><pre><code class="clojure">&#40;ffi/defcfn g-application-run &quot;g&#95;application&#95;run&quot; &#91;:pointer :int :pointer&#93; :int :blocking&#41;
-</code></pre><p>The <code>:blocking</code> flag tells the runtime that the call parks the thread for the lifetime of the app, so it shouldn't pin the garbage collector while GTK owns the main loop.</p><p>GTK's API is also full of enums like <code>GTK&#95;ALIGN&#95;START</code> and <code>GTK&#95;ORIENTATION&#95;VERTICAL</code>, so a common approach is to maintain a table of constants mirroring the C headers. But glimmer-gtk has no need for such tables since every GObject enum registers its members with a lowercase nick which maps to a Clojure keyword. So, three extra bindings are all it takes to resolve a nick to its integer value at runtime through the GObject type registry.</p><pre><code class="clojure">&#40;ffi/defcfn g-type-from-name         &quot;g&#95;type&#95;from&#95;name&quot;         &#91;:string&#93; :size&#95;t&#41;
-&#40;ffi/defcfn g-type-class-ref         &quot;g&#95;type&#95;class&#95;ref&quot;         &#91;:size&#95;t&#93; :pointer&#41;
-&#40;ffi/defcfn g-enum-get-value-by-nick &quot;g&#95;enum&#95;get&#95;value&#95;by&#95;nick&quot; &#91;:pointer :string&#93; :pointer&#41;
+&#40;ffi/defcfn gtk-button-new-with-label &quot;gtk&#95;button&#95;new&#95;with&#95;label&quot; &#91;:string&#93;
+  :pointer&#41;
+&#40;ffi/defcfn gtk-button-set-label &quot;gtk&#95;button&#95;set&#95;label&quot; &#91;:pointer :string&#93;
+  :void&#41;
+&#40;ffi/defcfn gtk-box-new &quot;gtk&#95;box&#95;new&quot; &#91;:int :int&#93;
+  :pointer&#41;
+&#40;ffi/defcfn gtk-box-append &quot;gtk&#95;box&#95;append&quot; &#91;:pointer :pointer&#93;
+  :void&#41;
+</code></pre><p>Pointers are plain machine addresses represented as numbers, strings are marshalled to and from C strings automatically, and GTK booleans are ints that are handled by a one line <code>-&gt;bool</code> helper. There is no C shim to compile or bindings generator to run, and no interface DSL to learn. The shared libraries are declared in <code>deps.edn</code> under <code>:jolt/native</code>, and Jolt loads them before the namespaces are required.</p><p>One thing to note here is that the main loop binding needs a bit of special treatment.</p><pre><code class="clojure">&#40;ffi/defcfn g-application-run &quot;g&#95;application&#95;run&quot; &#91;:pointer :int :pointer&#93;
+  :int :blocking&#41;
+</code></pre><p>The <code>:blocking</code> flag tells the runtime that the call parks the thread for the lifetime of the app, so it shouldn't pin the garbage collector while GTK owns the main loop.</p><p>GTK's API is also full of enums like <code>GTK&#95;ALIGN&#95;START</code> and <code>GTK&#95;ORIENTATION&#95;VERTICAL</code>, so a common approach is to maintain a table of constants mirroring the C headers. But glimmer-gtk has no need for such tables since every GObject enum registers its members with a lowercase nick which maps to a Clojure keyword. So, three extra bindings are all it takes to resolve a nick to its integer value at runtime through the GObject type registry.</p><pre><code class="clojure">&#40;ffi/defcfn g-type-from-name
+  &quot;g&#95;type&#95;from&#95;name&quot; &#91;:string&#93; 
+  :size&#95;t&#41;
+&#40;ffi/defcfn g-type-class-ref         
+  &quot;g&#95;type&#95;class&#95;ref&quot; &#91;:size&#95;t&#93; 
+  :pointer&#41;
+&#40;ffi/defcfn g-enum-get-value-by-nick 
+  &quot;g&#95;enum&#95;get&#95;value&#95;by&#95;nick&quot; &#91;:pointer :string&#93;
+  :pointer&#41;
 </code></pre><p>When you write <code>&#91;:label {:halign :start}&#93;</code>, the backend looks up the <code>GtkAlign</code> type to get its class struct, asks it for the member with the <code>start</code> nick, and reads the integer out of the struct it gets back. Successful lookups are then memoized, and a raw integer can still be used as an escape hatch. This trick is the reason why there isn't a single <code>GTK&#95;&#42;</code> constant needed anywhere in the library.</p><p>So that's all the boilerplate that's needed to expose the needed GTK components. With that in place, each hiccup tag can map to a widget spec in a registry. These specs are represented as small maps describing how to construct the widget, apply props to it, and what kind of container it is. Here is what the code for declaring a button looks like.</p><pre><code class="clojure">&#40;defn- -&gt;bool &#91;x&#93; &#40;if x 1 0&#41;&#41;
 
 &#40;defn- button-spec &#91;&#93;
-  {:ctor    &#40;fn &#91;p&#93; &#40;if &#40;:label p&#41; &#40;g/gtk-button-new-with-label &#40;:label p&#41;&#41; &#40;g/gtk-button-new&#41;&#41;&#41;
+  {:ctor    &#40;fn &#91;p&#93;
+              &#40;if &#40;:label p&#41;
+                &#40;g/gtk-button-new-with-label &#40;:label p&#41;&#41;
+                &#40;g/gtk-button-new&#41;&#41;&#41;
    :apply   &#40;fn &#91;w p&#93;
-              &#40;when &#40;contains? p :label&#41;     &#40;g/gtk-button-set-label w &#40;:label p&#41;&#41;&#41;
-              &#40;when &#40;:tooltip p&#41;             &#40;g/gtk-widget-set-tooltip-text w &#40;:tooltip p&#41;&#41;&#41;
-              &#40;when &#40;contains? p :sensitive&#41; &#40;g/gtk-widget-set-sensitive w &#40;-&gt;bool &#40;:sensitive p&#41;&#41;&#41;&#41;&#41;
+              &#40;when &#40;contains? p :label&#41;
+                &#40;g/gtk-button-set-label w &#40;:label p&#41;&#41;&#41;
+              &#40;when &#40;:tooltip p&#41;
+                &#40;g/gtk-widget-set-tooltip-text w &#40;:tooltip p&#41;&#41;&#41;
+              &#40;when &#40;contains? p :sensitive&#41;
+                &#40;g/gtk-widget-set-sensitive w &#40;-&gt;bool &#40;:sensitive p&#41;&#41;&#41;&#41;&#41;
    :container :none}&#41;
 </code></pre><p>The reconciler drives these through a fixed lifecycle where <code>create!</code> runs the constructor, applies the props, and wires up the event handlers, while <code>apply-props!</code> re-runs the prop application against the existing widget on each re-render, patching it in place as needed. Handlers are connected once when the widget mounts, and they're expected to close over reactive cells, so the closure captured on the first render stays correct for the life of the widget, just like it does in Reagent.</p><p>Event props are <code>:on-&#42;</code> keys looked up in a signal table.</p><pre><code class="clojure">&#40;def signals
   &#40;atom {:on-click    &quot;clicked&quot;
