@@ -156,7 +156,7 @@ Finally, glimmer itself doesn't need to see any of this because a backend simply
    :run            run!})
 ```
 
-That's the entire contract between the reactive core and the platform, and that's why writing a backend for a different toolkit is a bounded task rather than a rewrite.
+That's the entire contract between the reactive core and the platform, and that's why writing a backend for a different toolkit is simply a matter of wiring up the widgets into the lifecycle. It's even possible to have a stable subset of common widgets across platforms as long as you keep the naming consistent.
 
 ### Bring your own toolkit
 
