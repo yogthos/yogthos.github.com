@@ -1,6 +1,6 @@
 {:title "Managing Complex Application State with Reactive Data Flows" :layout :post, :tags ["programming" "clojure" "jolt" "gui"]}
 
-Reactive UIs look deceptively easy in a small app where you can keep things in sync without much effort. The trouble starts once the app starts to grow and accumulate real business logic. You often end up with cascading sets of rules that depend on derived values. On top of that, some of the data has to flow out to external services while more keeps coming in from them back into your application. Ensuring that all of it stays consistent while the user is busy clicking things and entering data in the UI is not trivial, as anybody who's built these kinds of apps knows.
+Reactive UIs look deceptively easy in a small app where you can keep things in sync without much effort. The trouble begins once the app starts to grow and accumulate real business logic. You often end up with cascading sets of rules that depend on derived values. On top of that, some of the data has to flow out to external services while more keeps coming in from them back into your application. Ensuring that all of it stays consistent while the user is busy clicking things and entering data in the UI is not trivial, as anybody who's built these kinds of apps knows.
 
 ## Four building blocks
 
