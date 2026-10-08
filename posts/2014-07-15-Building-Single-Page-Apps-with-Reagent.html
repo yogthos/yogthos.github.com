@@ -254,7 +254,28 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="/js/scripts.js" type="text/javascript"></script>
-<script type="module" src="/js/justif/dist/auto.js"></script>
+<script type="module">
+// justif lays out lines with canvas measureText. Firefox on HiDPI macOS
+// measures the system font ~8% wider in canvas than it paints, so every line
+// breaks short of the column. Only load justif when canvas and DOM agree;
+// otherwise the CSS text-align:justify fallback applies.
+const p = document.querySelector("article p");
+if (p) {
+    const text = "The quick brown fox jumps over the lazy dog while justif measures";
+    const span = document.createElement("span");
+    span.textContent = text;
+    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+    p.appendChild(span);
+    const cs = getComputedStyle(span);
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const dom = span.getBoundingClientRect().width;
+    span.remove();
+    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+        import("/js/justif/dist/auto.js");
+    }
+}
+</script>
 
 
 </body>

@@ -8,9 +8,9 @@
     --color-bg: #fff;
     --color-link: #0f766e;
     --color-link-hover: #115e59;
-    --color-sidebar-bg: rgb(177, 177, 177);
+    --color-sidebar-bg: #919299;
     --color-sidebar-text: rgb(61, 61, 61);
-    --color-sidebar-paren: rgb(111, 220, 220);
+    --color-sidebar-paren: #ff5500;
     --color-sidebar-fn: #fff;
     --color-sidebar-logo-text: #000;
     --color-menu-bg: rgba(0, 0, 0, 0.15);
@@ -44,7 +44,7 @@
     --color-link-hover: #a8d8d0;
     --color-sidebar-bg: #16213e;
     --color-sidebar-text: #c8c8c8;
-    --color-sidebar-paren: rgb(111, 220, 220);
+    --color-sidebar-paren: #ff5500;
     --color-sidebar-fn: #fff;
     --color-sidebar-logo-text: #e0e0e0;
     --color-menu-bg: rgba(0, 0, 0, 0.3);
@@ -79,7 +79,7 @@
         --color-link-hover: #a8d8d0;
         --color-sidebar-bg: #16213e;
         --color-sidebar-text: #c8c8c8;
-        --color-sidebar-paren: rgb(111, 220, 220);
+        --color-sidebar-paren: #ff5500;
         --color-sidebar-fn: #fff;
         --color-sidebar-logo-text: #e0e0e0;
         --color-menu-bg: rgba(0, 0, 0, 0.3);
@@ -163,11 +163,11 @@ em, i {
 }
 
 h1 {
-    margin: 0 0 10px 0;
+    margin: 24px 0 10px 0;
     font-weight: 350;
-    font-size: 30pt;
-    line-height: 48px;
-    letter-spacing: -1.5px;
+    font-size: 34pt;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
     color: var(--color-heading);
     padding-bottom: 1em;
 }
