@@ -16,7 +16,7 @@ Hopefully, this should put any fears regarding the health of the project to rest
 
 ### Database Access
 
-There are several Clojure libraries for dealing with relational databases, such as [SQLKorma](http://sqlkorma.com/), [ClojureQL](http://clojureql.org/), [Lobos](http://budu.github.com/lobos/index.html), and [clojure.data.jdbc])(http://clojure.github.com/java.jdbc/doc/clojure/java/jdbc/UsingSQL.html). In this tutorial we'll be using clojure.data.jdbc to keep things simple, but I do encourage you to take a look at the others.
+There are several Clojure libraries for dealing with relational databases, such as [SQLKorma](http://sqlkorma.com/), [ClojureQL](http://clojureql.org/), [Lobos](http://budu.github.com/lobos/index.html), and [clojure.data.jdbc](http://clojure.github.com/java.jdbc/doc/clojure/java/jdbc/UsingSQL.html). In this tutorial we'll be using clojure.data.jdbc to keep things simple, but I do encourage you to take a look at the others.
 
 #### Setting up the DB connection
 
