@@ -37,7 +37,14 @@ jobs:
         with:
           lein: 2.9.1
       - name: Build site
-        run: lein run      
+        run: |
+          set -euo pipefail
+          lein run 2>&1 | tee build.log
+          if grep -q "ExecutionException" build.log; then
+            echo "::error::cryogen reported a build failure, see build.log"
+            exit 1
+          fi
+          test -f public/index.html
       - name: Deploy
         uses: s0/git-publish-subdir-action@develop
         env:

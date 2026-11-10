@@ -1,4 +1,4 @@
-# Rendering in batches with glimmer and Datastar
+{:title "Rendering in batches with glimmer and Datastar" :layout :post, :tags ["programming" "clojure" "jolt"]}
 
 Anders Murphy recently wrote about [faster streaming HTML with batches and
 aggregates](https://andersmurphy.com/2026/09/29/faster-streaming-html-with-batches-and-aggregates.html).
