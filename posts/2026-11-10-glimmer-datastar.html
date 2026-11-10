@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="me" href="https://mastodon.social/@yogthos">
+    <link rel="me" href="https://mas.to/@yogthos">
+    <link rel="me" href="https://social.marxist.network/@yogthos">
+    <title>(iterate think thoughts): Rendering in batches with glimmer and Datastar</title>
+    <meta name="description" content="Dmitri&#39;s blog about programming, Clojure, and software development">
+    <meta name="keywords" content="">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link href="/css/site.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);var l=document.getElementById('hljs-light'),d=document.getElementById('hljs-dark');if(l&&d){if(t==='dark'){l.media='not all';d.media='all'}else{l.media='all';d.media='not all'}}}})();
+    </script>
+</head>
+<body>
+
+<aside id="sidebar">
+
+    <p id="logo">
+        <a title="(iterate think thoughts)" href="/index.html">
+            <span class="text"><span class="paren">(</span><span class="fn">iterate</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;think</span>
+                <br>
+                <span class="text">&nbsp;&nbsp;thoughts<span class="paren">)</span>
+            </span>
+        </a>
+    </p>
+
+    <nav id="menucont" class="bodycontainer">
+        <button class="menu-toggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <ul class="menu">
+            <li ><a title="Home" href="/index.html">Home</a></li>
+            <li ><a title="Archives" href="/archives.html">Archives</a></li>
+            
+            <li ><a title="Tags" href="/tags.html">Tags</a></li>
+            
+            
+            <li >
+                <a href="/pages/about.html">About</a>
+            </li>
+            
+            <li><a title="RSS" href="/feed.xml">RSS</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-toggle-wrapper">
+        <button class="theme-toggle" aria-label="Toggle dark mode">
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
+</aside>
+
+<main id="content">
+    
+<div id="post">
+    <article>
+<div class="post-header">
+    <div id="post-meta" class="row">
+        <strong>November 10, 2026</strong>
+        
+    </div>
+    <h1><a class="post-title" href="/posts/2026-11-10-glimmer-datastar.html">Rendering in batches with glimmer and Datastar</a></h1>
+</div>
+<div>
+    
+    <p>Anders Murphy recently wrote about [faster streaming HTML with batches and aggregates](https://andersmurphy.com/2026/09/29/faster-streaming-html-with-batches-and-aggregates.html). The idea is simple. When the server streams HTML to a page, it should collect the changes and render once for the whole batch. Similarly, it makes sense to avoid rendering the same thing twice for two different pages to avoid resending the data that the client already has.</p><p>I've been building <a href='https://github.com/jolt-lang/glimmer'>glimmer</a> and <a href='https://github.com/jolt-lang/glimmer-datastar'>glimmer-datastar</a> to do reactive server side rendering for <a href='https://github.com/jolt-lang/jolt'>jolt</a>, and ran into similar problems. This post covers how both libraries have been reworked to facilitate batch processing, and how these changes are used in the <a href='https://github.com/yogthos/newsroom'>newsroom</a> app.</p><h2 id="the&#95;setup">The setup</h2><p>Glimmer is a Reagent-style library where state lives in ratoms which UI components subscribe to. The original target was native GUIs such as <a href='https://github.com/jolt-lang/glimmer-gtk'>glimmer-gtk</a> and <a href='https://github.com/jolt-lang/glimmer-tui'>glimmer-tui</a>, but the reactive core is toolkit agnostic. So, naturally I got curious if I could use the same model on the server with <a href='https://data-star.dev/'>Datastar</a> on the frontend. </p><p>The way this works is that each open page keeps a Server-Sent Events stream to the server. When the page is rendered, any ratom the page reads is recorded, and the stream subscribes to it. Then whenever one of those ratoms changes, that causes the stream to render the page again. So, when a <code>swap!</code> happens on a ratom, that sends a <code>datastar-patch-elements</code> event with the new HTML to every page that renders it.</p><pre><code class="clojure">&#40;def state &#40;ratom/atom {:greetings &#91;&#93;}&#41;&#41;
+
+&#40;def handler
+  &#40;-&gt; &#40;fn &#91;&#95;&#93; {:status 200 :body &#40;render-page @state&#41;}&#41;
+      &#40;datastar/wrap-datastar {:tick-ms 15}&#41;&#41;&#41;
+</code></pre><p>The first version did the obvious thing which is to wake up every stream that reads the ratom on a write to do a render. The naive approach works fine with a few pages that do occasional writes, but it doesn't scale with load because the cost ends up being writes * pages.</p><h2 id="render&#95;once&#95;per&#95;tick,&#95;not&#95;once&#95;per&#95;write">Render once per tick, not once per write</h2><p>The fix here is to decouple writes from render requests. A write only needs to mark the streams that read the ratom as dirty, then a separate render loop can run on a fixed timer specified by <code>:tick-ms</code>. And every dirty stream ends up being rendered exactly once each time it wakes up with all the changes that have been batched up since the last time:</p><pre><code class="clojure">&#40;defn mark-dirty! &#91;sched conn&#93;
+  &#40;swap! &#40;:dirty sched&#41; conj conn&#41;
+  &#40;wake! sched&#41;&#41;
+
+&#40;defn- tick! &#91;{:keys &#91;txs dirty batch-fn&#93; :as sched}&#93;
+  &#40;run-batch! batch-fn &#40;drain txs&#41;&#41;
+  ;; snapshot after the writes, so the connections they dirtied render now
+  &#40;let &#91;&#91;conns &#95;&#93; &#40;swap-vals! dirty &#40;constantly #{}&#41;&#41;&#93;
+    &#40;render-all! sched &#40;vec conns&#41;&#41;&#41;&#41;
+</code></pre><p>The loop sleeps out whatever is left of the tick before rendering, allowing every change that arrives to land in the same batch. Meanwhile, an idle loop simply parks on a channel without incurring any additional cost.</p><p>The effect on a burst with ten open streams and a hundred <code>swap!</code>s in a row is fairly dramatic as one would expect:</p><table><thead><tr></tr></thead></table>|&mdash;|&mdash;|&mdash;|<table><thead><tr></tr></thead><tbody><tr></tr></tbody></table><p>Before, the server had to do a thousand renders, most of which were thrown away. With ticks in place, the render count depends on the number of pages and how long the burst lasts rather than how many writes it contains. Incidentally, glimmer's GUI side already worked this way since a component's watcher holds a <code>pending</code> flag to ensure that a burst of changes queues a single deferred render on the UI thread.</p><h2 id="slow&#95;clients&#95;drop&#95;frames&#95;instead&#95;of&#95;queueing&#95;them">Slow clients drop frames instead of queueing them</h2><p>A tick produces at most one frame per stream, and each stream sends its frames through a channel with a sliding buffer of one. If a client hasn't taken the last frame by the time the next one is ready, the old frame is discarded so that the client always gets the latest update. This way a bad connection can't back up the render loop or build up an unbounded queue of stale HTML.</p><h2 id="batched&#95;writes&#95;with&#95;<code>tx!</code>">Batched writes with <code>tx!</code></h2><p>Since ticks batch renders, it makes sense for writes to be batched as well, as an opt-in. This is done using <code>tx!</code> to queue a thunk that runs on the loop thread at the start of the next tick, and before a render happens:</p><pre><code class="clojure">&#40;fn &#91;request&#93;
+  &#40;datastar/tx! request #&#40;swap! state update :greetings conj &quot;hello&quot;&#41;&#41;
+  {:status 204}&#41;
+</code></pre><p>Writes and renders have to take turns, so that a render can't observe a partial update. If you pass a <code>:batch-fn</code>, it receives all of a tick's thunks together, so you can run them in a transaction, and calling <code>tx!</code> returns a promise of the thunk's result.</p><h2 id="using&#95;component&#95;cache&#95;to&#95;avoid&#95;rendering&#95;the&#95;same&#95;thing&#95;twice">Using component cache to avoid rendering the same thing twice</h2><p>While ticks cut renders per page, there is also waste across different pages to consider. If a hundred people are looking at the same 300-row board, rendering it a hundred times per tick produces a hundred identical strings.</p><p>To address that, glimmer-datastar provides its own hiccup renderer in <code>jolt.datastar.html</code>. The head of the vector is a component of <code>&#91;row item&#93;</code>, and its HTML is cached under the vector itself, so the key is the function plus its arguments. The whole board can now render once per change with every page showing it sharing the result.</p><p>As always, the tricky part is knowing when a cached entry is stale, since components read ratoms as well as their arguments, glimmer now has <code>capture</code> for this case:</p><pre><code class="clojure">&#40;let &#91;a &#40;atom 1&#41; b &#40;atom 2&#41;&#93;
+  &#40;r/capture #&#40;+ @a @b&#41;&#41;&#41;   ; =&gt; &#91;3 &#91;a b&#93;&#93;
+</code></pre><p>It runs a function and returns its result along with every reactive cell the function read. The cache stores each entry with those cells and the values it saw in them, and once any of those values changes, that indicates a need for a cache refresh. And on a hit, the cache simply reads the cells again.</p><p>The cache also admits an entry only when it's asked for more than once, so components that render once and never again don't push out ones that render every frame. It evicts by generation, which is roughly LRU without needing per-entry bookkeeping on the hit path.</p><p>On a 4-core machine, with 100 streams showing the 300-row board and one row changing per tick, a tick takes:</p><table><thead><tr></tr></thead></table>|&mdash;|&mdash;|&mdash;|&mdash;|&mdash;|<table><thead><tr></tr></thead><tbody><tr></tr></tbody></table><p>The cache is the big win here while render threads level off, so two is the default.</p><p>And <code>capture</code> also fixes another problem unrelated to speed. Since a stream now knows exactly which cells its last render read, it only needs to watch those. A cell it stopped reading can be unwatched right away, rather than leaving a subscription behind that triggers extra renders later.</p><h2 id="not&#95;sending&#95;what&#95;the&#95;client&#95;already&#95;has:&#95;patches">Not sending what the client already has: patches</h2><p>With rendering no longer being the bottleneck, the wire becomes the main cost since a single row change to that 300-row board still sends a 40 KB page. One obvious solution here is to enable streaming compression which gets you part of the way. Using ring-chez-adapter's <code>wrap-gzip</code> compresses an SSE stream with a single deflate window across frames, so a frame that's almost identical to the previous one compresses to almost nothing. But that holds only while a frame fits in deflate's 32 KB window. Past that the saving mostly disappears, and even a one-row change costs 4316 gzipped bytes.</p><p>So, we need to use patches to address the underlying problem. A component whose root element has an id, like <code>&#91;:tr {:id ...}&#93;</code>, is a <em>part</em> of the page. Since each stream compares its new page with the last one, part by part, it only needs to send parts that changed. Then, on the frontend, Datastar swaps each one in by id. When the page changes around its parts, such as a row being added, text outside every part being edited, or the client missing a frame, the whole page still gets sent.</p><table><thead><tr></tr></thead></table>|&mdash;|&mdash;|&mdash;|<table><thead><tr></tr></thead><tbody><tr></tr></tbody></table><p>Since the size of a patch depends on the change rather than the page, the comparison is cheap too. A cached component brings its parts as the same shared vector on every page, so the diff can skip it with an identity check. On my machine, this roughly halved the time for each tick going from 21.7 ms with whole frames to just 7.0 ms with patches. Using the delta is key for incremental view maintenance because only parts of the page that change have to be sent as updates.</p><h2 id="aggregates:&#95;derived&#95;state&#95;that&#95;follows&#95;the&#95;change">Aggregates: derived state that follows the change</h2><p>We're not done yet though, because another trick that can be applied is to use aggregates. Take a reaction like <code>&#40;reaction &#40;count &#40;filter open? @todos&#41;&#41;&#41;</code>. It recomputes from scratch on every write, so whether a single row or a thousand change, the <code>reaction</code> still costs a thousand.</p><p>Glimmer's new <code>glimmer.table</code> borrows from DBSP. A table is a keyed collection cell, and a view over it maps or filters only the rows that changed. An aggregate whose operation has an inverse, like a count or a sum, simply takes the old row out and puts the new one in:</p><pre><code class="clojure">&#40;def todos &#40;t/table {1 {:title &quot;a&quot; :done false}}&#41;&#41;
+&#40;def open &#40;t/view todos &#40;fn &#91;&#95; v&#93; &#40;when-not &#40;:done v&#41; v&#41;&#41;&#41;&#41;
+&#40;def open-count &#40;t/aggregate open t/count-of&#41;&#41;
+
+&#40;t/put! todos 2 {:title &quot;b&quot; :done true}&#41;   ; costs one row, not the table
+</code></pre><p>These are ordinary reactive cells, so pages subscribe to them with <code>@</code> like anything else. With ticks, the cache and patches, a write costs one row to derive, there is now one component to render, and one part to send.</p><h2 id="letting&#95;go&#95;of&#95;closed&#95;pages">Letting go of closed pages</h2><p>Of course, batching only helps if you're not doing work for pages nobody is looking at. So, when a client goes away, the server closes the stream's channel. A transducer on that channel runs on close and unwatches every cell the stream was tracking, making it possible to garbage collect the connection right away. And a render that the handler answers with a redirect or an error, such as a 401 after sign-out, cleans up the stream the same way.</p><h2 id="what&#95;does&#95;this&#95;look&#95;like&#95;in&#95;practice">What does this look like in practice</h2><p>I've always been interested in understanding how world news and events all connect to each other. There are many different things happening on any given day, and things that often seem like isolated events can often have shared underlying causes.</p><p>Decision makers get fancy daily briefings prepared for them by analysts who review the events to produce a perfectly prepared report. So, I figured why can’t I have something like that too?</p><p>And so, I built <a href='https://github.com/yogthos/newsroom'>Newsroom</a> which is a self-hosted news desk app to gather sources and write a daily briefing tailored to what I'm interested in. The app goes through hundreds of sources using a combination of RSS and web scraping. It then groups the news into categories and gets an LLM to build a graph of events and their connections to provide a basis for the report.</p><p>It was a perfect project to exercise the library since it has a live sidebar showing the progress as each source is aggregated, and the model's progress as it streams.</p><p>That kind of workload is the worst case for one-render-per-write. A run fetches its sources concurrently from several threads, and each source reports a result and a log line. Meanwhile, the model's progress updates many times a second while it streams. Every one of these events used to be a <code>swap!</code> on the run's status ratom, and every <code>swap!</code>, in turn, translated into a render of every page watching that reader's run.</p><p>Now, the server asks for <code>{:tick-ms 200}</code> which prevents event flooding. However fast the status changes, an open page still renders at most five times a second, and a burst of sources finishing together all get packaged into a single frame. The whole change was just one line, since newsroom already asked for the same 200 ms through the old <code>:rate-limit-ms</code> option. What changed underneath though is that a tick now coalesces the writes instead of only spacing them out.</p><p>Ticks can also split two related writes across frames to ensure correct order. A source used to set its state and then append its log line in a second <code>swap!</code>, so a page could show "ok, 12 items" in the source list before the log mentioned it. Now both go in one write:</p><pre><code class="clojure">&#40;update-status! &#40;:run-id ctx&#41;
+                &#40;fn &#91;st&#93;
+                  &#40;-&gt; st
+                      &#40;update-in &#91;:sources name&#93; merge {:state :ok :count &#40;count items&#41;}&#41;
+                      &#40;add-event {:text &#40;str name &quot;: &quot; &#40;count items&#41; &quot; items&quot;&#41; :level :ok}&#41;&#41;&#41;&#41;
+</code></pre><p>That's the same idea <code>tx!</code> enforces, done by hand where one function owns both writes. It also depends on glimmer's <code>swap!</code> being atomic, because sources call this from several threads at once.</p><p>Each newsroom page has two live regions, the sidebar and the article, both running on separate streams. The sidebar reads the run status, which changes constantly during a run. The article reads only a counter bumped when a day is stored. Since a stream only watches what its last render read, the article doesn't need to repaint while a run is in progress.</p><p>All readers have their own lanes in the form of a status ratom and a stored counter, so each reader's run only dirties their own pages. When a tab closes, or a reader signs out and the stream gets its 401, the stream drops its subscriptions.</p><p>Incidentally, the same kind of batching also works for the database. Making the status of a run durable makes it possible to pick up where it was interrupted. But the same problem we talked about earlier came back from the other direction. Writing the status to SQLite on every <code>swap!</code> results in a database write per progress tick. So, Newsroom marks the run as unsaved instead, and a background thread writes the changed runs once a second:</p><pre><code class="clojure">&#40;defn- update-status! &#91;run-id f &amp; args&#93;
+  &#40;swap! &#40;status-of run-id&#41; &#40;fn &#91;st&#93; &#40;if &#40;identical? run-id &#40;:run st&#41;&#41; &#40;apply f st args&#41; st&#41;&#41;&#41;
+  &#40;when &#40;and &#40;instance? Run run-id&#41; &#40;.-job &#94;Run run-id&#41;&#41;
+    &#40;swap! unsaved conj run-id&#41;
+    @saver&#41;&#41;
+</code></pre><p>This is the same tick pattern of marking the state dirty, and doing a flush on a timer. A restart loses at most a second of the log without the worry of having IO pressure. And the final state can be written synchronously when the run ends.</p><h2 id="summary">Summary</h2><p>Each layer that I've discussed in this post removes a different kind of repeated work:</p><ul><li><strong>ticks</strong> ensure that one render happens per page per tick rather than per write</li><li><strong>the component cache</strong>: further gives one render per change on each page</li><li><strong>sliding buffers</strong> give one frame in flight per client</li><li><strong><code>tx!</code></strong> makes it so that a render can't see a partial update</li><li><strong>patches</strong> send the change only for the page components that changed</li><li><strong>tables</strong> derive state from the change instead of the collection itself</li><li><strong>release on close</strong> cleans up pages nobody is looking at</li></ul><p>The reactive model is key for all of this, because the dependency tracking used to decide what to re-render can also be used to infer what can be skipped.</p>
+</div>
+
+<div id="post-tags">
+    <br/>
+    <b>Tags: </b>
+    
+    <a href="/clojure.html">clojure</a>
+    
+    <a href="/jolt.html">jolt</a>
+    
+    <a href="/programming.html">programming</a>
+    
+</div>
+
+<br/>
+</article>
+
+    <div id="prev-next">
+        
+        
+        <a class="right button" href="/posts/2026-10-07-clojure-llms.html">Clojure in the Age of Language Models &raquo;</a>
+        
+    </div>
+
+    
+
+
+</div>
+
+    <hr/>
+    <footer id="footercont">Copyright &copy; 2026 Dmitri Sotnikov
+        <p>Powered by <a href="http://cryogenweb.org">Cryogen</a></p>
+    </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="/js/scripts.js" type="text/javascript"></script>
+<script type="module">
+// justif lays out lines with canvas measureText. Firefox on HiDPI macOS
+// measures the system font ~8% wider in canvas than it paints, so every line
+// breaks short of the column. Only load justif when canvas and DOM agree;
+// otherwise the CSS text-align:justify fallback applies.
+const p = document.querySelector("article p");
+if (p) {
+    const text = "The quick brown fox jumps over the lazy dog while justif measures";
+    const span = document.createElement("span");
+    span.textContent = text;
+    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+    p.appendChild(span);
+    const cs = getComputedStyle(span);
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const dom = span.getBoundingClientRect().width;
+    span.remove();
+    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+        import("/js/justif/dist/auto.js");
+    }
+}
+</script>
+
+
+</body>
+</html>
