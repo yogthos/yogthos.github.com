@@ -1,7 +1,6 @@
 {:title "Rendering in batches with glimmer and Datastar" :layout :post, :tags ["programming" "clojure" "jolt"]}
 
-Anders Murphy recently wrote about [faster streaming HTML with batches and
-aggregates](https://andersmurphy.com/2026/09/29/faster-streaming-html-with-batches-and-aggregates.html).
+Anders Murphy recently wrote about [faster streaming HTML with batches and aggregates](https://andersmurphy.com/2026/09/29/faster-streaming-html-with-batches-and-aggregates.html).
 The idea is simple. When the server streams HTML to a page, it should collect the changes and render once
 for the whole batch. Similarly, it makes sense to avoid rendering the same thing twice for two
 different pages to avoid resending the data that the client already has.
