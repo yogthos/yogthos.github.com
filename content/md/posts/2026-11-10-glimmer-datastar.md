@@ -53,7 +53,7 @@ The effect on a burst with ten open streams and a hundred
 `swap!`s in a row is fairly dramatic as one would expect:
 
 | | renders | frames sent |
-|---|---|---|
+| --- | --- | --- |
 | a wakeup per write | 1000 | 55 |
 | render ticks | 20 | 20 |
 
@@ -112,7 +112,7 @@ On a 4-core machine, with 100 streams showing the 300-row board and one row
 changing per tick, a tick takes:
 
 | render-threads | 1 | 2 | 4 | 8 |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | no component cache | 891 ms | 472 ms | 481 ms | 480 ms |
 | component cache | 68 ms | 55 ms | 55 ms | 47 ms |
 
@@ -136,7 +136,7 @@ Past that the saving mostly disappears, and even a one-row change costs
 So, we need to use patches to address the underlying problem. A component whose root element has an id, like `[:tr {:id ...}]`, is a *part* of the page. Since each stream compares its new page with the last one, part by part, it only needs to send parts that changed. Then, on the frontend, Datastar swaps each one in by id. When the page changes around its parts, such as a row being added, text outside every part being edited, or the client missing a frame, the whole page still gets sent.
 
 | rows | gzip stream, per change | patch, gzip stream |
-|---|---|---|
+| --- | --- | --- |
 | 50 | 92 bytes | 28 bytes |
 | 300 | 4316 bytes | 35 bytes |
 
