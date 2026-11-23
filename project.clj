@@ -8,6 +8,7 @@
                            [compojure "1.6.1"]
                            [ring-server "0.5.0"]
                            [cryogen-markdown "0.1.11"]
+                           [markdown-clj "1.12.15"]
                            [cryogen-core "0.2.1"]
                            [asset-minifier "0.2.7"]]
             :plugins [[lein-ring "0.12.5"]
