@@ -75,7 +75,7 @@
 </div>
 <div>
     
-    <h3 id="securing&#95;pages">Securing Pages</h3><p>This part of the tutorial will focus on controlling page visibility, form validation, and handling complex form parameters. In the <a href='http://yogthos.net/blog/25-Noir+tutorial+-+part+3'>last section</a> we added support for uploading files, it would make sense to make the <code>upload</code> page private. This way only registered users can access it.</p><p>Noir provides a <a href='http://webnoir.org/autodoc/1.2.1/noir.core-api.html#noir.core/pre-route'><code>pre-route</code></a> macro for handling this. However, we will not be using it for a couple of reasons. </p><p>First, there is currently a bug in Noir, where <code>pre-route</code> ignores the servlet context, meaning that unless our application is deployed to "/" the routing will not work as expected. The second reason is that you have to remember to add a <code>pre-route</code> entry for each page that you want to make private. </p><p>A better solution, in my opinion, is to simply write a macro which will behave the same way as defpage, but will check if there is a user in session and redirect to "/" otherwise. With this approach we make pages private right in their definition. Let's open up our <code>common</code> namespace and add the macro:<pre><code class="clojure">&#40;defmacro private-page &#91;path params &amp; content&#93;
+    <h3 id="securing_pages">Securing Pages</h3><p>This part of the tutorial will focus on controlling page visibility, form validation, and handling complex form parameters. In the <a href='http://yogthos.net/blog/25-Noir+tutorial+-+part+3'>last section</a> we added support for uploading files, it would make sense to make the <code>upload</code> page private. This way only registered users can access it.</p><p>Noir provides a <a href='http://webnoir.org/autodoc/1.2.1/noir.core-api.html#noir.core/pre-route'><code>pre-route</code></a> macro for handling this. However, we will not be using it for a couple of reasons. </p><p>First, there is currently a bug in Noir, where <code>pre-route</code> ignores the servlet context, meaning that unless our application is deployed to "/" the routing will not work as expected. The second reason is that you have to remember to add a <code>pre-route</code> entry for each page that you want to make private. </p><p>A better solution, in my opinion, is to simply write a macro which will behave the same way as defpage, but will check if there is a user in session and redirect to "/" otherwise. With this approach we make pages private right in their definition. Let's open up our <code>common</code> namespace and add the macro:<pre><code class="clojure">&#40;defmacro private-page &#91;path params &amp; content&#93;
   `&#40;noir.core/defpage 
      &#126;path 
      &#126;params 
@@ -90,7 +90,7 @@
 
 &#40;common/private-page &quot;/files/:name&quot; {:keys &#91;name&#93;} 
   ...&#41;
-</code></pre></p><p>Let's test that it works by navigating to <a href='http://localhost:8080/upload'>localhost:8080/upload</a> without logging in. We should be redirected right back to "/".</p><h3 id="site&#95;navigation">Site navigation</h3><p>Since we now have a couple of pages that we will be navigating we can add a navigation menu in our <code>common</code> namespace:<pre><code class="clojure">&#40;defn menu &#91;&#93;
+</code></pre></p><p>Let's test that it works by navigating to <a href='http://localhost:8080/upload'>localhost:8080/upload</a> without logging in. We should be redirected right back to "/".</p><h3 id="site_navigation">Site navigation</h3><p>Since we now have a couple of pages that we will be navigating we can add a navigation menu in our <code>common</code> namespace:<pre><code class="clojure">&#40;defn menu &#91;&#93;
   &#91;:div.menu
    &#91;:ul
     &#91;:li &#40;form-to &#91;:post &quot;/logout&quot;&#93; &#40;submit-button &quot;logout&quot;&#41;&#41;&#93;    
@@ -120,7 +120,7 @@
     position: relative;
     margin-right: 20px;
 }
-</code></pre><p>Things should look much better now: <center> <img src="/files/menu.png" alt="menu" /> </center></p><h3 id="input&#95;validation">Input Validation</h3><p>Next, let's reexamine our sign up page, previously we didn't bother doing any validation when creating a new user, so let's add some now. Noir provides a simple way to validate input fields via the <a href='http://www.webnoir.org/autodoc/1.2.1/noir.validation-api.html'><code>noir.validation</code></a> namespace. Let's open the <code>users</code> namespace and add it in:<pre><code class="clojure">&#40;ns my-website.views.users
+</code></pre><p>Things should look much better now: <center> <img src="/files/menu.png" alt="menu" /> </center></p><h3 id="input_validation">Input Validation</h3><p>Next, let's reexamine our sign up page, previously we didn't bother doing any validation when creating a new user, so let's add some now. Noir provides a simple way to validate input fields via the <a href='http://www.webnoir.org/autodoc/1.2.1/noir.validation-api.html'><code>noir.validation</code></a> namespace. Let's open the <code>users</code> namespace and add it in:<pre><code class="clojure">&#40;ns my-website.views.users
   &#40;:use &#91;noir.core&#93;
         hiccup.core hiccup.form&#41;
   &#40;:require &#91;my-website.views.common :as common&#93;
@@ -197,7 +197,7 @@
     width:120px; 
     float:left;
 }
-</code></pre><p>The sign up page should now look as follows: <center> <img src="/files/signup2.png" alt="sign up" /> </center></p><h3 id="complex&#95;form&#95;items">Complex Form Items</h3><p>Now that we've cleaned up our <code>singup</code> page, we'll turn our attention back to file management. We'll add the ability for the user to filter files by their type. To do that we will first create a function in our <code>db</code> namespace to get all the file types from our database:<pre><code class="clojure">&#40;defn file-types &#91;&#93;
+</code></pre><p>The sign up page should now look as follows: <center> <img src="/files/signup2.png" alt="sign up" /> </center></p><h3 id="complex_form_items">Complex Form Items</h3><p>Now that we've cleaned up our <code>singup</code> page, we'll turn our attention back to file management. We'll add the ability for the user to filter files by their type. To do that we will first create a function in our <code>db</code> namespace to get all the file types from our database:<pre><code class="clojure">&#40;defn file-types &#91;&#93;
   &#40;map :type &#40;db-read &quot;select distinct type from file&quot;&#41;&#41;&#41;
 </code></pre></p><p>Then in our <code>files</code> namespace we will create a new helper called <code>select-files-by-type</code>:<pre><code class="clojure">&#40;defn select-files-by-type &#91;&#93;  
   &#40;let &#91;file-types &#40;db/file-types&#41;&#93; 

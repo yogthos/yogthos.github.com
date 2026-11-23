@@ -165,7 +165,7 @@ transfering from bob@foo.bar to alice@bar.baz 200
  :to {:email &quot;alice@bar.baz&quot;, :funds 10},
  :amount 200,
  :action :done}
-</code></pre><h3 id="formalizing&#95;side&#95;effects">Formalizing Side Effects</h3><p>We can make one futher improvement over the implementation above by formalizing resource providers using protocols. Doing so will make it clear what the external dependecies are and facilitate mocking. Let's create <code>Notify</code> and <code>DataStore</code> protocols that look as follows.</p><pre><code class="clojure">&#40;defprotocol Notify
+</code></pre><h3 id="formalizing_side_effects">Formalizing Side Effects</h3><p>We can make one futher improvement over the implementation above by formalizing resource providers using protocols. Doing so will make it clear what the external dependecies are and facilitate mocking. Let's create <code>Notify</code> and <code>DataStore</code> protocols that look as follows.</p><pre><code class="clojure">&#40;defprotocol Notify
   &#40;send-invite &#91;email&#93;&#41;
   &#40;notify-user &#91;email message&#93;&#41;&#41;
 

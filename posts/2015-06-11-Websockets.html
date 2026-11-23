@@ -78,7 +78,7 @@
     <p>In this post we'll look at working with websocks using Reagent and HTTP Kit. We'll see how to create a multi-user chat server that allows multiple clients to communicate with one another.</p><p>First thing to mention is that there are a couple of Clojure/Script libraries for working with websockets, such as <a href='https://github.com/ptaoussanis/sente'>Sente</a> and <a href='https://github.com/james-henderson/chord'>Chord</a>. However, what I'd like to illustrate is that using websockets directly from ClojureScript is extremely straight forward. Let's start by creating a new Luminus project that we'll use as the base for our example. We'll create the project using the <code>+http-kit</code> profile:</p><pre><code>lein new luminus multi-client-ws +http-kit +cljs
 </code></pre><p>Once the application is created we'll need to startup the server and Figwheel. To do that, we'll need to run the following commands in separate terminals.</p><pre><code>lein run
 </code></pre><pre><code>lein figwheel
-</code></pre><h3 id="the&#95;server">The Server</h3><p>Let's create a new namespace called <code>multi-client-ws.routes.websockets</code> and add the following references there:</p><pre><code>
+</code></pre><h3 id="the_server">The Server</h3><p>Let's create a new namespace called <code>multi-client-ws.routes.websockets</code> and add the following references there:</p><pre><code>
 &#40;ns multi-client-ws.routes.websockets
  &#40;:require &#91;compojure.core :refer &#91;GET defroutes&#93;&#93;
            &#91;org.httpkit.server
@@ -109,7 +109,7 @@
        &#40;wrap-routes home-routes middleware/wrap-csrf&#41;
        base-routes&#41;
      middleware/wrap-base&#41;&#41;
-</code></pre><p>We will also have to update our <code>multi-client-ws.middleware/wrap-base</code> middleware wrapper to remove the <code>wrap-formats</code> middleware as it conflicts with handling websocket requests.</p><h3 id="the&#95;client">The Client</h3><p>We'll start by creating a <code>multi-client-ws.websockets</code> in the <code>src-cljs/multi&#95;client&#95;ws</code> folder. The namespace will require the transit library:</p><pre><code class="clojure">&#40;ns multi-client-ws.websockets
+</code></pre><p>We will also have to update our <code>multi-client-ws.middleware/wrap-base</code> middleware wrapper to remove the <code>wrap-formats</code> middleware as it conflicts with handling websocket requests.</p><h3 id="the_client">The Client</h3><p>We'll start by creating a <code>multi-client-ws.websockets</code> in the <code>src-cljs/multi&#95;client&#95;ws</code> folder. The namespace will require the transit library:</p><pre><code class="clojure">&#40;ns multi-client-ws.websockets
  &#40;:require &#91;cognitect.transit :as t&#93;&#41;&#41;
 </code></pre><p>Next, we'll define an atom to hold our websocket channel and a couple of helpers for reading and writing the JSON encoded transit messages.</p><pre><code class="clojure">&#40;defonce ws-chan &#40;atom nil&#41;&#41;
 &#40;def json-reader &#40;t/reader :json&#41;&#41;
@@ -132,7 +132,7 @@
      &#40;reset! ws-chan chan&#41;
      &#40;println &quot;Websocket connection established with: &quot; url&#41;&#41;
    &#40;throw &#40;js/Error. &quot;Websocket connection failed!&quot;&#41;&#41;&#41;&#41;
-</code></pre><h3 id="the&#95;ui">The UI</h3><p>We'll now navigate to the <code>multi-client-ws.core</code> namespace and remove the code that's already there. We'll set the <code>ns</code> definition to the following:</p><pre><code class="clojure">&#40;ns multi-client-ws.core
+</code></pre><h3 id="the_ui">The UI</h3><p>We'll now navigate to the <code>multi-client-ws.core</code> namespace and remove the code that's already there. We'll set the <code>ns</code> definition to the following:</p><pre><code class="clojure">&#40;ns multi-client-ws.core
  &#40;:require &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;
            &#91;multi-client-ws.websockets :as ws&#93;&#41;&#41;
 </code></pre><p>Next, we'll create an atom to keep a list of messages and a Reagent component that renders it:</p><pre><code class="clojure">&#40;defonce messages &#40;atom &#91;&#93;&#41;&#41;

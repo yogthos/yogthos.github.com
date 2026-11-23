@@ -76,7 +76,7 @@
 <div>
     
     <p>There are many situations where the application needs to react to changes in the data. The simplest way to handle this requirement is to keep state in the server session. Unfortunately, this makes it difficult to scale applications horizontally, and can incur additional memory requirements.</p><p>A common solution to this problem is to use an external queue service that each instance of the application subscribes to. However, this adds a new component to the architecture that needs to be maintained.</p><p>A less known option is to use Postgres <a href='https://www.postgresql.org/docs/9.5/static/sql-notify.html'>NOTIFY</a> command to send push notifications from the database. This allows multiple instances of the application can subscribe directly to the database to listen for events.</p><p>This post will walk you through configuring a Luminus app to listen for Postgres notification, and broadcast them to the connected clients over a WebSocket.</p><p><em>prerequisites:</em></p><ul><li><a href='http://www.azul.com/downloads/zulu/'>JDK</a></li><li><a href='http://leiningen.org/'>Leiningen</a></li><li><a href='https://www.postgresql.org/'>PostgreSQL</a></li></ul><p>Let's start by creating a new project for our app:</p><pre><code>lein new luminus pg-feed-demo +postgres +re-frame
-</code></pre><h3 id="the&#95;database">The database</h3><p>The first step is to create a schema for the app, and set the connection URL in the <code>profiles.clj</code>, e.g:</p><pre><code class="clojure">{:profiles/dev
+</code></pre><h3 id="the_database">The database</h3><p>The first step is to create a schema for the app, and set the connection URL in the <code>profiles.clj</code>, e.g:</p><pre><code class="clojure">{:profiles/dev
  {:env
   {:database-url
    &quot;jdbc:pgsql://localhost:5432/feeds&#95;dev?user=feeds&amp;password=feeds&quot;}}
@@ -119,9 +119,9 @@ DROP TABLE events;
 </code></pre><h4 id="queries">Queries</h4><p>Let's open the <code>resources/sql/queries.sql</code> file and replace the default queries with the following:</p><pre><code class="sql">-- :name event! :! :n
 -- :doc insert a new event
 INSERT INTO events &#40;event&#41; VALUES &#40;:event&#41;
-</code></pre><h3 id="the&#95;server">The server</h3><p>Unfortunately, the official Postgres JDBC driver cannot receive asynchronous notifications, and uses polling to check if any notifications were issued. Instead, we'll use the <a href='http://impossibl.github.io/pgjdbc-ng/'>pgjdbc-ng</a> driver that provides support for many Postgres specific features, including async notifications. Let's update our app to use this driver instead by swapping the dependency in <code>project.clj</code>:</p><pre><code class="clojure">;&#91;org.postgresql/postgresql &quot;9.4.1211&quot;&#93;
+</code></pre><h3 id="the_server">The server</h3><p>Unfortunately, the official Postgres JDBC driver cannot receive asynchronous notifications, and uses polling to check if any notifications were issued. Instead, we'll use the <a href='http://impossibl.github.io/pgjdbc-ng/'>pgjdbc-ng</a> driver that provides support for many Postgres specific features, including async notifications. Let's update our app to use this driver instead by swapping the dependency in <code>project.clj</code>:</p><pre><code class="clojure">;&#91;org.postgresql/postgresql &quot;9.4.1211&quot;&#93;
 &#91;com.impossibl.pgjdbc-ng/pgjdbc-ng &quot;0.6&quot;&#93;
-</code></pre>                        <br /><h4 id="notification&#95;listener">Notification listener</h4><p>Let's open up the <code>pg-feed-demo.db.core</code> namespace and update it to fit our purposes. Since we're no longer using the official Postgres driver, we'll need to update the namespace declaration to remove any references to it. We'll also add the import for the <code>PGNotificationListener</code> class that will be used to add listeners to the connection. To keep things simple, we'll also remove any protocol extensions declared there. The resulting namespace should look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.db.core
+</code></pre>                        <br /><h4 id="notification_listener">Notification listener</h4><p>Let's open up the <code>pg-feed-demo.db.core</code> namespace and update it to fit our purposes. Since we're no longer using the official Postgres driver, we'll need to update the namespace declaration to remove any references to it. We'll also add the import for the <code>PGNotificationListener</code> class that will be used to add listeners to the connection. To keep things simple, we'll also remove any protocol extensions declared there. The resulting namespace should look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.db.core
   &#40;:require
     &#91;cheshire.core :refer &#91;generate-string parse-string&#93;&#93;
     &#91;clojure.java.jdbc :as jdbc&#93;
@@ -165,7 +165,7 @@ INSERT INTO events &#40;event&#41; VALUES &#40;:event&#41;
     &#40;apply println &quot;got message:&quot; args&#41;&#41;&#41;
 </code></pre><p>We can now test that adding a new message produces the notification:</p><pre><code>&#40;event! {:event &quot;hello world&quot;}&#41;
 </code></pre><p>One the function runs, we should see something like the following printed in the terminal as the message is added to the database:</p><pre><code>got message: 32427 messages INSERT &#40;0,&quot;hello world&quot;&#41;
-</code></pre><h4 id="websocket&#95;connection">WebSocket connection</h4><p>We're now ready to setup the WebSocket connection that will be used to push notifications to the clients. We'll update the <code>pg-feed-demo.routes.home</code>namespace to look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.routes.home
+</code></pre><h4 id="websocket_connection">WebSocket connection</h4><p>We're now ready to setup the WebSocket connection that will be used to push notifications to the clients. We'll update the <code>pg-feed-demo.routes.home</code>namespace to look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.routes.home
   &#40;:require &#91;pg-feed-demo.layout :as layout&#93;
             &#91;compojure.core :refer &#91;defroutes GET&#93;&#93;
             &#91;pg-feed-demo.db.core :as db&#93;
@@ -211,8 +211,8 @@ INSERT INTO events &#40;event&#41; VALUES &#40;:event&#41;
        :on-close   disconnect!
        :on-message persist-event}&#41;&#41;&#41;
 
-</code></pre><p>The <code>channels</code> state will contain a set of all the channels for the currently connected clients.</p><p>The <code>event-listener</code> will create a new listener that's triggered when events are stored in the database. The handler function will broadcast each event to all the connected clients. Note that we need <code>&#94;{:on-reload :noop}</code> metadata on the listener to prevent it being registered multiple times in case the namespace is reloaded during development.</p><p>Whenever the server receives a message from a client, the message will be persisted to the database by the <code>persist-event!</code> function.</p><p>Finally, we'll create the <code>/events</code> route that will be used to manage WebSocket communication with the clients.</p><h3 id="the&#95;client">The client</h3><p>The client will need to track the currently available messages, allow the user to send new messages to the server, and update the available messages based on server WebSocket notifications.</p><p>Let's run Figwheel to start the ClojureScript compiler before we start working on the client-side code by running the following command:</p><pre><code>lein figwheel
-</code></pre>Once Figwheel compiler starts, navigate to <a href='http://localhost:3000'>http://localhost:3000</a> in the browser to load the client-side of the application.<h4 id="re-frame&#95;events">Re-frame events</h4><p>We'll start by adding a handler for adding messages in the <code>pg-feed-demo.handlers</code> namespace:</p><pre><code class="clojure">&#40;reg-event-db
+</code></pre><p>The <code>channels</code> state will contain a set of all the channels for the currently connected clients.</p><p>The <code>event-listener</code> will create a new listener that's triggered when events are stored in the database. The handler function will broadcast each event to all the connected clients. Note that we need <code>&#94;{:on-reload :noop}</code> metadata on the listener to prevent it being registered multiple times in case the namespace is reloaded during development.</p><p>Whenever the server receives a message from a client, the message will be persisted to the database by the <code>persist-event!</code> function.</p><p>Finally, we'll create the <code>/events</code> route that will be used to manage WebSocket communication with the clients.</p><h3 id="the_client">The client</h3><p>The client will need to track the currently available messages, allow the user to send new messages to the server, and update the available messages based on server WebSocket notifications.</p><p>Let's run Figwheel to start the ClojureScript compiler before we start working on the client-side code by running the following command:</p><pre><code>lein figwheel
+</code></pre><p>Once Figwheel compiler starts, navigate to <a href='http://localhost:3000'>http://localhost:3000</a> in the browser to load the client-side of the application.</p><h4 id="re-frame_events">Re-frame events</h4><p>We'll start by adding a handler for adding messages in the <code>pg-feed-demo.handlers</code> namespace:</p><pre><code class="clojure">&#40;reg-event-db
   :event
   &#40;fn &#91;db &#91;&#95; event&#93;&#93;
     &#40;update db :events &#40;fnil conj &#91;&#93;&#41; event&#41;&#41;&#41;
@@ -220,7 +220,7 @@ INSERT INTO events &#40;event&#41; VALUES &#40;:event&#41;
   :events
   &#40;fn &#91;db &#95;&#93;
     &#40;:events db&#41;&#41;&#41;
-</code></pre><h4 id="websocket&#95;connection">WebSocket connection</h4><p>We can now add a <code>pg-feed-demo.ws</code> namespace to manage the client-side of the WebSocket connection:</p><pre><code class="clojure">&#40;ns pg-feed-demo.ws&#41;
+</code></pre><h4 id="websocket_connection">WebSocket connection</h4><p>We can now add a <code>pg-feed-demo.ws</code> namespace to manage the client-side of the WebSocket connection:</p><pre><code class="clojure">&#40;ns pg-feed-demo.ws&#41;
 
 &#40;defonce ws-chan &#40;atom nil&#41;&#41;
 
@@ -236,7 +236,7 @@ INSERT INTO events &#40;event&#41; VALUES &#40;:event&#41;
       &#40;set! &#40;.-onmessage chan&#41; #&#40;-&gt; % .-data handler&#41;&#41;
       &#40;reset! ws-chan chan&#41;&#41;
     &#40;throw &#40;js/Error. &quot;Websocket connection failed!&quot;&#41;&#41;&#41;&#41;
-</code></pre><h4 id="user&#95;interface">User interface</h4><p>Finally, we'll update the <code>pg-feed-demo.core</code> namespace to list incoming events and allow the user to generate an event. To do that, We'll update the namespace to look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.core
+</code></pre><h4 id="user_interface">User interface</h4><p>Finally, we'll update the <code>pg-feed-demo.core</code> namespace to list incoming events and allow the user to generate an event. To do that, We'll update the namespace to look as follows:</p><pre><code class="clojure">&#40;ns pg-feed-demo.core
   &#40;:require &#91;reagent.core :as r&#93;
             &#91;re-frame.core :as rf&#93;
             &#91;pg-feed-demo.handlers&#93;
