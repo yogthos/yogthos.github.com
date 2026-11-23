@@ -141,17 +141,20 @@ log4j.rootLogger=DEBUG, stdout, R
 // otherwise the CSS text-align:justify fallback applies.
 const p = document.querySelector("article p");
 if (p) {
-    const text = "The quick brown fox jumps over the lazy dog while justif measures";
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
-    p.appendChild(span);
-    const cs = getComputedStyle(span);
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    const dom = span.getBoundingClientRect().width;
-    span.remove();
-    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+    // Check prose and inline code: both go through justif's canvas measure.
+    const agrees = (el, text) => {
+        el.textContent = text;
+        el.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+        p.appendChild(el);
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const dom = el.getBoundingClientRect().width;
+        el.remove();
+        return dom > 0 && Math.abs(ctx.measureText(text).width - dom) / dom < 0.01;
+    };
+    if (agrees(document.createElement("span"), "The quick brown fox jumps over the lazy dog while justif measures") &&
+        agrees(document.createElement("code"), "sorted-map PersistentTreeMap (assoc m :k v)")) {
         import("/js/justif/dist/auto.js");
     }
 }
