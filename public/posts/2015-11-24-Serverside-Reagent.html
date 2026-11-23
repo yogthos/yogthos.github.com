@@ -100,7 +100,7 @@
   &#91;:div &#91;:h2 &quot;Welcome to reagent-serverside&quot;&#93;
    &#91;add-item-button items&#93;
    &#91;item-list @items&#93;&#93;&#41;
-</code></pre><p>We'll have the <code>items</code> atom to house a collection of items, an <code>item-list</code> function to render it, and the <code>home-page</code> function that will use the <code>item-list</code> component. We also have a button that lets the user add new items with an <code>:on-click</code> event. This is all standard Reagent code.</p><h3 id="rendering&#95;on&#95;the&#95;server">Rendering on the Server</h3><p>Now, let's navigate to the <code>reagent-serverside.handler</code> namespace and reference the <code>reagent-serverside.home</code> we just created.</p><pre><code class="clojure">&#40;ns reagent-serverside.handler
+</code></pre><p>We'll have the <code>items</code> atom to house a collection of items, an <code>item-list</code> function to render it, and the <code>home-page</code> function that will use the <code>item-list</code> component. We also have a button that lets the user add new items with an <code>:on-click</code> event. This is all standard Reagent code.</p><h3 id="rendering_on_the_server">Rendering on the Server</h3><p>Now, let's navigate to the <code>reagent-serverside.handler</code> namespace and reference the <code>reagent-serverside.home</code> we just created.</p><pre><code class="clojure">&#40;ns reagent-serverside.handler
   &#40;:require ...
             &#91;reagent-serverside.home :refer &#91;items home-page&#93;&#93;&#41;&#41;
 </code></pre><p>We'll now have to write the functions that will traverse the components and render them as appropriate. We'll attach a <code>:data-reactid</code> key to each one to give it an identifier that React looks for, and inject the result into our Hiccup markup.</p><pre><code class="clojure">&#40;defn react-id-str &#91;react-id&#93;
@@ -142,7 +142,7 @@
 
 &#40;def mount-target
   &#91;:div#app &#40;render home-page&#41;&#93;&#41;
-</code></pre><p>The <code>render</code> function will recursively walk the components evaluating any functions it finds and assigning the React id to each element.</p><p>Next, we'll set the <code>items</code> atom to a range of numbers, and then call <code>render</code> inside the <code>mount-target</code> to generate the markup.</p><h3 id="rendering&#95;on&#95;the&#95;client">Rendering on the Client</h3><p>Finally, let's navigate to the <code>reagent-serverside.core</code> namespace in the <code>src/cljs</code> source path. We'll update it to reference the <code>home</code> namespace we created and render the <code>home-page</code> component on load.</p><pre><code class="clojure">&#40;ns reagent-serverside.core
+</code></pre><p>The <code>render</code> function will recursively walk the components evaluating any functions it finds and assigning the React id to each element.</p><p>Next, we'll set the <code>items</code> atom to a range of numbers, and then call <code>render</code> inside the <code>mount-target</code> to generate the markup.</p><h3 id="rendering_on_the_client">Rendering on the Client</h3><p>Finally, let's navigate to the <code>reagent-serverside.core</code> namespace in the <code>src/cljs</code> source path. We'll update it to reference the <code>home</code> namespace we created and render the <code>home-page</code> component on load.</p><pre><code class="clojure">&#40;ns reagent-serverside.core
     &#40;:require &#91;reagent.core :as reagent :refer &#91;atom&#93;&#93;
               &#91;reagent-serverside.home :refer &#91;items home-page&#93;&#93;&#41;&#41;
 
@@ -199,17 +199,20 @@
 // otherwise the CSS text-align:justify fallback applies.
 const p = document.querySelector("article p");
 if (p) {
-    const text = "The quick brown fox jumps over the lazy dog while justif measures";
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
-    p.appendChild(span);
-    const cs = getComputedStyle(span);
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    const dom = span.getBoundingClientRect().width;
-    span.remove();
-    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+    // Check prose and inline code: both go through justif's canvas measure.
+    const agrees = (el, text) => {
+        el.textContent = text;
+        el.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+        p.appendChild(el);
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const dom = el.getBoundingClientRect().width;
+        el.remove();
+        return dom > 0 && Math.abs(ctx.measureText(text).width - dom) / dom < 0.01;
+    };
+    if (agrees(document.createElement("span"), "The quick brown fox jumps over the lazy dog while justif measures") &&
+        agrees(document.createElement("code"), "sorted-map PersistentTreeMap (assoc m :k v)")) {
         import("/js/justif/dist/auto.js");
     }
 }

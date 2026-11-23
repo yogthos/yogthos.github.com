@@ -75,7 +75,7 @@
 </div>
 <div>
     
-    <p>A <a href='https://dl.dropboxusercontent.com/u/12379861/micha_on_hoplon_vs_react/index.html'>recent discussion of Hoplon vs React</a> has been making rounds. While I don't necessarily agree that using React is as difficult as Micha makes it sound, I do think that Hoplon provides an interesting alternative to React that has a number of benefits.</p><p>The main selling point for Hoplon is that it's simple. Hoplon doesn't use a virtual DOM, and thus it doesn't have a component lifecycle. One major benefit of this approach is in making it natural to use with existing Js libraries that expect to work with the browser DOM.</p><p>An example of this would be something like using a <a href='https://github.com/cljsjs/packages/tree/master/jquery-daterange-picker'>jQuery date picker widget</a>. With Reagent, we'd have to use the lifecycle hooks, and make sure that the component is mounted in the browser DOM before the library is called. Conversely, we may need to consider the case of the component updating separately. While, it's not difficult to reason about in most cases, it does introduce some mental overhead. Using the same date picker in Hoplon can be seen <a href='https://github.com/hoplon/jquery.daterangepicker/blob/master/src/hoplon/jquery/daterangepicker.cljs.hl'>here</a>.</p><p>However, while I found the idea of Hoplon interesting, I've never gave it a serious look due to the fact that it looked to be a monolithic stack. When you read Hoplon documentation, it's easy to get the impression that it has to be used with Boot, you have to use special <code>.hl</code> files to define ClojureScript, and you're expected to work with its server implementation.</p><p>This all can be appealing if you're looking for a full-stack solution where decisions have been made for you, but it's a bit of a deterrent for somebody who already has a preferred workflow and uses other tools such as Figwheel and Leiningen.</p><p>After having a discussion with Micha <a href='https://www.reddit.com/r/Clojure/comments/4mi64q/hoplon_vs_react/'>on Reddit</a>, I realized that this wasn't the case and decided to give Hoplon another shot.</p><h3 id="the&#95;setup">The Setup</h3><p>I used the <a href='https://github.com/reagent-project/reagent-template'>reagent-template</a> that I maintain as the base for he project by running the following command in the terminal:</p><pre><code>lein new reagent hoplon-app
+    <p>A <a href='https://dl.dropboxusercontent.com/u/12379861/micha_on_hoplon_vs_react/index.html'>recent discussion of Hoplon vs React</a> has been making rounds. While I don't necessarily agree that using React is as difficult as Micha makes it sound, I do think that Hoplon provides an interesting alternative to React that has a number of benefits.</p><p>The main selling point for Hoplon is that it's simple. Hoplon doesn't use a virtual DOM, and thus it doesn't have a component lifecycle. One major benefit of this approach is in making it natural to use with existing Js libraries that expect to work with the browser DOM.</p><p>An example of this would be something like using a <a href='https://github.com/cljsjs/packages/tree/master/jquery-daterange-picker'>jQuery date picker widget</a>. With Reagent, we'd have to use the lifecycle hooks, and make sure that the component is mounted in the browser DOM before the library is called. Conversely, we may need to consider the case of the component updating separately. While, it's not difficult to reason about in most cases, it does introduce some mental overhead. Using the same date picker in Hoplon can be seen <a href='https://github.com/hoplon/jquery.daterangepicker/blob/master/src/hoplon/jquery/daterangepicker.cljs.hl'>here</a>.</p><p>However, while I found the idea of Hoplon interesting, I've never gave it a serious look due to the fact that it looked to be a monolithic stack. When you read Hoplon documentation, it's easy to get the impression that it has to be used with Boot, you have to use special <code>.hl</code> files to define ClojureScript, and you're expected to work with its server implementation.</p><p>This all can be appealing if you're looking for a full-stack solution where decisions have been made for you, but it's a bit of a deterrent for somebody who already has a preferred workflow and uses other tools such as Figwheel and Leiningen.</p><p>After having a discussion with Micha <a href='https://www.reddit.com/r/Clojure/comments/4mi64q/hoplon_vs_react/'>on Reddit</a>, I realized that this wasn't the case and decided to give Hoplon another shot.</p><h3 id="the_setup">The Setup</h3><p>I used the <a href='https://github.com/reagent-project/reagent-template'>reagent-template</a> that I maintain as the base for he project by running the following command in the terminal:</p><pre><code>lein new reagent hoplon-app
 </code></pre><p>Next, I updated the dependencies in <code>project.clj</code> to remove the references to Reagent, and add the Hoplon dependency instead:</p><pre><code class="clojure">  :dependencies &#91;&#91;org.clojure/clojure &quot;1.8.0&quot;&#93;
                  &#91;ring-server &quot;0.4.0&quot;&#93;
                  &#91;hoplon &quot;6.0.0-alpha15&quot;&#93;
@@ -186,17 +186,20 @@
 // otherwise the CSS text-align:justify fallback applies.
 const p = document.querySelector("article p");
 if (p) {
-    const text = "The quick brown fox jumps over the lazy dog while justif measures";
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
-    p.appendChild(span);
-    const cs = getComputedStyle(span);
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    const dom = span.getBoundingClientRect().width;
-    span.remove();
-    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+    // Check prose and inline code: both go through justif's canvas measure.
+    const agrees = (el, text) => {
+        el.textContent = text;
+        el.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+        p.appendChild(el);
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const dom = el.getBoundingClientRect().width;
+        el.remove();
+        return dom > 0 && Math.abs(ctx.measureText(text).width - dom) / dom < 0.01;
+    };
+    if (agrees(document.createElement("span"), "The quick brown fox jumps over the lazy dog while justif measures") &&
+        agrees(document.createElement("code"), "sorted-map PersistentTreeMap (assoc m :k v)")) {
         import("/js/justif/dist/auto.js");
     }
 }

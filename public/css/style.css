@@ -16,7 +16,12 @@ hr {
   background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-hr), rgba(0, 0, 0, 0));
 }
 
+/* An explicit stack: bare `monospace` gets the browser's monospace font-size
+   quirk, which canvas measureText doesn't reproduce in Firefox, so justif
+   mismeasured inline code and broke lines inside code tokens. */
 code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace;
+  font-size: 0.85em;
   color: var(--color-code-text);
   font-weight: 550;
 }

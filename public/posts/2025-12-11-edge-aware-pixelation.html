@@ -75,17 +75,17 @@
 </div>
 <div>
     
-    <p>Pixelation is everywhere these days, from retro game aesthetics to modern design trends. But if you've ever tried to create pixel art from a photograph, you've probably noticed that the results often look a bit off. Edges get jagged, important features get distorted, and the whole image tends to lose its character.</p><p>Most pixelation algorithms rely on the same approach of downscaling the image, then upscaling it back. While this is fast and cheap to implement, it treats every part of the image the same way forcing a rigid grid that cuts indiscriminately across edges, faces, and fine details.</p><p>In this post, we'll take a look at a strategy of using edge-aware pixelation. The idea here is to use an algorithm that adapts to the structure of the image rather than forcing a uniform grid onto it. We'll look at how it works, why it tends to produce better results, and the trade-offs involved.</p><h3 id="the&#95;traditional&#95;approach">The Traditional Approach</h3><p>Let's start by looking at what most pixelation libraries do under the hood. The most common approach uses standard image scaling with smoothing.</p><pre><code class="javascript">// Pseudo-code for traditional pixelation
+    <p>Pixelation is everywhere these days, from retro game aesthetics to modern design trends. But if you've ever tried to create pixel art from a photograph, you've probably noticed that the results often look a bit off. Edges get jagged, important features get distorted, and the whole image tends to lose its character.</p><p>Most pixelation algorithms rely on the same approach of downscaling the image, then upscaling it back. While this is fast and cheap to implement, it treats every part of the image the same way forcing a rigid grid that cuts indiscriminately across edges, faces, and fine details.</p><p>In this post, we'll take a look at a strategy of using edge-aware pixelation. The idea here is to use an algorithm that adapts to the structure of the image rather than forcing a uniform grid onto it. We'll look at how it works, why it tends to produce better results, and the trade-offs involved.</p><h3 id="the_traditional_approach">The Traditional Approach</h3><p>Let's start by looking at what most pixelation libraries do under the hood. The most common approach uses standard image scaling with smoothing.</p><pre><code class="javascript">// Pseudo-code for traditional pixelation
 const downscaled = scaleDown&#40;image, pixelSize&#41;; // Uses bilinear/bicubic
 const pixelated = scaleUp&#40;downscaled, originalSize&#41;; // Nearest-neighbor
 </code></pre><p>While this works, there are a few obvious problems. Smoothing filters tend to blur important edges before downsampling, and the pixel grid doesn't care about the image content. This often leads to artifacts where edges get "chopped" across pixel boundaries, creating jagged lines. You also end up losing fine features like eyes or text.</p><p>Some approaches try to improve on this using median color sampling instead of averaging.</p><pre><code class="javascript">// Sample colors in each block, pick median
 const blockColor = median&#40;colorsInBlock&#41;;
-</code></pre><p>This avoids some of the blurring, but it still suffers from the same fixed grid issue. It ignores the image structure and can create harsh transitions between blocks.</p><p>Basically, all these methods force a uniform grid onto the image without considering its content. The result is usually pixel blocks that cut across important features. For example, if we use the following <a href='https://commons.wikimedia.org/wiki/File:CANADAMIKE.jpg'>image from wikimedia</a> as the input.</p><p><img src="/img/pixelation/CANADAMIKE.jpg" alt="stock portrait" /></p><p>The result ends up looking something like the following when using a naive pixelation algorithm:</p><p><img src="/img/pixelation/pixelated-naive.png" alt="Naive pixelation" /></p><h3 id="edge-aware&#95;adaptive&#95;grid">Edge-Aware Adaptive Grid</h3><p>Instead of forcing a rigid grid, we can let the grid adapt to the image. This is the core idea behind edge-aware pixelation. We can treat pixelation as an optimization problem with four main stages.</p><h4 id="1&#46;&#95;edge&#95;detection">1&#46; Edge Detection</h4><p>First, we need to understand where the important features are in the image.</p><pre><code class="javascript">// Sobel operators detect gradient magnitude and direction
+</code></pre><p>This avoids some of the blurring, but it still suffers from the same fixed grid issue. It ignores the image structure and can create harsh transitions between blocks.</p><p>Basically, all these methods force a uniform grid onto the image without considering its content. The result is usually pixel blocks that cut across important features. For example, if we use the following <a href='https://commons.wikimedia.org/wiki/File:CANADAMIKE.jpg'>image from wikimedia</a> as the input.</p><p><img src="/img/pixelation/CANADAMIKE.jpg" alt="stock portrait" /></p><p>The result ends up looking something like the following when using a naive pixelation algorithm:</p><p><img src="/img/pixelation/pixelated-naive.png" alt="Naive pixelation" /></p><h3 id="edge-aware_adaptive_grid">Edge-Aware Adaptive Grid</h3><p>Instead of forcing a rigid grid, we can let the grid adapt to the image. This is the core idea behind edge-aware pixelation. We can treat pixelation as an optimization problem with four main stages.</p><h4 id="1%26%2346%3B_edge_detection">1&#46; Edge Detection</h4><p>First, we need to understand where the important features are in the image.</p><pre><code class="javascript">// Sobel operators detect gradient magnitude and direction
 const gradient = calculateGradient&#40;image&#41;;
 const edges = applyNonMaximumSuppression&#40;gradient&#41;;
 const edgeMap = thresholdEdges&#40;edges, sharpness&#41;;
-</code></pre><p>We use Sobel operators to compute the gradient magnitude, and then apply non-maximum suppression to thin the edges to a single-pixel width. Finally, we use percentile-based thresholding to adapt to the edge distribution of the specific image. Since this can be computationally expensive, using WebGL can provide a significant speedup here.</p><p>This gives us an edge map where bright pixels represent edges and dark pixels represent smooth regions.</p><p><img src="/img/pixelation/edges.png" alt="Sobel edges" /></p><h4 id="2&#46;&#95;grid&#95;initialization">2&#46; Grid Initialization</h4><p>Next, we start with a regular grid matching the target pixel size.</p><pre><code class="javascript">const grid = createUniformGrid&#40;width, height, pixelSize&#41;;
-</code></pre><p>Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around.</p><p><img src="/img/pixelation/grid.png" alt="Initial grid" /></p><h4 id="3&#46;&#95;grid&#95;optimization">3&#46; Grid Optimization</h4><p>This is where the actual work happens. We iteratively move the grid corners to align the cell boundaries with the detected edges.</p><pre><code class="javascript">for &#40;let iteration = 0; iteration &lt; numIterations; iteration++&#41; {
+</code></pre><p>We use Sobel operators to compute the gradient magnitude, and then apply non-maximum suppression to thin the edges to a single-pixel width. Finally, we use percentile-based thresholding to adapt to the edge distribution of the specific image. Since this can be computationally expensive, using WebGL can provide a significant speedup here.</p><p>This gives us an edge map where bright pixels represent edges and dark pixels represent smooth regions.</p><p><img src="/img/pixelation/edges.png" alt="Sobel edges" /></p><h4 id="2%26%2346%3B_grid_initialization">2&#46; Grid Initialization</h4><p>Next, we start with a regular grid matching the target pixel size.</p><pre><code class="javascript">const grid = createUniformGrid&#40;width, height, pixelSize&#41;;
+</code></pre><p>Unlike traditional methods, the grid is just a starting point. Each cell is defined by four corner points which we can move around.</p><p><img src="/img/pixelation/grid.png" alt="Initial grid" /></p><h4 id="3%26%2346%3B_grid_optimization">3&#46; Grid Optimization</h4><p>This is where the actual work happens. We iteratively move the grid corners to align the cell boundaries with the detected edges.</p><pre><code class="javascript">for &#40;let iteration = 0; iteration &lt; numIterations; iteration++&#41; {
   for &#40;each corner in grid&#41; {
     // Search nearby positions
     const candidates = searchNeighborhood&#40;corner, stepSize&#41;;
@@ -102,7 +102,7 @@ const edgeMap = thresholdEdges&#40;edges, sharpness&#41;;
     corner.moveToward&#40;bestPosition, damping&#41;;
   }
 }
-</code></pre><p>For each corner, we test multiple positions in a local neighborhood and evaluate the alignment by sampling edge strength along the grid edges. We want to find positions where the grid boundaries follow the edges continuously. We also use damping to prevent over-optimization and maintain stability.</p><p>The result is a grid that bends and adapts to align with the natural structure of the image.</p><p><img src="/img/pixelation/optimized-grid.png" alt="Optimized grid" /></p><h4 id="4&#46;&#95;color&#95;assignment">4&#46; Color Assignment</h4><p>Finally, we need to assign colors to our optimized cells.</p><pre><code class="javascript">for &#40;each cell in grid&#41; {
+</code></pre><p>For each corner, we test multiple positions in a local neighborhood and evaluate the alignment by sampling edge strength along the grid edges. We want to find positions where the grid boundaries follow the edges continuously. We also use damping to prevent over-optimization and maintain stability.</p><p>The result is a grid that bends and adapts to align with the natural structure of the image.</p><p><img src="/img/pixelation/optimized-grid.png" alt="Optimized grid" /></p><h4 id="4%26%2346%3B_color_assignment">4&#46; Color Assignment</h4><p>Finally, we need to assign colors to our optimized cells.</p><pre><code class="javascript">for &#40;each cell in grid&#41; {
   const pixels = samplePixelsInCell&#40;cell&#41;;
 
   // Blend between average &#40;soft&#41; and median &#40;crisp&#41; based on edge presence
@@ -161,17 +161,20 @@ const edgeMap = thresholdEdges&#40;edges, sharpness&#41;;
 // otherwise the CSS text-align:justify fallback applies.
 const p = document.querySelector("article p");
 if (p) {
-    const text = "The quick brown fox jumps over the lazy dog while justif measures";
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
-    p.appendChild(span);
-    const cs = getComputedStyle(span);
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    const dom = span.getBoundingClientRect().width;
-    span.remove();
-    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+    // Check prose and inline code: both go through justif's canvas measure.
+    const agrees = (el, text) => {
+        el.textContent = text;
+        el.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+        p.appendChild(el);
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const dom = el.getBoundingClientRect().width;
+        el.remove();
+        return dom > 0 && Math.abs(ctx.measureText(text).width - dom) / dom < 0.01;
+    };
+    if (agrees(document.createElement("span"), "The quick brown fox jumps over the lazy dog while justif measures") &&
+        agrees(document.createElement("code"), "sorted-map PersistentTreeMap (assoc m :k v)")) {
         import("/js/justif/dist/auto.js");
     }
 }

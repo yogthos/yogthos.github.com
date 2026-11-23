@@ -76,7 +76,7 @@
 <div>
     
      <p>I recently ran into an interesting issue when I added the <a href='https://github.com/fzakaria/slf4j-timbre'>slf4j-timbre</a> dependency to a project. As soon as the dependency was added the project would fail to build and I'd see the following error:</p><pre><code>Caused by: java.io.FileNotFoundException: Could not locate clojure/tools/reader/impl/ExceptionInfo&#95;&#95;init.class or clojure/tools/reader/impl/ExceptionInfo.clj on classpath.
-</code></pre><p>The <code>slf4j-timbre</code> library does not depend on <code>clojure.tools.reader</code>, and at first glance there's nothing in it that should've caused problems. I did notice that the library depends on <code>com.taoensso/timbre 4.1.4</code> that in turn depends on <code>com.taoensso/encore 2.18.0</code>, and it uses on an older version of <code>clojure.tools.reader</code>.</p><p>At this point I thought the solution would be simple. I'd just include the latest version of <code>encore</code> and everything should work fine. However that didn't turn out to be the case.</p><p>I decided to take another look at <code>slf4j-timbre</code> to see what else might be happening. At this point I noticed that it uses <code>:aot :all</code> in the project configuration. This causes the library to be compiled to Java classes as opposed to being distributed at source. This is necessary since the library has to implement the SLF4J interface and has to provide a Java class in its implementation.</p><p>When the namespace that references <code>Timbre</code> is compiled then any namespaces it depends on are also compiled and packaged in the <code>jar</code>. These compiled classes will take precedence over the source dependencies when the library is included in the project.</p><p>So, even though I was explicitly including the version of <code>encore</code> that uses the latest <code>clojure.tools.reader</code>, the compiled version packaged in <code>slf4j-timbre</code> would end up being used causing the exception above. As far as I can tell there's no way to overwrite these in the project configuration.</p><h3 id="implications&#95;for&#95;luminus">Implications for Luminus</h3><p>Unfortunately, Luminus dependencies require both a SLF4J compliant logger and the latest <code>clojure.tools.reader</code>. While I think <code>Timbre</code> is an excellent library, it's just not the right fit at the moment.</p><p>Luckily, <a href='https://github.com/clojure/tools.logging'>clojure.tools.logging</a> provides a SLF4J compliant API for Clojure logging. The latest release of Luminus uses <code>clojure.tools.logging</code> along with the <a href='https://logging.apache.org/log4j/2.x/'>log4j</a> library as the default logging implementation. It's a mature library that has excellent performance and provides a <a href='https://logging.apache.org/log4j/2.x/manual/appenders.html'>plethora of logging appenders</a>.</p><p>Since <code>log4j</code> can be configured using a properties file, it fits the Luminus approach of using 12 factor style configuration. The library will look for a file called <code>log4j.properties</code> on the classpath to get its default configuration. Luminus packages this file in the <code>resources</code> folder with the following configuration:</p><pre><code>### stdout appender
+</code></pre><p>The <code>slf4j-timbre</code> library does not depend on <code>clojure.tools.reader</code>, and at first glance there's nothing in it that should've caused problems. I did notice that the library depends on <code>com.taoensso/timbre 4.1.4</code> that in turn depends on <code>com.taoensso/encore 2.18.0</code>, and it uses on an older version of <code>clojure.tools.reader</code>.</p><p>At this point I thought the solution would be simple. I'd just include the latest version of <code>encore</code> and everything should work fine. However that didn't turn out to be the case.</p><p>I decided to take another look at <code>slf4j-timbre</code> to see what else might be happening. At this point I noticed that it uses <code>:aot :all</code> in the project configuration. This causes the library to be compiled to Java classes as opposed to being distributed at source. This is necessary since the library has to implement the SLF4J interface and has to provide a Java class in its implementation.</p><p>When the namespace that references <code>Timbre</code> is compiled then any namespaces it depends on are also compiled and packaged in the <code>jar</code>. These compiled classes will take precedence over the source dependencies when the library is included in the project.</p><p>So, even though I was explicitly including the version of <code>encore</code> that uses the latest <code>clojure.tools.reader</code>, the compiled version packaged in <code>slf4j-timbre</code> would end up being used causing the exception above. As far as I can tell there's no way to overwrite these in the project configuration.</p><h3 id="implications_for_luminus">Implications for Luminus</h3><p>Unfortunately, Luminus dependencies require both a SLF4J compliant logger and the latest <code>clojure.tools.reader</code>. While I think <code>Timbre</code> is an excellent library, it's just not the right fit at the moment.</p><p>Luckily, <a href='https://github.com/clojure/tools.logging'>clojure.tools.logging</a> provides a SLF4J compliant API for Clojure logging. The latest release of Luminus uses <code>clojure.tools.logging</code> along with the <a href='https://logging.apache.org/log4j/2.x/'>log4j</a> library as the default logging implementation. It's a mature library that has excellent performance and provides a <a href='https://logging.apache.org/log4j/2.x/manual/appenders.html'>plethora of logging appenders</a>.</p><p>Since <code>log4j</code> can be configured using a properties file, it fits the Luminus approach of using 12 factor style configuration. The library will look for a file called <code>log4j.properties</code> on the classpath to get its default configuration. Luminus packages this file in the <code>resources</code> folder with the following configuration:</p><pre><code>### stdout appender
 log4j.appender.stdout=org.apache.log4j.ConsoleAppender
 log4j.appender.stdout.Target=System.out
 log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
@@ -96,7 +96,7 @@ log4j.appender.R.layout.ConversionPattern=&#91;%d&#93;&#91;%p&#93;&#91;%c&#93; %
 ### and aggregates the appenders
 log4j.rootLogger=DEBUG, stdout, R
 </code></pre><p>As you can see the configuration is very straight forward, it's also <a href='https://logging.apache.org/log4j/2.x/manual/configuration.html#Properties'>well documented</a>. The default configuration can be overridden at runtime by setting the <code>:log-config</code> environment variable. You can now create a custom logging configuration on the target system and then set an environment variable to point to it as seen below:</p><pre><code>export LOG&#95;CONFIG=prod-log.properties
-</code></pre><p>I think that the new approach provides a solid solution for most situations with minimal changes from the existing behavior.</p><h3 id="final&#95;thoughts">Final Thoughts</h3><p>The moral of the story is that you want to be very careful when using AOT in libraries. Whenever possible it is best to avoid it, and if you do have to use it then try to find the minimal subset of the namespaces that absolutely have to be compiled.</p>
+</code></pre><p>I think that the new approach provides a solid solution for most situations with minimal changes from the existing behavior.</p><h3 id="final_thoughts">Final Thoughts</h3><p>The moral of the story is that you want to be very careful when using AOT in libraries. Whenever possible it is best to avoid it, and if you do have to use it then try to find the minimal subset of the namespaces that absolutely have to be compiled.</p>
 </div>
 
 <div id="post-tags">
@@ -141,17 +141,20 @@ log4j.rootLogger=DEBUG, stdout, R
 // otherwise the CSS text-align:justify fallback applies.
 const p = document.querySelector("article p");
 if (p) {
-    const text = "The quick brown fox jumps over the lazy dog while justif measures";
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
-    p.appendChild(span);
-    const cs = getComputedStyle(span);
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    const dom = span.getBoundingClientRect().width;
-    span.remove();
-    if (Math.abs(ctx.measureText(text).width - dom) / dom < 0.01) {
+    // Check prose and inline code: both go through justif's canvas measure.
+    const agrees = (el, text) => {
+        el.textContent = text;
+        el.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
+        p.appendChild(el);
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const dom = el.getBoundingClientRect().width;
+        el.remove();
+        return dom > 0 && Math.abs(ctx.measureText(text).width - dom) / dom < 0.01;
+    };
+    if (agrees(document.createElement("span"), "The quick brown fox jumps over the lazy dog while justif measures") &&
+        agrees(document.createElement("code"), "sorted-map PersistentTreeMap (assoc m :k v)")) {
         import("/js/justif/dist/auto.js");
     }
 }
